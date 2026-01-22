@@ -4,6 +4,10 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 
 import appCss from '../styles.css?url'
 
+const siteTitle = 'Donnie Silalahi'
+const siteDescription = 'Product Builder, Growth Marketer and Operations Leader'
+const siteUrl = 'https://donniesilalahi.com'
+
 export const Route = createRootRoute({
   head: () => ({
     meta: [
@@ -15,13 +19,68 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'TanStack Start Starter',
+        title: siteTitle,
+      },
+      {
+        name: 'description',
+        content: siteDescription,
+      },
+      // Open Graph
+      {
+        property: 'og:type',
+        content: 'website',
+      },
+      {
+        property: 'og:url',
+        content: siteUrl,
+      },
+      {
+        property: 'og:title',
+        content: siteTitle,
+      },
+      {
+        property: 'og:description',
+        content: siteDescription,
+      },
+      {
+        property: 'og:image',
+        content: `${siteUrl}/opengraph.webp`,
+      },
+      // Twitter
+      {
+        name: 'twitter:card',
+        content: 'summary_large_image',
+      },
+      {
+        name: 'twitter:url',
+        content: siteUrl,
+      },
+      {
+        name: 'twitter:title',
+        content: siteTitle,
+      },
+      {
+        name: 'twitter:description',
+        content: siteDescription,
+      },
+      {
+        name: 'twitter:image',
+        content: `${siteUrl}/opengraph.webp`,
       },
     ],
     links: [
       {
         rel: 'stylesheet',
         href: appCss,
+      },
+      {
+        rel: 'icon',
+        type: 'image/webp',
+        href: '/favicon.webp',
+      },
+      {
+        rel: 'apple-touch-icon',
+        href: '/favicon.webp',
       },
     ],
   }),

@@ -1,11 +1,20 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router'
+import { ProfileSection } from '@/components/profile-section'
+import { Postcard } from '@/components/postcard'
+import { formatLocation, useGeolocation } from '@/lib/use-geolocation'
 
-export const Route = createFileRoute("/")({ component: App });
+export const Route = createFileRoute('/')({ component: Home })
 
-function App() {
+function Home() {
+  const { city, country, isLoading } = useGeolocation()
+  const receiverLocation = isLoading
+    ? 'Detecting your location...'
+    : formatLocation(city, country)
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center">
-      <div className="font-medium">Hello World</div>
-    </div>
-  );
+    <main className="min-h-screen">
+      <ProfileSection />
+      <Postcard receiverLocation={receiverLocation} />
+    </main>
+  )
 }
