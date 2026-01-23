@@ -75,7 +75,7 @@ export function PostcardBackCover({
   return (
     <div
       className={cn(
-        'relative aspect-[6/4] w-full max-w-[688px] cursor-pointer overflow-hidden rounded-sm border border-border bg-background',
+        'relative aspect-6/4 w-full max-w-[688px] cursor-pointer overflow-hidden rounded-sm border border-border bg-background',
         className,
       )}
       onClick={onClick}
@@ -99,8 +99,8 @@ export function PostcardBackCover({
             ))}
           </div>
 
-          {/* Signature - handwriting style, text-base bold */}
-          <p className="mt-3 font-handwriting text-base font-bold leading-6 text-foreground">
+          {/* Signature */}
+          <p className="mt-3 self-end font-serif text-base font-bold leading-6 text-foreground">
             Donnie
           </p>
         </div>
