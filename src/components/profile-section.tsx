@@ -1,37 +1,37 @@
-import { Linkedin, Mail, Twitter } from 'lucide-react'
+import { Linkedin } from './icons/custom-social/linkedin'
+import { Twitter } from './icons/custom-social/twitter'
 import { Button } from '@/components/ui/button'
 
 export function ProfileSection() {
   return (
-    <section className="flex flex-col items-center gap-6 py-12 px-4">
-      {/* Profile Info */}
-      <div className="flex flex-col items-center gap-4">
+    <section className="flex w-full flex-col gap-8">
+      {/* Profile Info - Horizontal layout */}
+      <div className="flex items-center gap-4">
         {/* Profile Picture */}
         <img
           src="/images/profile_picture.webp"
           alt="Donnie Silalahi"
-          className="size-24 rounded-full object-cover ring-2 ring-border"
+          className="size-14 shrink-0 rounded-[4px] border border-border object-cover"
         />
 
-        {/* Name */}
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Donnie Silalahi
-        </h1>
-
-        {/* Professional Role */}
-        <p className="text-center text-muted-foreground max-w-xs">
-          Product Builder, Growth Marketer and Operations Leader
-        </p>
+        {/* Name and Role */}
+        <div className="flex flex-col gap-0.5">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+            Donnie Silalahi
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Product Builder, Growth Marketer and Operations Leader
+          </p>
+        </div>
       </div>
 
       {/* CTAs */}
-      <div className="flex flex-wrap items-center justify-center gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         {/* Secondary CTA - Send Email */}
         <Button
           variant="secondary"
           render={<a href="mailto:donniesilalahi@gmail.com" />}
         >
-          <Mail data-icon="inline-start" className="size-4" />
           Send email
         </Button>
 
@@ -46,7 +46,7 @@ export function ProfileSection() {
             />
           }
         >
-          <Linkedin data-icon="inline-start" className="size-4" />
+          <Linkedin className="size-4" />
           Connect
         </Button>
 
@@ -61,7 +61,7 @@ export function ProfileSection() {
             />
           }
         >
-          <Twitter data-icon="inline-start" className="size-4" />
+          <Twitter className="size-4 scale-[0.9]" />
           Say hi
         </Button>
       </div>
