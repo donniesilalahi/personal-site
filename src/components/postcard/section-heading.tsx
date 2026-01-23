@@ -1,4 +1,4 @@
-import { Maximize2, RotateCcw } from 'lucide-react'
+import { Expand, FlipHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -28,7 +28,7 @@ export function SectionHeading({
       {/* CTA Buttons */}
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" onClick={onFlip}>
-          <RotateCcw className="size-4" />
+          <FlipHorizontal className="size-4" />
           Flip
         </Button>
         <Button
@@ -37,7 +37,7 @@ export function SectionHeading({
           onClick={onExpand}
           className="bg-primitives-colors-gray-light-mode-800 hover:bg-primitives-colors-gray-light-mode-900"
         >
-          <Maximize2 className="size-4" />
+          <Expand className="size-4" />
           Expand
         </Button>
       </div>
