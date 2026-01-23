@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
+import { Separator } from '@/components/ui/separator'
+import { TextureOverlay, NoiseOverlay } from './postcard-frame'
 
 interface PostcardBackCoverProps {
   className?: string
@@ -7,129 +9,173 @@ interface PostcardBackCoverProps {
   receiverLocation?: string
 }
 
-function useJakartaTime(): string {
-  const [time, setTime] = useState<string>('')
+interface JakartaDateTime {
+  date: string
+  time: string
+}
+
+function useJakartaTime(): JakartaDateTime {
+  const [dateTime, setDateTime] = useState<JakartaDateTime>({
+    date: '',
+    time: '',
+  })
 
   useEffect(() => {
-    const updateTime = (): void => {
+    const updateDateTime = (): void => {
       const now = new Date()
-      const jakartaTime = now.toLocaleTimeString('en-US', {
+
+      // Format date as "Jan 22th, 2026"
+      const date = now.toLocaleDateString('en-US', {
+        timeZone: 'Asia/Jakarta',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+
+      // Format time as "20:43:01"
+      const time = now.toLocaleTimeString('en-US', {
         timeZone: 'Asia/Jakarta',
         hour: '2-digit',
         minute: '2-digit',
+        second: '2-digit',
         hour12: false,
       })
-      setTime(jakartaTime)
+
+      setDateTime({ date, time })
     }
 
-    updateTime()
-    const interval = setInterval(updateTime, 1000)
+    updateDateTime()
+    const interval = setInterval(updateDateTime, 1000)
     return () => clearInterval(interval)
   }, [])
 
-  return time
+  return dateTime
 }
 
-const postcardContent = `Hi, I'm Donnie.
-I study patterns, run experiments, and scale what works.
-Right now, I'm an aspiring product designer exploring how to make technology feel more human.
-I work as a Swiss army knife at a fintech startup's CEO office — a role that shapeshifts every six months to whatever the business needs most. Over six years, I've built growth engines as a marketer, shipped foundational products as a PM, scaled operations 10x, and led new business lines.
-At night, I break things for fun, sketch ideas, and learn how design and engineering dance together.
-I believe good design isn't about trends — it's about honesty. It's what happens when craft meets empathy.
-This small corner of the internet is where I'm documenting what I'm learning — experiments, half-formed thoughts, and the curiosities that keep me up at night.
-I don't know exactly where it's heading, but I hope it leads to work that feels true.
-p.s. I've used the em dash long before the AI era — it's leaner, simpler, cooler.
-Are you living your dreams?`
+const postcardParagraphs = [
+  "Hi, I'm Donnie.",
+  'I study patterns, run experiments, and scale what works.',
+  "Right now, I'm an aspiring product designer exploring how to make technology feel more human.",
+  "I work as a Swiss army knife at a fintech startup's CEO office — a role that shapeshifts every six months to whatever the business needs most. Over six years, I've built growth engines as a marketer, shipped foundational products as a PM, scaled operations 10x, and led new business lines.",
+  'At night, I break things for fun, sketch ideas, and learn how design and engineering dance together.',
+  "I believe good design isn't about trends — it's about honesty. It's what happens when craft meets empathy.",
+  "This small corner of internet is where I'm documenting what I'm learning — experiments, half-formed thoughts, and curiosities that keep me up at night.",
+  "I don't know exactly where it's heading, but I hope it leads to work that feels true.",
+  "p.s. I've used to em dash long before to AI era — it's leaner, simpler, cooler.",
+  'Are you living your dreams?',
+]
 
 export function PostcardBackCover({
   className,
   onClick,
-  receiverLocation = 'Somewhere on Earth',
+  receiverLocation = 'City, Country',
 }: PostcardBackCoverProps) {
-  const jakartaTime = useJakartaTime()
+  const { date, time } = useJakartaTime()
 
   return (
     <div
       className={cn(
-        'relative aspect-[6/4] w-full cursor-pointer overflow-hidden rounded-lg bg-amber-50 shadow-lg',
+        'relative aspect-[3/2] w-full cursor-pointer overflow-hidden rounded-sm border border-border bg-background p-4',
         className,
       )}
       onClick={onClick}
+      style={{
+        // Drop shadow: x=0, y=3.17, blur=0, spread=0, color #000000 25%
+        boxShadow: '0px 3.17px 0px 0px rgba(0, 0, 0, 0.25)',
+      }}
     >
-      {/* Postcard texture overlay */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmYiIG9wYWNpdHk9IjAuMDUiLz48L3N2Zz4=')] opacity-30" />
-
-      {/* Main container with grid layout */}
-      <div className="absolute inset-0 grid grid-cols-2 gap-4 p-4 md:p-6">
-        {/* Left side - Content area */}
-        <div className="flex flex-col justify-between border-r border-amber-200/50 pr-4">
-          {/* Content */}
-          <div className="flex-1 overflow-hidden">
-            <p className="text-[8px] leading-relaxed text-amber-900/80 md:text-[10px] lg:text-xs">
-              {postcardContent.split('\n').map((line, index) => (
-                <span key={index}>
-                  {line}
-                  {index < postcardContent.split('\n').length - 1 && <br />}
-                </span>
-              ))}
-            </p>
+      {/* Inner content container */}
+      <div className="relative flex h-full w-full gap-3 overflow-hidden rounded-[2px]">
+        {/* Left column - Message area */}
+        <div className="flex min-w-0 flex-1 flex-col items-end justify-end">
+          {/* Content paragraphs */}
+          <div className="flex w-full flex-col gap-1.5">
+            {postcardParagraphs.map((paragraph, index) => (
+              <p
+                key={index}
+                className="text-xs leading-[18px] text-muted-foreground"
+              >
+                {paragraph}
+              </p>
+            ))}
           </div>
 
-          {/* Signature */}
-          <div className="mt-2 pt-2 border-t border-amber-200/30">
-            <p className="font-serif text-sm italic text-amber-800 md:text-base">
-              Donnie
-            </p>
-          </div>
+          {/* Signature - handwriting style, text-md bold */}
+          <p className="mt-3 font-handwriting text-base font-bold leading-6 text-foreground">
+            Donnie
+          </p>
         </div>
 
-        {/* Right side - Sender area */}
-        <div className="flex flex-col justify-between pl-2">
+        {/* Vertical divider */}
+        <Separator orientation="vertical" className="self-stretch" />
+
+        {/* Right column - Sender information area */}
+        <div className="flex w-[169px] shrink-0 flex-col gap-3">
           {/* Stamp */}
           <div className="flex justify-end">
-            <div className="relative">
+            <div className="overflow-hidden rounded-[1px] border-2 border-border">
               <img
                 src="/images/postcard_stamp.webp"
                 alt="Stamp"
-                className="h-16 w-auto rotate-2 border-2 border-amber-200 object-contain md:h-20"
+                className="h-[57px] w-[46px] object-cover"
               />
-              {/* Postmark overlay */}
-              <div className="absolute -right-2 -top-2 size-12 rounded-full border-2 border-amber-700/30 md:size-14" />
             </div>
           </div>
 
-          {/* Sender & Receiver Info */}
-          <div className="mt-auto space-y-4">
-            {/* Sender info */}
-            <div className="space-y-1">
-              <p className="text-[10px] uppercase tracking-wider text-amber-600 md:text-xs">
-                From
-              </p>
-              <p className="text-xs text-amber-900 md:text-sm">
+          {/* From section */}
+          <div className="flex flex-1 flex-col gap-0.5">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] leading-4 text-foreground">
+                From:
+              </span>
+            </div>
+            <Separator className="bg-border/60" />
+
+            {/* Location */}
+            <div className="flex items-center gap-1.5 pl-3.5">
+              <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
                 Jakarta, Indonesia
-              </p>
-              <p className="font-mono text-xs text-amber-700 md:text-sm">
-                {jakartaTime} GMT+7
-              </p>
+              </span>
             </div>
+            <Separator className="bg-border/60" />
 
-            {/* Divider line for address */}
-            <div className="space-y-2">
-              <div className="h-px bg-amber-300/50" />
-              <div className="h-px bg-amber-300/50" />
+            {/* Date */}
+            <div className="flex items-center gap-1.5 pl-3.5">
+              <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
+                {date}
+              </span>
             </div>
+            <Separator className="bg-border/60" />
 
-            {/* Receiver info */}
-            <div className="space-y-1">
-              <p className="text-[10px] uppercase tracking-wider text-amber-600 md:text-xs">
-                To
-              </p>
-              <p className="text-xs text-amber-900 md:text-sm">
+            {/* Time */}
+            <div className="flex items-center gap-1.5 pl-3.5">
+              <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
+                {time}
+              </span>
+            </div>
+            <Separator className="bg-border/60" />
+          </div>
+
+          {/* To section */}
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] leading-4 text-foreground">To:</span>
+            </div>
+            <Separator className="bg-border/60" />
+
+            {/* Receiver location */}
+            <div className="flex items-center gap-1.5 pl-3.5">
+              <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
                 {receiverLocation}
-              </p>
+              </span>
             </div>
+            <Separator className="bg-border/60" />
           </div>
         </div>
+
+        {/* Effect overlays */}
+        <TextureOverlay />
+        <NoiseOverlay />
       </div>
     </div>
   )
