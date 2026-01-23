@@ -55,13 +55,11 @@ function useJakartaTime(): JakartaDateTime {
 const postcardParagraphs = [
   "Hi, I'm Donnie.",
   'I study patterns, run experiments, and scale what works.',
-  "Right now, I'm an aspiring product designer exploring how to make technology feel more human.",
-  "I work as a Swiss army knife at a fintech startup's CEO office — a role that shapeshifts every six months to whatever the business needs most. Over six years, I've built growth engines as a marketer, shipped foundational products as a PM, scaled operations 10x, and led new business lines.",
-  'At night, I break things for fun, sketch ideas, and learn how design and engineering dance together.',
-  "I believe good design isn't about trends — it's about honesty. It's what happens when craft meets empathy.",
-  "This small corner of internet is where I'm documenting what I'm learning — experiments, half-formed thoughts, and curiosities that keep me up at night.",
-  "I don't know exactly where it's heading, but I hope it leads to work that feels true.",
-  "p.s. I've used to em dash long before to AI era — it's leaner, simpler, cooler.",
+  "I'm an aspiring product designer exploring how to make tech feel more human.",
+  "By day, I am a Swiss army knife at a fintech startup's CEO office — shapeshifting every six months to what the business needs most. Over six years, I have built growth engines, shipped products, scaled ops 10x, launched and led new business lines.",
+  'By night, I break, sketch, and learn how design and engineering dance.',
+  "Good design isn't trends — it's honesty: craft meeting empathy. Here, I document experiments, half-formed thoughts, and curiosities that keep me up at night. I hope it leads to work that feels true.",
+  'p.s. Em dashes were mine before AI — leaner, simpler, cooler.',
   'Are you living your dreams?',
 ]
 
@@ -92,7 +90,7 @@ export function PostcardBackCover({
             {postcardParagraphs.map((paragraph, index) => (
               <p
                 key={index}
-                className="text-xs leading-[18px] text-muted-foreground"
+                className="text-sm leading-[18px] text-muted-foreground"
               >
                 {paragraph}
               </p>
@@ -100,7 +98,7 @@ export function PostcardBackCover({
           </div>
 
           {/* Signature */}
-          <p className="mt-3 self-end font-serif text-base font-bold leading-6 text-foreground">
+          <p className="mt-3 self-end text-base font-bold leading-6 text-foreground font-playwrite-is">
             Donnie
           </p>
         </div>
