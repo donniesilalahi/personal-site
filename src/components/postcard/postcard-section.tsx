@@ -15,6 +15,7 @@ export function PostcardSection({
   receiverLocation,
 }: PostcardSectionProps) {
   const [activeCover, setActiveCover] = useState<ActiveCover>('front')
+  const [isExpanded, setIsExpanded] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   const [isInView, setIsInView] = useState(false)
   const [isScrolling, setIsScrolling] = useState(false)
@@ -68,6 +69,14 @@ export function PostcardSection({
     setActiveCover(face)
   }, [])
 
+  const handleExpand = useCallback((): void => {
+    setIsExpanded(true)
+  }, [])
+
+  const handleExpandedChange = useCallback((expanded: boolean): void => {
+    setIsExpanded(expanded)
+  }, [])
+
   // Calculate rotation based on hover/scroll state for visual flair
   const rotation = isHovered || isScrolling ? 2 : 0
 
@@ -79,7 +88,11 @@ export function PostcardSection({
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Section Heading */}
-      <SectionHeading label="Postcard" onFlip={handleFlip} />
+      <SectionHeading
+        label="Postcard"
+        onFlip={handleFlip}
+        onExpand={handleExpand}
+      />
 
       {/* Interactive Postcard Component */}
       <div
@@ -92,6 +105,8 @@ export function PostcardSection({
           receiverLocation={receiverLocation}
           activeFace={activeCover}
           onFaceChange={handleFaceChange}
+          isExpanded={isExpanded}
+          onExpandedChange={handleExpandedChange}
         />
       </div>
     </section>

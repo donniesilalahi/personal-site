@@ -1,20 +1,8 @@
-import { useState } from 'react'
-import { FlipHorizontal, Minimize2 } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { FlipHorizontal, Shrink } from 'lucide-react'
+import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog'
-import {
-  Drawer,
-  DrawerContent,
-  DrawerTitle,
-  DrawerDescription,
-} from '@/components/ui/drawer'
-import { useMediaQuery } from '@/hooks/use-media-query'
 import { PostcardFrontCover } from './postcard-front-cover'
 import { PostcardBackCover } from './postcard-back-cover'
 
@@ -27,6 +15,10 @@ interface PostcardInteractiveProps {
   activeFace?: CardFace
   /** Callback when face changes */
   onFaceChange?: (face: CardFace) => void
+  /** Whether the postcard is in expanded mode */
+  isExpanded?: boolean
+  /** Callback when expanded state changes */
+  onExpandedChange?: (expanded: boolean) => void
 }
 
 interface PostcardControlsProps {
@@ -36,16 +28,22 @@ interface PostcardControlsProps {
 
 function PostcardControls({ onClose, onFlip }: PostcardControlsProps) {
   return (
-    <div className="flex items-center justify-center gap-2">
+    <motion.div
+      className="flex items-center justify-between w-full"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 10 }}
+      transition={{ delay: 0.2, duration: 0.3 }}
+    >
       <Button variant="outline" size="sm" onClick={onClose}>
-        <Minimize2 className="size-4" />
+        <Shrink className="size-4" />
         Close
       </Button>
       <Button variant="outline" size="sm" onClick={onFlip}>
         <FlipHorizontal className="size-4" />
         Flip
       </Button>
-    </div>
+    </motion.div>
   )
 }
 
@@ -54,6 +52,7 @@ interface FlippableCardProps {
   receiverLocation?: string
   isFlipping: boolean
   className?: string
+  onClick?: () => void
 }
 
 function FlippableCard({
@@ -61,11 +60,24 @@ function FlippableCard({
   receiverLocation,
   isFlipping,
   className,
+  onClick,
 }: FlippableCardProps) {
   return (
     <div
       className={cn('relative w-full [perspective:1000px]', className)}
       style={{ aspectRatio: '3/2' }}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                onClick()
+              }
+            }
+          : undefined
+      }
     >
       <div
         className={cn(
@@ -107,111 +119,145 @@ function FlippableCard({
 
 /**
  * Interactive postcard component with horizontal flip animation
- * and responsive dialog (desktop) / drawer (mobile) behavior
+ * and smooth expand/collapse animation using motion
  */
 export function PostcardInteractive({
   className,
   receiverLocation,
   activeFace: controlledFace,
   onFaceChange,
+  isExpanded = false,
+  onExpandedChange,
 }: PostcardInteractiveProps) {
-  const [open, setOpen] = useState(false)
   const [internalFace, setInternalFace] = useState<CardFace>('front')
   const [isFlipping, setIsFlipping] = useState(false)
-  const isDesktop = useMediaQuery('(min-width: 768px)')
+  const cardRef = useRef<HTMLDivElement>(null)
+  const [cardRect, setCardRect] = useState<DOMRect | null>(null)
 
-  // Support controlled or uncontrolled mode
+  // Support controlled or uncontrolled mode for face
   const activeFace = controlledFace ?? internalFace
   const setActiveFace = onFaceChange ?? setInternalFace
+
+  // Capture card position when expanding
+  useEffect(() => {
+    if (isExpanded && cardRef.current) {
+      setCardRect(cardRef.current.getBoundingClientRect())
+    }
+  }, [isExpanded])
+
+  // Lock body scroll when expanded
+  useEffect(() => {
+    if (isExpanded) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isExpanded])
 
   const handleFlip = () => {
     setIsFlipping(true)
     setActiveFace(activeFace === 'front' ? 'back' : 'front')
-    // Reset flipping state after animation completes
     setTimeout(() => setIsFlipping(false), 500)
   }
 
+  // Click on postcard now flips instead of expanding
   const handleCardClick = () => {
-    setOpen(true)
+    if (!isExpanded) {
+      handleFlip()
+    }
   }
 
   const handleClose = () => {
-    setOpen(false)
+    onExpandedChange?.(false)
   }
 
-  // Preview card (clickable to expand)
-  const previewCard = (
-    <div
-      className={cn('cursor-pointer', className)}
-      onClick={handleCardClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          handleCardClick()
-        }
-      }}
-      aria-label="Click to expand postcard"
-    >
-      <FlippableCard
-        activeFace={activeFace}
-        receiverLocation={receiverLocation}
-        isFlipping={isFlipping}
-      />
-    </div>
-  )
+  // Handle escape key to close expanded view
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isExpanded) {
+        handleClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isExpanded])
 
-  // Expanded card content (inside dialog/drawer)
-  const expandedCardContent = (
-    <div className="flex flex-col gap-4">
-      {/* Card at 120% scale */}
-      <div className="flex items-center justify-center">
+  // Calculate expanded dimensions (688px * 1.2 = 825.6px width, 6:4 ratio)
+  const expandedWidth = 825.6
+  const expandedHeight = expandedWidth * (2 / 3) // 6:4 ratio = 3:2 = width * 2/3
+
+  return (
+    <>
+      {/* Default card - always rendered but hidden when expanded */}
+      <div
+        ref={cardRef}
+        className={cn('cursor-pointer', className, isExpanded && 'invisible')}
+        aria-label="Click to flip postcard"
+      >
         <FlippableCard
           activeFace={activeFace}
           receiverLocation={receiverLocation}
           isFlipping={isFlipping}
-          className="scale-100 md:scale-[1.2] origin-center"
+          onClick={handleCardClick}
         />
       </div>
-      {/* Controls */}
-      <PostcardControls onClose={handleClose} onFlip={handleFlip} />
-    </div>
-  )
 
-  if (isDesktop) {
-    return (
-      <>
-        {previewCard}
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent
-            className="max-w-4xl bg-transparent ring-0 shadow-none p-8"
-            showCloseButton={false}
-          >
-            <DialogTitle className="sr-only">Postcard View</DialogTitle>
-            <DialogDescription className="sr-only">
-              Interactive postcard with flip animation. Use the Flip button to
-              see the other side.
-            </DialogDescription>
-            {expandedCardContent}
-          </DialogContent>
-        </Dialog>
-      </>
-    )
-  }
+      {/* Expanded overlay with animated card */}
+      <AnimatePresence>
+        {isExpanded && cardRect && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              className="fixed inset-0 bg-black/50 z-40"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              onClick={handleClose}
+            />
 
-  return (
-    <>
-      {previewCard}
-      <Drawer open={open} onOpenChange={setOpen}>
-        <DrawerContent className="p-4 pb-8">
-          <DrawerTitle className="sr-only">Postcard View</DrawerTitle>
-          <DrawerDescription className="sr-only">
-            Interactive postcard with flip animation. Use the Flip button to see
-            the other side.
-          </DrawerDescription>
-          {expandedCardContent}
-        </DrawerContent>
-      </Drawer>
+            {/* Expanded card container - centered */}
+            <motion.div
+              className="fixed z-50 flex flex-col gap-4"
+              style={{ width: expandedWidth }}
+              initial={{
+                top: cardRect.top,
+                left: cardRect.left,
+                width: cardRect.width,
+              }}
+              animate={{
+                top: `calc(50vh - ${(expandedHeight + 56) / 2}px)`, // 56px for controls
+                left: `calc(50vw - ${expandedWidth / 2}px)`,
+                width: expandedWidth,
+              }}
+              exit={{
+                top: cardRect.top,
+                left: cardRect.left,
+                width: cardRect.width,
+              }}
+              transition={{
+                type: 'spring',
+                stiffness: 300,
+                damping: 30,
+              }}
+            >
+              {/* Card with 6:4 ratio */}
+              <FlippableCard
+                activeFace={activeFace}
+                receiverLocation={receiverLocation}
+                isFlipping={isFlipping}
+                className="w-full cursor-default"
+              />
+
+              {/* Controls with 16px gap from card */}
+              <PostcardControls onClose={handleClose} onFlip={handleFlip} />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   )
 }
