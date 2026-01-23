@@ -1,0 +1,136 @@
+# Implementation Specifications
+
+Minimal, searchable record of features built. Each spec uses product/feature-focused naming and follows [\_template_implementations.md](./_template_implementations.md).
+
+      | Spec | Status | Priority | Date |
+      |------|--------|----------|------|
+       | [entity-data-consistency-fix](./2026-01-15-0900_entity-data-consistency-fix.md) | ✅ | P1 | 2026-01-15 |
+        | [infinite-loading-fix](./2026-01-15-infinite-loading-fix.md) | 🔄 | P0 | 2026-01-15 |
+       | [profile-api-rls-fix](./2026-01-14-1532_profile-api-rls-fix.md) | ✅ | P0 | 2026-01-14 |
+      | [form-infrastructure-overhaul](./2026-01-14-1830_form-infrastructure-overhaul.md) | ✅ | P0 | 2026-01-14 |
+
+| [form-error-display-and-debug-logging](./2026-01-14-2030_form-error-display-and-debug-logging.md) | ✅ | P0 | 2026-01-14 |
+| [datapoint-modal-form-field-display](./2026-01-13-1400_datapoint-modal-form-field-display.md) | ✅ | P1 | 2026-01-13 |
+| [secure-user-profile-rpc](./2026-01-13-1200_secure-user-profile-rpc.md) | ✅ | P0 | 2026-01-13 |
+| [oauth-user-creation-trigger](./2026-01-13-1046_oauth-user-creation-trigger.md) | ✅ | P0 | 2026-01-13 |
+| [fix-oauth-registration-missing-role-column](./2026-01-13-1115_fix-oauth-registration-missing-role-column.md) | ✅ | P1 | 2026-01-13 |
+| [oauth-user-registration-fix](./2026-01-13-1002_oauth-user-registration-fix.md) | ✅ | P1 | 2026-01-13 |
+| [dashboard-table-pagination-columns](./2026-01-12-1356_dashboard-table-pagination-columns.md) | ✅ | P2 | 2026-01-12 |
+| [oauth-profile-sync](./2026-01-12-1312_oauth-profile-sync.md) | ✅ | P0 | 2026-01-12 |
+| [oauth-data-sync](./2026-01-12-1300_oauth-data-sync.md) | ✅ | P1 | 2026-01-12 |
+| [profile-form-spacing-navigation](./2026-01-12-1247_profile-form-spacing-navigation.md) | ✅ | P2 | 2026-01-12 |
+| [entity-list-layout-consistency](./2026-01-12-0751_entity-list-layout-consistency.md) | ✅ | P2 | 2026-01-12 |
+| [profile-form-circular-dependency-fix](./2026-01-11-1800_profile-form-circular-dependency-fix.md) | ✅ | P1 | 2026-01-11 |
+| [onboarding-progress-tracking](./2026-01-11-1700_onboarding-progress-tracking.md) | ✅ | P2 | 2026-01-11 |
+| [data-point-table-enhancements](./2026-01-11-1200_data-point-table-enhancements.md) | ✅ | P2 | 2026-01-11 |
+| [user-registration-role-nullability](./2026-01-11-1200_user-registration-role-nullability.md) | ✅ | P1 | 2026-01-11 |
+| [user-registration-platform-role-default](./2026-01-11-1130_user-registration-platform-role-default.md) | ✅ | P1 | 2026-01-11 |
+| [phonebutton-data-fixes](./2026-01-08-XXXX_phonebutton-data-fixes.md) | ✅ | P1 | 2026-01-08 |
+| [information-source-type-normalization](./2026-01-07-information-source-type-normalization.md) | ✅ | P2 | 2026-01-07 |
+| [profile-form-infinite-loop-fix](./2025-01-07-1230_profile-form-infinite-loop-fix.md) | ✅ | P1 | 2025-01-07 |
+| [schema-refactor-information-source-and-geography](./2026-01-06-1200_schema-refactor-information-source-and-geography.md) | ✅ | P1 | 2026-01-06 |
+| [dashboard-search-filter-fixes](./2025-01-05-1430_dashboard-search-filter-fixes.md) | ✅ | P1 | 2025-01-05 |
+| [tanstack-auth-routing-fixes](./2026-01-05-1430_tanstack-auth-routing-fixes.md) | ✅ | P1 | 2026-01-05 |
+| [select-component-display-fix](./2025-12-31_select-component-display-fix.md) | ✅ | P1 | 2025-12-31 |
+| [opencode-skills-registration](./2025-12-31-1900_opencode-skills-registration.md) | ✅ | P2 | 2025-12-31 |
+| [mobile-select-touch-event-fix](./2025-12-31-1530_mobile-select-touch-event-fix.md) | ✅ | P2 | 2025-12-31 |
+| [mobile-drawer-scrollable-content](./2025-12-31-0001_mobile-drawer-scrollable-content.md) | ✅ | P1 | 2025-12-31 |
+| [status-reference-table](./2025-12-27_status-reference-table.md) | ✅ | P1 | 2025-12-27 |
+| [permission-system](./2025-12-27_permission-system.md) | ✅ | P1 | 2025-12-27 |
+| [activity-logging](./2025-12-27_activity-logging.md) | ✅ | P1 | 2025-12-27 |
+| [report-system-api](./2025-12-27_report-system-api.md) | ✅ | P1 | 2025-12-27 |
+| [activities-endpoint](./2025-12-27_activities-endpoint.md) | ✅ | P1 | 2025-12-27 |
+| [status-consolidation](./2025-12-27_status-consolidation.md) | ✅ | P1 | 2025-12-27 |
+| [ui-components-consolidation](./2025-12-27_ui-components-consolidation.md) | ✅ | P2 | 2025-12-27 |
+| [metrics-table-default-expanded](./2025-12-27_metrics-table-default-expanded.md) | ✅ | P2 | 2025-12-27 |
+| [metrics-table-remove-unit](./2025-12-27_metrics-table-remove-unit.md) | ✅ | P2 | 2025-12-27 |
+| [metrics-table-parent-styling](./2025-12-27_metrics-table-parent-styling.md) | ✅ | P3 | 2025-12-27 |
+| [table-row-alignment](./2025-12-27_table-row-alignment.md) | ✅ | P3 | 2025-12-27 |
+| [sorting-icon-border-radius](./2025-12-28_sorting-icon-border-radius.md) | ✅ | P3 | 2025-12-28 |
+| [table-controls-component](./2025-12-28_table-controls-component.md) | ✅ | P3 | 2025-12-28 |
+| [metrics-table-max-width](./2025-12-28_metrics-table-maxwidth.md) | ✅ | P2 | 2025-12-28 |
+| [homepage-section-subnav](./2025-12-28_homepage-section-subnav.md) | ✅ | P3 | 2025-12-28 |
+| [fundraising-method-table-update](./2025-12-28_fundraising-method-table-update.md) | ✅ | P1 | 2025-12-28 |
+| [component-reorganization](./2025-12-28_component-reorganization.md) | ✅ | P2 | 2025-12-28 |
+| [master-data-table](./2025-12-28_master-data-table.md) | ✅ | P2 | 2025-12-28 |
+| [dashboard-controls-unification](./2025-12-28_dashboard-controls-unification.md) | ✅ | P2 | 2025-12-28 |
+| [activity-system-revamp](./2025-01-08-1600_activity-system-revamp.md) | ✅ | P1 | 2025-01-08 |
+| [form-dialog-layout](./2025-12-28_form-dialog-layout.md) | ✅ | P2 | 2025-12-28 |
+| [dashboard-metrics-consolidation](./2025-12-28_dashboard-metrics-consolidation.md) | ✅ | P2 | 2025-12-28 |
+| [section-navigation-detection](./2025-12-28_section-navigation-detection.md) | ✅ | P2 | 2025-12-28 |
+| [profile-view-modes](./2025-12-28_profile-view-modes.md) | ✅ | P2 | 2025-12-28 |
+| [data-point-submission](./2025-12-28_data-point-submission.md) | ✅ | P2 | 2025-12-28 |
+| [loading-spinner-states](./2025-12-28_loading-spinner-states.md) | ✅ | P2 | 2025-12-28 |
+| [dynamic-tab-scrolling](./2025-12-28_dynamic-tab-scrolling.md) | ✅ | P2 | 2025-12-28 |
+| [schema-validation-fix](./2025-12-29_schema-validation-fix.md) | ✅ | P1 | 2025-12-29 |
+| [sticky-form-cta-mobile](./2025-12-29_sticky-form-cta-mobile.md) | ✅ | P2 | 2025-12-29 |
+| [mobile-drawer-scroll](./2025-12-29_mobile-drawer-scroll.md) | ✅ | P2 | 2025-12-29 |
+| [status-consolidation-cleanup](./2025-12-29_status-consolidation-cleanup.md) | ✅ | P1 | 2025-12-29 |
+| [metrics-table-compact-width](./2025-12-29_metrics-table-compact-width.md) | ✅ | P2 | 2025-12-29 |
+| [reusable-entity-cards-detail-modals](./2025-12-29_reusable-entity-cards-detail-modals.md) | ✅ | P2 | 2025-12-29 |
+| [directory-cards-detail-modals](./2025-12-29_directory-cards-detail-modals.md) | ✅ | P1 | 2025-12-29 |
+| [dev-server-route-config-fix](./2025-12-29_dev-server-route-config-fix.md) | ✅ | P1 | 2025-12-29 |
+| [homepage-card-redirection-removal](./2025-12-29_homepage-card-redirection-removal.md) | ✅ | P2 | 2025-12-29 |
+| [modal-dry-menu-visibility](./2025-12-29_modal-dry-menu-visibility.md) | ✅ | P1 | 2025-12-29 |
+| [activity-timeline-verification](./2025-12-30_activity-timeline-verification.md) | ✅ | P1 | 2025-12-30 |
+| [menu-items-refactor](./2025-12-30_menu-items-refactor.md) | ✅ | P3 | 2025-12-30 |
+| [list-pagination-component](./2025-12-30_list-pagination-component.md) | ✅ | P2 | 2025-12-30 |
+| [context-menu-timeseries](./2025-12-30_context-menu-timeseries.md) | ✅ | P2 | 2025-12-30 |
+| [metrics-table-context-menu](./2025-12-30_metrics-table-context-menu.md) | ✅ | P2 | 2025-12-30 |
+| [auth-redirect-flow](./2025-12-30_auth-redirect-flow.md) | ✅ | P1 | 2025-12-30 |
+| [profile-onboarding-api](./2025-12-30_profile-onboarding-api.md) | ✅ | P1 | 2025-12-30 |
+| [menuitemslist-refactor](./2025-12-30_menuitemslist-refactor.md) | ✅ | P2 | 2025-12-30 |
+| [skeleton-loading-state](./2025-12-30_skeleton-loading-state.md) | ✅ | P2 | 2025-12-30 |
+| [detail-pages-consolidation](./2025-12-30_detail-pages-consolidation.md) | ✅ | P2 | 2025-12-30 |
+| [planning-todos-skill](./2025-12-30_planning-todos-skill.md) | ✅ | P2 | 2025-12-30 |
+| [useMenuActions-hook](./2025-12-30_useMenuActions-hook.md) | ✅ | P1 | 2025-12-30 |
+| [metrics-detail-modal](./2025-12-31_metrics-detail-modal.md) | ✅ | P2 | 2025-12-31 |
+| [auth-gate-race-condition-fix](./2025-12-31_auth-gate-race-condition-fix.md) | ✅ | P1 | 2025-12-31 |
+| [status-consolidation-execution](./2025-12-27_status-consolidation-execution.md) | ✅ | P1 | 2025-12-27 |
+| [status-consolidation-ui-phase-3](./2025-12-27_status-consolidation-ui-phase-3.md) | ✅ | P1 | 2025-12-27 |
+| [report-system-api](./2025-12-27_report-system-api.md) | ✅ | P1 | 2025-12-27 |
+| [ui-consolidation-phase-5-4](./2025-12-27_ui-consolidation-phase-5-4.md) | ✅ | P1 | 2025-12-27 |
+| [activity-timeline-implementation](./2025-12-30_activity-timeline-implementation.md) | ✅ | P1 | 2025-12-30 |
+| [status-consolidation-final](./2025-12-29_status-consolidation-final.md) | ✅ | P1 | 2025-12-29 |
+| [card-components-refactoring](./2025-12-31_card-components-refactoring.md) | ✅ | P1 | 2025-12-31 |
+| [auth-gate-regression-testing](./2025-12-31_auth-gate-regression-testing.md) | ✅ | P1 | 2025-12-31 |
+| [rename-context-menu-component](./2025-12-31-0004_rename-context-menu-component.md) | ✅ | P3 | 2025-12-31 |
+| [datagrid-modal-integration](./2025-12-31-0001_datagrid-modal-integration.md) | ✅ | P1 | 2025-12-31 |
+| [dashboard-skeleton-loading](./2025-12-31-0001_dashboard-skeleton-loading.md) | ✅ | P2 | 2025-12-31 |
+| [user-profile-architecture-fix](./2025-12-31-0001_user-profile-architecture-fix.md) | ✅ | P1 | 2025-12-31 |
+| [dashboard-table-width-doubling](./2025-12-31-0001_dashboard-table-width-doubling.md) | ✅ | P3 | 2025-12-31 |
+| [mobile-width-fix](./2025-12-31-0004_mobile-width-fix.md) | ✅ | P2 | 2025-12-31 |
+| [form-url-validation-fix](./2025-12-31-1900_form-url-validation-fix.md) | ✅ | P2 | 2025-12-31 |
+| [urlinputfield-import-fix](./2026-01-01-0001_urlinputfield-import-fix.md) | ✅ | P1 | 2026-01-01 |
+| [metrics-detail-modal-callbacks](./2026-01-01-0000_metrics-detail-modal-callbacks.md) | ✅ | P1 | 2026-01-01 |
+| [oauth-callback-parameter-signature-fix](./2026-01-05-1100_oauth-callback-parameter-signature-fix.md) | ✅ | P1 | 2026-01-05 |
+| [dashboard-modal-state-consolidation](./2026-01-02-0247_dashboard-modal-state-consolidation.md) | ✅ | P1 | 2026-01-02 |
+| [dashboard-view-mode-refactor-user-filtering](./2026-01-02-0230_dashboard-view-mode-refactor-user-filtering.md) | ✅ | P1 | 2026-01-02 |
+| [dashboard-column-width-optimization](./2026-01-02_dashboard-column-width-optimization.md) | ✅ | P2 | 2026-01-02 |
+| [dashboard-auth-header-fix](./2026-01-02-0315_dashboard-auth-header-fix.md) | ✅ | P1 | 2026-01-02 |
+| [data-point-edit-mode-field-locking](./2026-01-02-0500_data-point-edit-mode-field-locking.md) | ✅ | P1 | 2026-01-02 |
+| [form-submission-fixes](./2026-01-02-1200_form-submission-fixes.md) | ✅ | P1 | 2026-01-02 |
+| [dashboard-constant-refresh-fix](./2026-01-02-1115_dashboard-constant-refresh-fix.md) | ✅ | P1 | 2026-01-02 |
+| [profileform-three-component-split](./2026-01-03-0001_profileform-three-component-split.md) | ✅ | P2 | 2026-01-03 |
+| [profile-back-button-routing](./2025-01-03-0145_profile-back-button-routing.md) | ✅ | P2 | 2025-01-03 |
+| [dashboard-table-responsive-layout](./2025-01-04-1430_dashboard-table-responsive-layout.md) | ✅ | P2 | 2025-01-04 |
+| [form-select-prefill-fixes](./2025-01-04-1700_form-select-prefill-fixes.md) | ✅ | P1 | 2025-01-04 |
+| [tanstack-form-select-migration](./2025-01-04-1600_tanstack-form-select-migration.md) | ✅ | P1 | 2025-01-04 |
+| [fix-hydration-errors-button-interactions](./2026-01-05-0130_fix-hydration-errors-button-interactions.md) | ✅ | P1 | 2026-01-05 |
+| [shadcn-migration](./2025-01-05-1200_shadcn-migration.md) | ✅ | P2 | 2025-01-05 |
+| [oauth-rls-security](./2026-01-05-1430_oauth-rls-security.md) | ✅ | P1 | 2026-01-05 |
+| [dashboard-table-compact-widths](./2026-01-05-1340_dashboard-table-compact-widths.md) | ✅ | P3 | 2026-01-05 |
+| [data-point-metric-column-fix](./2026-01-05_data-point-metric-column-fix.md) | ✅ | P2 | 2026-01-05 |
+| [geography-components-fix](./2026-01-06-1430_geography-components-fix.md) | ✅ | P1 | 2026-01-06 |
+| [contact-category-table](./2026-01-07-0000_contact-category-table.md) | ✅ | P2 | 2026-01-07 |
+| [drizzle-schema-data-integrity-fixes](./2025-01-07-1600_drizzle-schema-data-integrity-fixes.md) | ✅ | P1 | 2025-01-07 |
+| [geography-area-data](./2026-01-07-0000_geography-area-data.md) | ✅ | P2 | 2026-01-07 |
+| [fix-api-data-leakage](./2025-01-09_fix-api-data-leakage.md) | ✅ | P1 | 2025-01-09 |
+| [activity-revamp-syntax-fix](./2025-01-09-1730_activity-revamp-syntax-fix.md) | ✅ | P0 | 2025-01-09 |
+| [vite-plugin-order-fix](./2026-01-11-0940_vite-plugin-order-fix.md) | ✅ | P1 | 2026-01-11 |
+| [profile-onboarding-data-sync](./2025-01-15-1430_profile-onboarding-data-sync.md) | ✅ | P1 | 2025-01-15 |
+
+---
+
+**How to Use**: After implementing a feature, create a spec using [TEMPLATE.md](./TEMPLATE.md). Name it by what it does (e.g., `campaign-crud`, `user-authentication`), not by phase.
+**Last Updated**: 2026-01-15
