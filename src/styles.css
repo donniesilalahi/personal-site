@@ -3,7 +3,7 @@
 @import 'shadcn/tailwind.css';
 @import '@fontsource-variable/inter';
 @import '@fontsource/marcellus';
-@import '@fontsource/playwrite-is';
+@import '@fontsource-variable/playwrite-is';
 
 @custom-variant dark (&:is(.dark *));
 
