@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev --port 3000",
+    "dev:clean": "sh scripts/kill-dev-ports.sh && npm run dev",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
