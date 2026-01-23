@@ -1,14 +1,14 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   ExternalLink,
   Link as LinkIcon,
   Mail,
   MessageSquare,
   RotateCcw,
-} from "lucide-react";
-import content from "./content.png";
+} from 'lucide-react'
+import content from './content.png'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 
 const FigmarefHomepage = (): JSX.Element => {
   return (
@@ -80,7 +80,7 @@ const FigmarefHomepage = (): JSX.Element => {
         </footer>
       </div>
     </main>
-  );
-};
+  )
+}
 
-export default FigmarefHomepage;
+export default FigmarefHomepage

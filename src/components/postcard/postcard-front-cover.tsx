@@ -1,6 +1,8 @@
-import { cn } from '@/lib/utils'
 import { PostcardFrame } from './postcard-frame'
-import { ImageEffects, type ImageEffectPreset } from './image-effects'
+import { ImageEffects } from './image-effects'
+import type { ImageEffectPreset } from './image-effects'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 
 interface PostcardFrontCoverProps {
   className?: string
@@ -29,10 +31,11 @@ export function PostcardFrontCover({
       <div className="absolute inset-0 flex items-center justify-center">
         <h1
           className={cn(
-            'px-4 text-center font-serif text-4xl font-normal leading-tight tracking-[0] text-white',
-            'md:text-5xl lg:text-6xl',
+            'px-4 text-center font-normal leading-tight text-white',
+            'text-[48px] md:text-5xl lg:text-6xl',
           )}
           style={{
+            fontFamily: 'Marcellus, serif',
             textShadow: '3.36px 3.36px 42.04px rgba(0, 0, 0, 0.5)',
             WebkitTextStroke: '0.42px white',
           }}
@@ -45,9 +48,20 @@ export function PostcardFrontCover({
 
       {/* Caption - Bottom */}
       <div className="absolute inset-x-0 bottom-8 flex justify-center">
-        <p className="text-center text-xs font-normal leading-[18px] tracking-[0] text-white">
+        <Button
+          variant="ghost"
+          size="xs"
+          render={
+            <a
+              href="https://maps.app.goo.gl/VpRz82Fa7vdqSgnz9"
+              target="_blank"
+              rel="noopener noreferrer"
+            />
+          }
+          className="text-white hover:text-white hover:bg-white/10"
+        >
           Silalahi, Toba Lakeside. 2021
-        </p>
+        </Button>
       </div>
     </PostcardFrame>
   )

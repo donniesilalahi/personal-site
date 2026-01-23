@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
+import { NoiseOverlay, TextureOverlay } from './postcard-frame'
 import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
-import { TextureOverlay, NoiseOverlay } from './postcard-frame'
 
 interface PostcardBackCoverProps {
   className?: string

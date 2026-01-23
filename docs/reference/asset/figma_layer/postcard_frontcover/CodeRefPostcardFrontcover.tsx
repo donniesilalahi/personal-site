@@ -1,5 +1,5 @@
-import { Card, CardContent } from "@/components/ui/card";
-import frontCover from "./front-cover.png";
+import frontCover from './front-cover.png'
+import { Card, CardContent } from '@/components/ui/card'
 
 const FigmarefPostcard = (): JSX.Element => {
   return (
@@ -28,7 +28,7 @@ const FigmarefPostcard = (): JSX.Element => {
         </CardContent>
       </Card>
     </div>
-  );
-};
+  )
+}
 
-export default FigmarefPostcard;
+export default FigmarefPostcard

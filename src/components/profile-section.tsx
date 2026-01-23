@@ -4,22 +4,24 @@ import { Button } from '@/components/ui/button'
 
 export function ProfileSection() {
   return (
-    <section className="flex w-full flex-col gap-8">
+    <section className="flex w-full flex-col gap-4">
       {/* Profile Info - Horizontal layout */}
       <div className="flex items-center gap-4">
-        {/* Profile Picture */}
-        <img
-          src="/images/profile_picture.webp"
-          alt="Donnie Silalahi"
-          className="size-14 shrink-0 rounded-[4px] border border-border object-cover"
-        />
+        {/* Profile Picture with bleed effect */}
+        <div className="size-[60px] shrink-0 flex items-center justify-center bg-primitives-colors-gray-light-mode-300 rounded-[4px]">
+          <img
+            src="/images/profile_picture.webp"
+            alt="Donnie Silalahi"
+            className="size-[53.33px] rounded-[3.33px] object-cover object-[50%_30%]"
+          />
+        </div>
 
         {/* Name and Role */}
-        <div className="flex flex-col gap-0.5">
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-xl font-semibold text-primitives-colors-gray-light-mode-900">
             Donnie Silalahi
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-primitives-colors-gray-light-mode-600">
             Product Builder, Growth Marketer and Operations Leader
           </p>
         </div>

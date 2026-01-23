@@ -440,7 +440,7 @@
   --primitives-weight-weight-sm: 1.25px;
   --primitives-weight-weight-xs: 1px;
   --shadows-stack-ring-xs: 0px 0px 0px 1.5px rgba(255, 255, 255, 1);
-  --text-xs-regular-font-family: "Inter", Helvetica;
+  --text-xs-regular-font-family: 'Inter', Helvetica;
   --text-xs-regular-font-size: 12px;
   --text-xs-regular-font-style: normal;
   --text-xs-regular-font-weight: 400;
@@ -460,13 +460,13 @@ You can apply the theme on any DOM node, not just the `body`
 
 */
 
-[data-1-color-modes-mode="light-mode"] {
+[data-1-color-modes-mode='light-mode'] {
   --1-color-modes-colors-border-border-secondary: var(
     --primitives-colors-gray-light-mode-200-duplicate
   );
 }
 
-[data-1-color-modes-mode="dark-mode"] {
+[data-1-color-modes-mode='dark-mode'] {
   --1-color-modes-colors-border-border-secondary: var(
     --primitives-colors-gray-dark-mode-800-duplicate
   );
@@ -658,6 +658,8 @@ You can apply the theme on any DOM node, not just the `body`
 
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
   }
 }
