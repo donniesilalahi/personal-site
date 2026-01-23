@@ -75,19 +75,18 @@ export function PostcardBackCover({
   return (
     <div
       className={cn(
-        'relative aspect-[3/2] w-full cursor-pointer overflow-hidden rounded-sm border border-border bg-background p-4',
+        'relative aspect-[6/4] w-full max-w-[688px] cursor-pointer overflow-hidden rounded-sm border border-border bg-background',
         className,
       )}
       onClick={onClick}
       style={{
-        // Drop shadow: x=0, y=3.17, blur=0, spread=0, color #000000 25%
         boxShadow: '0px 3.17px 0px 0px rgba(0, 0, 0, 0.25)',
       }}
     >
-      {/* Inner content container */}
-      <div className="relative flex h-full w-full gap-3 overflow-hidden rounded-[2px]">
+      {/* Inner content container with 16px padding and 12px gap */}
+      <div className="relative flex h-full w-full gap-3 p-4">
         {/* Left column - Message area */}
-        <div className="flex min-w-0 flex-1 flex-col items-end justify-end">
+        <div className="flex min-w-0 flex-1 flex-col justify-end">
           {/* Content paragraphs */}
           <div className="flex w-full flex-col gap-1.5">
             {postcardParagraphs.map((paragraph, index) => (
@@ -100,16 +99,16 @@ export function PostcardBackCover({
             ))}
           </div>
 
-          {/* Signature - handwriting style, text-md bold */}
+          {/* Signature - handwriting style, text-base bold */}
           <p className="mt-3 font-handwriting text-base font-bold leading-6 text-foreground">
             Donnie
           </p>
         </div>
 
         {/* Vertical divider */}
-        <Separator orientation="vertical" className="self-stretch" />
+        <Separator orientation="vertical" className="h-auto self-stretch" />
 
-        {/* Right column - Sender information area */}
+        {/* Right column - Sender information area (fixed width ~169px) */}
         <div className="flex w-[169px] shrink-0 flex-col gap-3">
           {/* Stamp */}
           <div className="flex justify-end">
@@ -123,60 +122,60 @@ export function PostcardBackCover({
           </div>
 
           {/* From section */}
-          <div className="flex flex-1 flex-col gap-0.5">
-            <div className="flex items-center gap-1.5">
+          <div className="flex flex-1 flex-col gap-px">
+            <div className="flex items-center">
               <span className="text-[10px] leading-4 text-foreground">
                 From:
               </span>
             </div>
-            <Separator className="bg-border/60" />
+            <Separator className="bg-[#d9d9d9]" />
 
             {/* Location */}
-            <div className="flex items-center gap-1.5 pl-3.5">
+            <div className="flex items-center pl-3.5">
               <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
                 Jakarta, Indonesia
               </span>
             </div>
-            <Separator className="bg-border/60" />
+            <Separator className="bg-[#d9d9d9]" />
 
             {/* Date */}
-            <div className="flex items-center gap-1.5 pl-3.5">
+            <div className="flex items-center pl-3.5">
               <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
                 {date}
               </span>
             </div>
-            <Separator className="bg-border/60" />
+            <Separator className="bg-[#d9d9d9]" />
 
             {/* Time */}
-            <div className="flex items-center gap-1.5 pl-3.5">
+            <div className="flex items-center pl-3.5">
               <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
                 {time}
               </span>
             </div>
-            <Separator className="bg-border/60" />
+            <Separator className="bg-[#d9d9d9]" />
           </div>
 
           {/* To section */}
-          <div className="flex flex-col gap-0.5">
-            <div className="flex items-center gap-1.5">
+          <div className="flex flex-col gap-px">
+            <div className="flex items-center">
               <span className="text-[10px] leading-4 text-foreground">To:</span>
             </div>
-            <Separator className="bg-border/60" />
+            <Separator className="bg-[#d9d9d9]" />
 
             {/* Receiver location */}
-            <div className="flex items-center gap-1.5 pl-3.5">
+            <div className="flex items-center pl-3.5">
               <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
                 {receiverLocation}
               </span>
             </div>
-            <Separator className="bg-border/60" />
+            <Separator className="bg-[#d9d9d9]" />
           </div>
         </div>
-
-        {/* Effect overlays */}
-        <TextureOverlay />
-        <NoiseOverlay />
       </div>
+
+      {/* Effect overlays */}
+      <TextureOverlay />
+      <NoiseOverlay />
     </div>
   )
 }
