@@ -81,10 +81,10 @@ export function PostcardBackCover({
         boxShadow: '0px 3.17px 0px 0px rgba(0, 0, 0, 0.25)',
       }}
     >
-      {/* Inner content container with 8px padding on mobile, 16px on desktop */}
-      <div className="relative flex h-full w-full flex-wrap-reverse gap-3 p-2 md:flex-nowrap md:p-4">
+      {/* Inner content container */}
+      <div className="relative flex h-full w-full flex-wrap-reverse md:flex-nowrap md:gap-3 md:p-4">
         {/* Message area - full width on mobile, flex-1 on desktop */}
-        <div className="flex w-full min-w-0 flex-col md:w-auto md:flex-1">
+        <div className="flex w-full min-w-0 flex-col p-2 md:w-auto md:flex-1 md:p-0">
           {/* Content paragraphs - fills available space and aligns to top */}
           <div className="flex w-full flex-1 flex-col gap-1.5">
             {postcardParagraphs.map((paragraph, index) => (
@@ -103,17 +103,84 @@ export function PostcardBackCover({
           </p>
         </div>
 
-        {/* Divider - horizontal on mobile, vertical on desktop */}
+        {/* Divider - horizontal full-width on mobile, vertical on desktop */}
         <Separator
           orientation="vertical"
           className="hidden h-auto self-stretch md:block"
         />
-        <Separator orientation="horizontal" className="w-full md:hidden" />
+        <Separator
+          orientation="horizontal"
+          className="my-4 w-full bg-border md:hidden"
+        />
 
         {/* Sender information area - full width on mobile, fixed width on desktop */}
-        <div className="flex w-full shrink-0 flex-col gap-3 md:w-[169px]">
-          {/* Stamp */}
-          <div className="flex justify-end">
+        {/* Mobile: two sub-columns (sender-receiver left, stamp right) */}
+        {/* Desktop: single column with stamp on top */}
+        <div className="flex w-full shrink-0 gap-3 p-2 md:w-[169px] md:flex-col md:p-0">
+          {/* Left sub-column on mobile: sender-receiver info with 32px padding-top */}
+          {/* On desktop: this comes after stamp, so reorder with order classes */}
+          <div className="flex flex-1 flex-col gap-3 pt-8 md:order-2 md:pt-0">
+            {/* From section */}
+            <div className="flex flex-1 flex-col gap-px">
+              <div className="flex items-center">
+                <span className="text-[10px] leading-4 text-foreground">
+                  From:
+                </span>
+              </div>
+              <Separator className="bg-border/50" />
+
+              {/* Location */}
+              <div className="flex items-center pl-3.5">
+                <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
+                  Jakarta, Indonesia
+                </span>
+              </div>
+              <Separator className="bg-border/50" />
+
+              {/* Date and Time - same line on mobile, separate on desktop */}
+              <div className="flex items-center pl-3.5 md:hidden">
+                <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
+                  {date}, {time}
+                </span>
+              </div>
+              <div className="hidden md:flex md:items-center md:pl-3.5">
+                <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
+                  {date}
+                </span>
+              </div>
+              <Separator className="bg-border/50" />
+
+              {/* Time - desktop only (separate line) */}
+              <div className="hidden md:flex md:items-center md:pl-3.5">
+                <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
+                  {time}
+                </span>
+              </div>
+              <Separator className="hidden bg-border/50 md:block" />
+            </div>
+
+            {/* To section */}
+            <div className="flex flex-col gap-px">
+              <div className="flex items-center">
+                <span className="text-[10px] leading-4 text-foreground">
+                  To:
+                </span>
+              </div>
+              <Separator className="bg-border/50" />
+
+              {/* Receiver location */}
+              <div className="flex items-center pl-3.5">
+                <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
+                  {receiverLocation}
+                </span>
+              </div>
+              <Separator className="bg-border/50" />
+            </div>
+          </div>
+
+          {/* Right sub-column on mobile: stamp */}
+          {/* On desktop: stamp comes first (top) */}
+          <div className="flex justify-end md:order-1">
             <div className="overflow-hidden rounded-[1px] border-2 border-border">
               <img
                 src="/images/postcard_stamp.webp"
@@ -121,56 +188,6 @@ export function PostcardBackCover({
                 className="h-[57px] w-[46px] object-cover"
               />
             </div>
-          </div>
-
-          {/* From section */}
-          <div className="flex flex-1 flex-col gap-px">
-            <div className="flex items-center">
-              <span className="text-[10px] leading-4 text-foreground">
-                From:
-              </span>
-            </div>
-            <Separator className="bg-[#d9d9d9]" />
-
-            {/* Location */}
-            <div className="flex items-center pl-3.5">
-              <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
-                Jakarta, Indonesia
-              </span>
-            </div>
-            <Separator className="bg-[#d9d9d9]" />
-
-            {/* Date */}
-            <div className="flex items-center pl-3.5">
-              <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
-                {date}
-              </span>
-            </div>
-            <Separator className="bg-[#d9d9d9]" />
-
-            {/* Time */}
-            <div className="flex items-center pl-3.5">
-              <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
-                {time}
-              </span>
-            </div>
-            <Separator className="bg-[#d9d9d9]" />
-          </div>
-
-          {/* To section */}
-          <div className="flex flex-col gap-px">
-            <div className="flex items-center">
-              <span className="text-[10px] leading-4 text-foreground">To:</span>
-            </div>
-            <Separator className="bg-[#d9d9d9]" />
-
-            {/* Receiver location */}
-            <div className="flex items-center pl-3.5">
-              <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
-                {receiverLocation}
-              </span>
-            </div>
-            <Separator className="bg-[#d9d9d9]" />
           </div>
         </div>
       </div>
