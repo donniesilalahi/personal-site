@@ -12,11 +12,10 @@ export function ProfileSection() {
         <div
           className={cn(
             'relative size-[60px] shrink-0 overflow-hidden rounded-sm border border-border bg-card',
-            'shadow-[0px_3.17px_0px_0px_rgba(0,0,0,0.25)]',
           )}
         >
-          {/* Content container with inner rounded corners and 8px padding */}
-          <div className="relative h-full w-full overflow-hidden rounded-[2px] p-2">
+          {/* Content container with inner rounded corners and 4px padding */}
+          <div className="relative h-full w-full overflow-hidden rounded-[2px] p-1">
             <img
               src="/images/profile_picture.webp"
               alt="Donnie Silalahi"
