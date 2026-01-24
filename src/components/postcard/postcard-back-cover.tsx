@@ -25,21 +25,21 @@ function useJakartaTime(): JakartaDateTime {
     const updateDateTime = (): void => {
       const now = new Date()
 
-      // Format date as "Jan 22th, 2026"
-      const date = now.toLocaleDateString('en-US', {
+      // Format date as "25 Jan 2026"
+      const date = now.toLocaleDateString('en-GB', {
         timeZone: 'Asia/Jakarta',
-        month: 'short',
         day: 'numeric',
+        month: 'short',
         year: 'numeric',
       })
 
-      // Format time as "20:43:01"
+      // Format time as "08:43:01 PM"
       const time = now.toLocaleTimeString('en-US', {
         timeZone: 'Asia/Jakarta',
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
-        hour12: false,
+        hour12: true,
       })
 
       setDateTime({ date, time })
@@ -99,7 +99,7 @@ export function PostcardBackCover({
           </div>
 
           {/* Signature - stays at bottom */}
-          <p className="mt-3 self-end font-playwrite-is text-base font-bold leading-6 text-foreground">
+          <p className="mt-3 self-end font-italianno text-2xl leading-6 text-foreground">
             Donnie
           </p>
         </div>
@@ -154,7 +154,7 @@ export function PostcardBackCover({
               {/* Time - desktop only (separate line) */}
               <div className="hidden md:flex md:items-center md:pl-3.5">
                 <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
-                  {time}
+                  {time} <sup>GMT+7</sup>
                 </span>
               </div>
               <Separator className="hidden bg-border/50 md:block" />
