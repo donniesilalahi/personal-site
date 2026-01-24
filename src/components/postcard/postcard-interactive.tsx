@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { FlipHorizontal, Shrink } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
@@ -185,16 +186,18 @@ export function PostcardInteractive({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isExpanded])
 
-  // Calculate expanded dimensions (688px * 1.2 = 825.6px width, 6:4 ratio)
-  const expandedWidth = 825.6
-  const expandedHeight = expandedWidth * (2 / 3) // 6:4 ratio = 3:2 = width * 2/3
+  // Calculate scale factor for expansion (1.2x larger)
+  const scaleFactor = 1.2
+
+  // Calculate card height from width (3:2 aspect ratio)
+  const cardHeight = cardRect ? (cardRect.width * 2) / 3 : 0
 
   return (
     <>
-      {/* Default card - always rendered but hidden when expanded */}
+      {/* Default card - always visible to maintain layout */}
       <div
         ref={cardRef}
-        className={cn('cursor-pointer', className, isExpanded && 'invisible')}
+        className={cn('cursor-pointer', className)}
         aria-label="Click to flip postcard"
       >
         <FlippableCard
@@ -205,59 +208,64 @@ export function PostcardInteractive({
         />
       </div>
 
-      {/* Expanded overlay with animated card */}
-      <AnimatePresence>
-        {isExpanded && cardRect && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              className="fixed inset-0 bg-black/50 z-40"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              onClick={handleClose}
-            />
+      {/* Expanded overlay - rendered via portal to escape any parent transforms */}
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <AnimatePresence>
+            {isExpanded && cardRect && (
+              <>
+                {/* Backdrop */}
+                <motion.div
+                  className="fixed inset-0 bg-black/50 z-40"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  onClick={handleClose}
+                />
 
-            {/* Expanded card container - centered */}
-            <motion.div
-              className="fixed z-50 flex flex-col gap-4"
-              style={{ width: expandedWidth }}
-              initial={{
-                top: cardRect.top,
-                left: cardRect.left,
-                width: cardRect.width,
-              }}
-              animate={{
-                top: `calc(50vh - ${(expandedHeight + 56) / 2}px)`, // 56px for controls
-                left: `calc(50vw - ${expandedWidth / 2}px)`,
-                width: expandedWidth,
-              }}
-              exit={{
-                top: cardRect.top,
-                left: cardRect.left,
-                width: cardRect.width,
-              }}
-              transition={{
-                type: 'spring',
-                stiffness: 300,
-                damping: 30,
-              }}
-            >
-              {/* Card with 6:4 ratio */}
-              <FlippableCard
-                activeFace={activeFace}
-                receiverLocation={receiverLocation}
-                isFlipping={isFlipping}
-                className="w-full cursor-default"
-              />
+                {/* Expanded card container - scales from center of the card */}
+                <motion.div
+                  className="fixed z-50 flex flex-col items-center gap-4"
+                  style={{
+                    // Position at original card's top-left
+                    top: cardRect.top,
+                    left: cardRect.left,
+                    width: cardRect.width,
+                    // Scale from the center of the CARD only (not including controls)
+                    transformOrigin: `${cardRect.width / 2}px ${cardHeight / 2}px`,
+                  }}
+                  initial={{
+                    scale: 1,
+                  }}
+                  animate={{
+                    scale: scaleFactor,
+                  }}
+                  exit={{
+                    scale: 1,
+                  }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 300,
+                    damping: 30,
+                  }}
+                >
+                  {/* Card with 6:4 ratio */}
+                  <FlippableCard
+                    activeFace={activeFace}
+                    receiverLocation={receiverLocation}
+                    isFlipping={isFlipping}
+                    className="w-full cursor-default"
+                  />
 
-              {/* Controls with 16px gap from card */}
-              <PostcardControls onClose={handleClose} onFlip={handleFlip} />
-            </motion.div>
-          </>
+                  {/* Controls with 16px gap from card */}
+                  <PostcardControls onClose={handleClose} onFlip={handleFlip} />
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>,
+          document.body,
         )}
-      </AnimatePresence>
     </>
   )
 }
