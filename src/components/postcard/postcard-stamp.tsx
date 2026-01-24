@@ -8,79 +8,37 @@ interface PostcardStampProps {
 }
 
 /**
- * Perforated border effect using CSS mask with radial gradients
- * Creates the classic stamp edge appearance
+ * Generates CSS mask with radial gradients for perforation effect
+ * Creates semicircular cutouts along all four edges
  */
-function PerforationMask() {
-  return (
-    <svg className="absolute inset-0 h-full w-full" preserveAspectRatio="none">
-      <defs>
-        {/* Perforation pattern - small circles along edges */}
-        <mask id="stamp-perforations">
-          {/* White background (visible area) */}
-          <rect width="100%" height="100%" fill="white" />
-          {/* Circles cut out along edges - top */}
-          <g>
-            {Array.from({ length: 12 }).map((_, i) => (
-              <circle
-                key={`top-${i}`}
-                cx={`${((i + 0.5) / 12) * 100}%`}
-                cy="0"
-                r="3"
-                fill="black"
-              />
-            ))}
-            {/* Bottom */}
-            {Array.from({ length: 12 }).map((_, i) => (
-              <circle
-                key={`bottom-${i}`}
-                cx={`${((i + 0.5) / 12) * 100}%`}
-                cy="100%"
-                r="3"
-                fill="black"
-              />
-            ))}
-            {/* Left */}
-            {Array.from({ length: 16 }).map((_, i) => (
-              <circle
-                key={`left-${i}`}
-                cx="0"
-                cy={`${((i + 0.5) / 16) * 100}%`}
-                r="3"
-                fill="black"
-              />
-            ))}
-            {/* Right */}
-            {Array.from({ length: 16 }).map((_, i) => (
-              <circle
-                key={`right-${i}`}
-                cx="100%"
-                cy={`${((i + 0.5) / 16) * 100}%`}
-                r="3"
-                fill="black"
-              />
-            ))}
-          </g>
-        </mask>
-      </defs>
-      {/* Apply mask to a rect that covers the stamp */}
-      <rect
-        width="100%"
-        height="100%"
-        fill="currentColor"
-        mask="url(#stamp-perforations)"
-      />
-    </svg>
-  )
+function getPerforationStyle(): React.CSSProperties {
+  const holeRadius = 2.5 // px - size of each perforation hole
+  const spacing = 7 // px - distance between hole centers
+
+  // Each edge needs its own radial gradient that creates semicircular holes
+  const topEdge = `radial-gradient(circle, transparent ${holeRadius}px, white ${holeRadius}px) 0 0 / ${spacing}px ${holeRadius * 2}px repeat-x`
+  const bottomEdge = `radial-gradient(circle, transparent ${holeRadius}px, white ${holeRadius}px) 0 100% / ${spacing}px ${holeRadius * 2}px repeat-x`
+  const leftEdge = `radial-gradient(circle, transparent ${holeRadius}px, white ${holeRadius}px) 0 0 / ${holeRadius * 2}px ${spacing}px repeat-y`
+  const rightEdge = `radial-gradient(circle, transparent ${holeRadius}px, white ${holeRadius}px) 100% 0 / ${holeRadius * 2}px ${spacing}px repeat-y`
+
+  const maskImage = `${topEdge}, ${bottomEdge}, ${leftEdge}, ${rightEdge}`
+
+  return {
+    maskImage,
+    maskComposite: 'intersect',
+    WebkitMaskImage: maskImage,
+    WebkitMaskComposite: 'source-in',
+  }
 }
 
 /**
  * PostcardStamp - Realistic postage stamp component
  *
- * Features:
- * - Perforated edges (classic stamp look)
- * - Texture and noise overlays (like postcard frame)
- * - 4px inner padding
+ * Architecture (4 layers from outside to inside):
+ * 1. Drop shadow wrapper - subtle depth effect
+ * 2. Perforation layer - white background with perforated edges
+ * 3. White inner padding - 4px white border around image
+ * 4. Core stamp visual - the actual image with texture overlays
  */
 export function PostcardStamp({
   src,
@@ -88,23 +46,29 @@ export function PostcardStamp({
   className,
 }: PostcardStampProps) {
   return (
+    // Layer 1: Drop shadow wrapper
     <div
-      className={cn(
-        'relative aspect-[4/6] bg-card text-muted-foreground',
-        className,
-      )}
+      className={cn('relative aspect-[4/5]', className)}
+      style={{
+        filter: 'drop-shadow(0 1px 3px rgba(0, 0, 0, 0.12))',
+      }}
     >
-      {/* Perforated border effect */}
-      <PerforationMask />
+      {/* Layer 2: Perforation ornament (white with perforated edges) */}
+      <div
+        className="absolute inset-0 bg-white"
+        style={getPerforationStyle()}
+      />
 
-      {/* Inner content with 4px padding */}
-      <div className="absolute inset-[3px] overflow-hidden">
-        {/* Stamp image */}
-        <img src={src} alt={alt} className="h-full w-full object-cover" />
+      {/* Layer 3: White inner padding (4px) */}
+      <div className="absolute inset-[3px] bg-white p-[4px]">
+        {/* Layer 4: Core stamp visual */}
+        <div className="relative h-full w-full overflow-hidden">
+          <img src={src} alt={alt} className="h-full w-full object-cover" />
 
-        {/* Postcard-like effects */}
-        <TextureOverlay />
-        <NoiseOverlay />
+          {/* Texture overlays for realism */}
+          <TextureOverlay />
+          <NoiseOverlay />
+        </div>
       </div>
     </div>
   )
