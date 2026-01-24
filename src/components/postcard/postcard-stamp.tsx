@@ -90,7 +90,7 @@ export function PostcardStamp({
   return (
     <div
       className={cn(
-        'relative h-full w-[48px] bg-card text-muted-foreground',
+        'relative aspect-[4/6] bg-card text-muted-foreground',
         className,
       )}
     >
