@@ -65,8 +65,10 @@ function FlippableCard({
 }: FlippableCardProps) {
   return (
     <div
-      className={cn('relative w-full [perspective:1000px]', className)}
-      style={{ aspectRatio: '3/2' }}
+      className={cn(
+        'relative w-full aspect-[2/3] md:aspect-[3/2] [perspective:1000px]',
+        className,
+      )}
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
