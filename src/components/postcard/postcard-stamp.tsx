@@ -8,27 +8,73 @@ interface PostcardStampProps {
 }
 
 /**
- * Generates CSS mask with radial gradients for perforation effect
- * Creates semicircular cutouts along all four edges
+ * SVG perforation mask - creates punched-out holes along edges
+ * White areas show through (visible), black areas are cut out (transparent)
  */
-function getPerforationStyle(): React.CSSProperties {
-  const holeRadius = 2.5 // px - size of each perforation hole
-  const spacing = 7 // px - distance between hole centers
+function PerforationMask() {
+  const holeRadius = 3
+  const spacing = 7
 
-  // Each edge needs its own radial gradient that creates semicircular holes
-  const topEdge = `radial-gradient(circle, transparent ${holeRadius}px, white ${holeRadius}px) 0 0 / ${spacing}px ${holeRadius * 2}px repeat-x`
-  const bottomEdge = `radial-gradient(circle, transparent ${holeRadius}px, white ${holeRadius}px) 0 100% / ${spacing}px ${holeRadius * 2}px repeat-x`
-  const leftEdge = `radial-gradient(circle, transparent ${holeRadius}px, white ${holeRadius}px) 0 0 / ${holeRadius * 2}px ${spacing}px repeat-y`
-  const rightEdge = `radial-gradient(circle, transparent ${holeRadius}px, white ${holeRadius}px) 100% 0 / ${holeRadius * 2}px ${spacing}px repeat-y`
+  return (
+    <svg className="absolute inset-0 h-full w-full" preserveAspectRatio="none">
+      <defs>
+        <mask id="stamp-perforations">
+          {/* White = visible (stamp body), Black = cut out (perforation holes) */}
+          <rect width="100%" height="100%" fill="white" />
 
-  const maskImage = `${topEdge}, ${bottomEdge}, ${leftEdge}, ${rightEdge}`
+          {/* Semi-circles cut out along top edge */}
+          {Array.from({ length: 20 }).map((_, i) => (
+            <circle
+              key={`top-${i}`}
+              cx={spacing / 2 + i * spacing}
+              cy={spacing / 2}
+              r={holeRadius}
+              fill="black"
+            />
+          ))}
 
-  return {
-    maskImage,
-    maskComposite: 'intersect',
-    WebkitMaskImage: maskImage,
-    WebkitMaskComposite: 'source-in',
-  }
+          {/* Semi-circles cut out along bottom edge */}
+          {Array.from({ length: 20 }).map((_, i) => (
+            <circle
+              key={`bottom-${i}`}
+              cx={spacing / 2 + i * spacing}
+              cy={`calc(100% - ${spacing / 2}px)`}
+              r={holeRadius}
+              fill="black"
+            />
+          ))}
+
+          {/* Semi-circles cut out along left edge */}
+          {Array.from({ length: 25 }).map((_, i) => (
+            <circle
+              key={`left-${i}`}
+              cx={spacing / 2}
+              cy={spacing / 2 + i * spacing}
+              r={holeRadius}
+              fill="black"
+            />
+          ))}
+
+          {/* Semi-circles cut out along right edge */}
+          {Array.from({ length: 25 }).map((_, i) => (
+            <circle
+              key={`right-${i}`}
+              cx={`calc(100% - ${spacing / 2}px)`}
+              cy={spacing / 2 + i * spacing}
+              r={holeRadius}
+              fill="black"
+            />
+          ))}
+        </mask>
+      </defs>
+      <rect
+        width="100%"
+        height="100%"
+        fill="white"
+        mask="url(#stamp-perforations)"
+      />
+    </svg>
+  )
 }
 
 /**
@@ -36,7 +82,7 @@ function getPerforationStyle(): React.CSSProperties {
  *
  * Architecture (4 layers from outside to inside):
  * 1. Drop shadow wrapper - subtle depth effect
- * 2. Perforation layer - white background with perforated edges
+ * 2. Perforation layer - white stamp body with punched holes showing background
  * 3. White inner padding - 4px white border around image
  * 4. Core stamp visual - the actual image with texture overlays
  */
@@ -48,19 +94,16 @@ export function PostcardStamp({
   return (
     // Layer 1: Drop shadow wrapper
     <div
-      className={cn('relative aspect-[4/5]', className)}
+      className={cn('relative aspect-[4/5] bg-background', className)}
       style={{
         filter: 'drop-shadow(0 1px 3px rgba(0, 0, 0, 0.12))',
       }}
     >
-      {/* Layer 2: Perforation ornament (white with perforated edges) */}
-      <div
-        className="absolute inset-0 bg-white"
-        style={getPerforationStyle()}
-      />
+      {/* Layer 2: Perforation ornament (white with punched-out holes) */}
+      <PerforationMask />
 
-      {/* Layer 3: White inner padding (4px) */}
-      <div className="absolute inset-[3px] bg-white p-[4px]">
+      {/* Layer 3: White inner padding (4px) - inset by spacing to avoid perforations */}
+      <div className="absolute inset-[5px] bg-white p-[4px]">
         {/* Layer 4: Core stamp visual */}
         <div className="relative h-full w-full overflow-hidden">
           <img src={src} alt={alt} className="h-full w-full object-cover" />
