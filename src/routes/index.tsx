@@ -12,9 +12,9 @@ function Home() {
     : formatLocation(city, country)
 
   return (
-    <main className="min-h-screen bg-primitives-colors-gray-light-mode-50 flex flex-col items-center p-8">
-      {/* Core content wrapper with max-width and padding */}
-      <div className="w-full max-w-[720px] px-4 flex flex-col gap-8">
+    <main className="min-h-screen bg-primitives-colors-gray-light-mode-50 flex items-center justify-center p-4 md:p-8">
+      {/* Core content wrapper with max-width and mobile padding */}
+      <div className="w-full max-w-[720px] px-4 md:px-0 flex flex-col gap-8">
         <ProfileSection />
         <PostcardSection receiverLocation={receiverLocation} />
       </div>
