@@ -75,78 +75,10 @@ function PerforationMask() {
 }
 
 /**
- * Burelage pattern - decorative security swirl lines on stamp edges
- * Creates a subtle guilloche-like pattern overlay
- */
-function BurelageOverlay() {
-  return (
-    <div
-      className="pointer-events-none absolute inset-0 opacity-[0.15]"
-      aria-hidden="true"
-    >
-      {/* Left edge burelage */}
-      <div
-        className="absolute left-0 top-0 h-full w-4"
-        style={{
-          background: `repeating-linear-gradient(
-            -45deg,
-            transparent,
-            transparent 1px,
-            currentColor 1px,
-            currentColor 2px
-          )`,
-        }}
-      />
-      {/* Right edge burelage */}
-      <div
-        className="absolute right-0 top-0 h-full w-4"
-        style={{
-          background: `repeating-linear-gradient(
-            45deg,
-            transparent,
-            transparent 1px,
-            currentColor 1px,
-            currentColor 2px
-          )`,
-        }}
-      />
-      {/* Top edge burelage */}
-      <div
-        className="absolute left-0 top-0 h-3 w-full"
-        style={{
-          background: `repeating-linear-gradient(
-            -30deg,
-            transparent,
-            transparent 1px,
-            currentColor 1px,
-            currentColor 2px
-          )`,
-        }}
-      />
-      {/* Bottom edge burelage */}
-      <div
-        className="absolute bottom-0 left-0 h-3 w-full"
-        style={{
-          background: `repeating-linear-gradient(
-            30deg,
-            transparent,
-            transparent 1px,
-            currentColor 1px,
-            currentColor 2px
-          )`,
-        }}
-      />
-    </div>
-  )
-}
-
-/**
  * PostcardStamp - Realistic postage stamp component
  *
  * Features:
- * - 4:6 aspect ratio
  * - Perforated edges (classic stamp look)
- * - Burelage security pattern on edges
  * - Texture and noise overlays (like postcard frame)
  * - 4px inner padding
  */
@@ -158,7 +90,7 @@ export function PostcardStamp({
   return (
     <div
       className={cn(
-        'relative aspect-[4/6] w-[48px] bg-card text-muted-foreground',
+        'relative h-full w-[48px] bg-card text-muted-foreground',
         className,
       )}
     >
@@ -169,9 +101,6 @@ export function PostcardStamp({
       <div className="absolute inset-[3px] overflow-hidden">
         {/* Stamp image */}
         <img src={src} alt={alt} className="h-full w-full object-cover" />
-
-        {/* Burelage security pattern */}
-        <BurelageOverlay />
 
         {/* Postcard-like effects */}
         <TextureOverlay />

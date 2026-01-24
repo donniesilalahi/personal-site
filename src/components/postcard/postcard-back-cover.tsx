@@ -181,11 +181,11 @@ export function PostcardBackCover({
 
           {/* Right sub-column on mobile: stamp */}
           {/* On desktop: stamp comes first (top) */}
-          <div className="flex justify-end md:order-1">
+          <div className="flex h-full justify-end self-stretch md:order-1 md:h-auto">
             <PostcardStamp
               src="/images/postcard_stamp.webp"
               alt="Postage stamp"
-              className="w-[48px]"
+              className="w-[48px] md:h-[72px]"
             />
           </div>
         </div>
