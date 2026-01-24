@@ -14,15 +14,15 @@ export function ProfileSection() {
         {/* Profile Picture with postcard frame effect */}
         <div
           className={cn(
-            'group relative size-[60px] shrink-0 overflow-hidden rounded-sm border border-border',
+            'group relative size-[60px] shrink-0 overflow-hidden rounded-sm border border-border bg-card p-1',
           )}
         >
-          {/* Content container with 4px white mat padding and 52px inner frame */}
-          <div className="relative h-full w-full overflow-hidden rounded-[2px] p-1 bg-card">
+          {/* Content container with inner rounded corners */}
+          <div className="relative h-full w-full overflow-hidden rounded-[2px]">
             <img
               src="/images/profile_picture.webp"
               alt="Donnie Silalahi"
-              className="h-full w-full scale-[1.6] rounded-[2px] object-cover object-[50%_30%] transition-transform duration-300 group-hover:scale-[2]"
+              className="h-full w-full scale-[1.8] rounded-[2px] object-cover object-[50%_30%] transition-transform duration-300 group-hover:scale-[2.4]"
             />
 
             {/* Texture overlay - paper-like effect */}
