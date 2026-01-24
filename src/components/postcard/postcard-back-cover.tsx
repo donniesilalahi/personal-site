@@ -81,10 +81,10 @@ export function PostcardBackCover({
         boxShadow: '0px 3.17px 0px 0px rgba(0, 0, 0, 0.25)',
       }}
     >
-      {/* Inner content container with 16px padding and 12px gap */}
-      <div className="relative flex h-full w-full gap-3 p-4">
-        {/* Left column - Message area */}
-        <div className="flex min-w-0 flex-1 flex-col">
+      {/* Inner content container with 8px padding on mobile, 16px on desktop */}
+      <div className="relative flex h-full w-full flex-wrap-reverse gap-3 p-2 md:flex-nowrap md:p-4">
+        {/* Message area - full width on mobile, flex-1 on desktop */}
+        <div className="flex w-full min-w-0 flex-col md:w-auto md:flex-1">
           {/* Content paragraphs - fills available space and aligns to top */}
           <div className="flex w-full flex-1 flex-col gap-1.5">
             {postcardParagraphs.map((paragraph, index) => (
@@ -103,11 +103,15 @@ export function PostcardBackCover({
           </p>
         </div>
 
-        {/* Vertical divider */}
-        <Separator orientation="vertical" className="h-auto self-stretch" />
+        {/* Divider - horizontal on mobile, vertical on desktop */}
+        <Separator
+          orientation="vertical"
+          className="hidden h-auto self-stretch md:block"
+        />
+        <Separator orientation="horizontal" className="w-full md:hidden" />
 
-        {/* Right column - Sender information area (fixed width ~169px) */}
-        <div className="flex w-[169px] shrink-0 flex-col gap-3">
+        {/* Sender information area - full width on mobile, fixed width on desktop */}
+        <div className="flex w-full shrink-0 flex-col gap-3 md:w-[169px]">
           {/* Stamp */}
           <div className="flex justify-end">
             <div className="overflow-hidden rounded-[1px] border-2 border-border">

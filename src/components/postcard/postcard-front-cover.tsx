@@ -32,7 +32,7 @@ export function PostcardFrontCover({
         <h1
           className={cn(
             'px-4 text-center font-normal leading-tight text-white',
-            'text-[48px] md:text-5xl lg:text-6xl',
+            'text-3xl md:text-5xl lg:text-6xl',
           )}
           style={{
             fontFamily: 'Marcellus, serif',
