@@ -31,7 +31,7 @@ export function SectionHeading({
       {/* CTA Buttons */}
       <div className="flex items-center gap-2">
         <Button
-          variant="secondary"
+          variant="ghost"
           size="sm"
           onClick={onExpand}
           className="hidden sm:flex"
@@ -40,7 +40,7 @@ export function SectionHeading({
           Expand
         </Button>
         <Button
-          variant="default"
+          variant="secondary"
           size="sm"
           onClick={onFlip}
           onMouseEnter={() => onFlipButtonHover?.(true)}

@@ -63,9 +63,9 @@ export function ProfileSection() {
 
       {/* CTAs */}
       <div className="flex flex-wrap items-center gap-2">
-        {/* Secondary CTA - Send Email */}
+        {/* Primary CTA - Send Email */}
         <Button
-          variant="secondary"
+          variant="default"
           render={<a href="mailto:donniesilalahi@gmail.com" />}
         >
           Send email

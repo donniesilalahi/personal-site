@@ -38,7 +38,7 @@ function PostcardControls({
 }: PostcardControlsProps) {
   return (
     <motion.div
-      className="flex items-center justify-between w-full"
+      className="flex items-center justify-end w-full gap-2"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 10 }}
@@ -46,10 +46,10 @@ function PostcardControls({
     >
       <Button variant="secondary" size="sm" onClick={onClose}>
         <Shrink className="size-4" />
-        Collapse
+        Close
       </Button>
       <Button
-        variant="default"
+        variant="secondary"
         size="sm"
         onClick={onFlip}
         onMouseEnter={() => onFlipButtonHover(true)}
