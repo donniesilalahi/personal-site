@@ -66,7 +66,7 @@ function FlippableCard({
   return (
     <div
       className={cn(
-        'relative w-full aspect-[2/3] md:aspect-[3/2] [perspective:1000px]',
+        'relative w-full md:aspect-[3/2] [perspective:1000px]',
         className,
       )}
       onClick={onClick}
@@ -82,9 +82,10 @@ function FlippableCard({
           : undefined
       }
     >
+      {/* Grid container - both faces in same cell, taller one determines height on mobile */}
       <div
         className={cn(
-          'relative h-full w-full transition-transform duration-500',
+          'grid transition-transform duration-500 md:h-full',
           '[transform-style:preserve-3d]',
         )}
         style={{
@@ -95,7 +96,7 @@ function FlippableCard({
         {/* Front face */}
         <div
           className={cn(
-            'absolute inset-0 [backface-visibility:hidden]',
+            '[grid-area:1/1] [backface-visibility:hidden]',
             isFlipping && 'pointer-events-none',
           )}
         >
@@ -105,7 +106,7 @@ function FlippableCard({
         {/* Back face */}
         <div
           className={cn(
-            'absolute inset-0 [backface-visibility:hidden]',
+            '[grid-area:1/1] [backface-visibility:hidden]',
             '[transform:rotateY(180deg)]',
             isFlipping && 'pointer-events-none',
           )}

@@ -73,7 +73,7 @@ export function PostcardBackCover({
   return (
     <div
       className={cn(
-        'relative aspect-[4/6] w-full max-w-[688px] cursor-pointer overflow-hidden rounded-sm border border-border bg-background md:aspect-[6/4]',
+        'relative w-full max-w-[688px] cursor-pointer overflow-hidden rounded-sm border border-border bg-background md:aspect-[6/4]',
         className,
       )}
       onClick={onClick}

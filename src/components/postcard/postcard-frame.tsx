@@ -93,7 +93,7 @@ export function PostcardFrame({
   return (
     <div
       className={cn(
-        'relative aspect-[2/3] w-full cursor-pointer overflow-hidden rounded-sm border border-border bg-card p-2 md:aspect-[3/2] md:p-4',
+        'relative w-full cursor-pointer overflow-hidden rounded-sm border border-border bg-card p-2 md:aspect-[3/2] md:p-4',
         className,
       )}
       onClick={onClick}
