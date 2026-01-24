@@ -7,6 +7,7 @@ interface SectionHeadingProps {
   label: string
   onExpand?: () => void
   onFlip?: () => void
+  onFlipButtonHover?: (isHovered: boolean) => void
   className?: string
 }
 
@@ -14,6 +15,7 @@ export function SectionHeading({
   label,
   onExpand,
   onFlip,
+  onFlipButtonHover,
   className,
 }: SectionHeadingProps) {
   return (
@@ -37,7 +39,13 @@ export function SectionHeading({
           <Expand className="size-4" />
           Expand
         </Button>
-        <Button variant="default" size="sm" onClick={onFlip}>
+        <Button
+          variant="default"
+          size="sm"
+          onClick={onFlip}
+          onMouseEnter={() => onFlipButtonHover?.(true)}
+          onMouseLeave={() => onFlipButtonHover?.(false)}
+        >
           <FlipHorizontal className="size-4" />
           Flip
         </Button>

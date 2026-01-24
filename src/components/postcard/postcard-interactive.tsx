@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { FlipHorizontal, Shrink } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
 type CardFace = 'front' | 'back'
+type TiltDirection = 'none' | 'positive' | 'negative'
 
 interface PostcardInteractiveProps {
   className?: string
@@ -20,14 +21,21 @@ interface PostcardInteractiveProps {
   isExpanded?: boolean
   /** Callback when expanded state changes */
   onExpandedChange?: (expanded: boolean) => void
+  /** Whether the flip button (in header) is being hovered */
+  isFlipButtonHovered?: boolean
 }
 
 interface PostcardControlsProps {
   onClose: () => void
   onFlip: () => void
+  onFlipButtonHover: (isHovered: boolean) => void
 }
 
-function PostcardControls({ onClose, onFlip }: PostcardControlsProps) {
+function PostcardControls({
+  onClose,
+  onFlip,
+  onFlipButtonHover,
+}: PostcardControlsProps) {
   return (
     <motion.div
       className="flex items-center justify-between w-full"
@@ -40,7 +48,13 @@ function PostcardControls({ onClose, onFlip }: PostcardControlsProps) {
         <Shrink className="size-4" />
         Collapse
       </Button>
-      <Button variant="default" size="sm" onClick={onFlip}>
+      <Button
+        variant="default"
+        size="sm"
+        onClick={onFlip}
+        onMouseEnter={() => onFlipButtonHover(true)}
+        onMouseLeave={() => onFlipButtonHover(false)}
+      >
         <FlipHorizontal className="size-4" />
         Flip
       </Button>
@@ -52,24 +66,32 @@ interface FlippableCardProps {
   activeFace: CardFace
   receiverLocation?: string
   isFlipping: boolean
+  tiltAngle?: number
   className?: string
   onClick?: () => void
+  onMouseEnter?: () => void
+  onMouseLeave?: () => void
 }
 
 function FlippableCard({
   activeFace,
   receiverLocation,
   isFlipping,
+  tiltAngle = 0,
   className,
   onClick,
+  onMouseEnter,
+  onMouseLeave,
 }: FlippableCardProps) {
   return (
-    <div
+    <motion.div
       className={cn(
         'relative w-full md:aspect-[3/2] [perspective:1000px]',
         className,
       )}
       onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       onKeyDown={
@@ -81,6 +103,9 @@ function FlippableCard({
             }
           : undefined
       }
+      initial={{ rotate: 0 }}
+      animate={{ rotate: tiltAngle }}
+      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
     >
       {/* Grid container - both faces in same cell, taller one determines height on mobile */}
       <div
@@ -117,7 +142,7 @@ function FlippableCard({
           />
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -132,15 +157,92 @@ export function PostcardInteractive({
   onFaceChange,
   isExpanded = false,
   onExpandedChange,
+  isFlipButtonHovered: externalFlipButtonHovered = false,
 }: PostcardInteractiveProps) {
   const [internalFace, setInternalFace] = useState<CardFace>('front')
   const [isFlipping, setIsFlipping] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
   const [cardRect, setCardRect] = useState<DOMRect | null>(null)
+  const [tiltDirection, setTiltDirection] = useState<TiltDirection>('none')
+  const [isCardHovered, setIsCardHovered] = useState(false)
+  const [internalFlipButtonHovered, setInternalFlipButtonHovered] =
+    useState(false)
+  const lastScrollY = useRef(0)
+
+  // Combine external (header) and internal (expanded overlay) flip button hover states
+  const isFlipButtonHovered =
+    externalFlipButtonHovered || internalFlipButtonHovered
 
   // Support controlled or uncontrolled mode for face
   const activeFace = controlledFace ?? internalFace
   const setActiveFace = onFaceChange ?? setInternalFace
+
+  // Check if device is desktop (pointer: fine)
+  const [isDesktop, setIsDesktop] = useState(false)
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(pointer: fine)')
+    setIsDesktop(mediaQuery.matches)
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
+    mediaQuery.addEventListener('change', handler)
+    return () => mediaQuery.removeEventListener('change', handler)
+  }, [])
+
+  // Calculate tilt angle based on state
+  const getTiltAngle = useCallback((): number => {
+    // When expanded, no tilt
+    if (isExpanded) return 0
+
+    // Desktop only: hover-based tilt
+    if (isDesktop) {
+      if (isFlipButtonHovered) return -1
+      if (isCardHovered) return 1
+    }
+
+    // Mobile: scroll-based tilt
+    if (!isDesktop) {
+      if (tiltDirection === 'positive') return 1
+      if (tiltDirection === 'negative') return -1
+    }
+
+    return 0
+  }, [isExpanded, isDesktop, isFlipButtonHovered, isCardHovered, tiltDirection])
+
+  // Mobile scroll detection
+  useEffect(() => {
+    if (isDesktop) return
+
+    const handleScroll = () => {
+      if (!cardRef.current || isExpanded) return
+
+      const rect = cardRef.current.getBoundingClientRect()
+      const isInView = rect.top < window.innerHeight && rect.bottom > 0
+
+      if (isInView) {
+        const currentScrollY = window.scrollY
+        if (currentScrollY > lastScrollY.current) {
+          setTiltDirection('positive') // scrolling down
+        } else if (currentScrollY < lastScrollY.current) {
+          setTiltDirection('negative') // scrolling up
+        }
+        lastScrollY.current = currentScrollY
+      } else {
+        setTiltDirection('none')
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [isExpanded, isDesktop])
+
+  // Reset tilt when collapsing from expanded
+  useEffect(() => {
+    if (!isExpanded) {
+      setTiltDirection('none')
+      setIsCardHovered(false)
+      setInternalFlipButtonHovered(false)
+    }
+  }, [isExpanded])
 
   // Capture card position when expanding
   useEffect(() => {
@@ -207,7 +309,10 @@ export function PostcardInteractive({
           activeFace={activeFace}
           receiverLocation={receiverLocation}
           isFlipping={isFlipping}
+          tiltAngle={getTiltAngle()}
           onClick={handleCardClick}
+          onMouseEnter={() => setIsCardHovered(true)}
+          onMouseLeave={() => setIsCardHovered(false)}
         />
       </div>
 
@@ -262,7 +367,11 @@ export function PostcardInteractive({
                   />
 
                   {/* Controls with 16px gap from card */}
-                  <PostcardControls onClose={handleClose} onFlip={handleFlip} />
+                  <PostcardControls
+                    onClose={handleClose}
+                    onFlip={handleFlip}
+                    onFlipButtonHover={setInternalFlipButtonHovered}
+                  />
                 </motion.div>
               </>
             )}
