@@ -28,7 +28,12 @@ export function SectionHeading({
 
       {/* CTA Buttons */}
       <div className="flex items-center gap-2">
-        <Button variant="secondary" size="sm" onClick={onExpand}>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={onExpand}
+          className="hidden sm:flex"
+        >
           <Expand className="size-4" />
           Expand
         </Button>
