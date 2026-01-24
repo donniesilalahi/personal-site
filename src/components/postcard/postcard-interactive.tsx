@@ -1,11 +1,11 @@
-import { useState, useRef, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { FlipHorizontal, Shrink } from 'lucide-react'
-import { motion, AnimatePresence } from 'motion/react'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
+import { AnimatePresence, motion } from 'motion/react'
 import { PostcardFrontCover } from './postcard-front-cover'
 import { PostcardBackCover } from './postcard-back-cover'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 
 type CardFace = 'front' | 'back'
 
@@ -36,11 +36,11 @@ function PostcardControls({ onClose, onFlip }: PostcardControlsProps) {
       exit={{ opacity: 0, y: 10 }}
       transition={{ delay: 0.2, duration: 0.3 }}
     >
-      <Button variant="outline" size="sm" onClick={onClose}>
+      <Button variant="secondary" size="sm" onClick={onClose}>
         <Shrink className="size-4" />
-        Close
+        Collapse
       </Button>
-      <Button variant="outline" size="sm" onClick={onFlip}>
+      <Button variant="default" size="sm" onClick={onFlip}>
         <FlipHorizontal className="size-4" />
         Flip
       </Button>

@@ -1,5 +1,6 @@
 import { Expand, FlipHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 
 interface SectionHeadingProps {
@@ -18,27 +19,22 @@ export function SectionHeading({
   return (
     <div className={cn('flex items-center gap-3 w-full', className)}>
       {/* Section Label */}
-      <span className="text-sm text-primitives-colors-gray-light-mode-600 shrink-0">
+      <span className="text-xl font-semibold text-muted-foreground shrink-0">
         {label}
       </span>
 
       {/* Divider Line */}
-      <div className="flex-1 h-px bg-primitives-colors-gray-light-mode-300" />
+      <Separator className="flex-1 bg-border" />
 
       {/* CTA Buttons */}
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" onClick={onFlip}>
-          <FlipHorizontal className="size-4" />
-          Flip
-        </Button>
-        <Button
-          variant="default"
-          size="sm"
-          onClick={onExpand}
-          className="bg-primitives-colors-gray-light-mode-800 hover:bg-primitives-colors-gray-light-mode-900"
-        >
+        <Button variant="secondary" size="sm" onClick={onExpand}>
           <Expand className="size-4" />
           Expand
+        </Button>
+        <Button variant="default" size="sm" onClick={onFlip}>
+          <FlipHorizontal className="size-4" />
+          Flip
         </Button>
       </div>
     </div>
