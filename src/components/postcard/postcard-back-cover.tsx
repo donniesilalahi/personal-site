@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { NoiseOverlay, TextureOverlay } from './postcard-frame'
+import { PostcardStamp } from './postcard-stamp'
 import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
 
@@ -181,13 +182,11 @@ export function PostcardBackCover({
           {/* Right sub-column on mobile: stamp */}
           {/* On desktop: stamp comes first (top) */}
           <div className="flex justify-end md:order-1">
-            <div className="overflow-hidden rounded-[1px] border-2 border-border">
-              <img
-                src="/images/postcard_stamp.webp"
-                alt="Stamp"
-                className="h-[57px] w-[46px] object-cover"
-              />
-            </div>
+            <PostcardStamp
+              src="/images/postcard_stamp.webp"
+              alt="Postage stamp"
+              className="w-[48px]"
+            />
           </div>
         </div>
       </div>
