@@ -1,19 +1,51 @@
 import { Linkedin } from './icons/custom-social/linkedin'
 import { Twitter } from './icons/custom-social/twitter'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 export function ProfileSection() {
   return (
     <section className="flex w-full flex-col gap-4">
       {/* Profile Info - Horizontal layout */}
       <div className="flex items-center gap-4">
-        {/* Profile Picture with bleed effect */}
-        <div className="size-[60px] shrink-0 flex items-center justify-center bg-primitives-colors-gray-light-mode-300 rounded-[4px]">
-          <img
-            src="/images/profile_picture.webp"
-            alt="Donnie Silalahi"
-            className="size-[53.33px] rounded-[3.33px] object-cover object-[50%_30%]"
-          />
+        {/* Profile Picture with postcard frame effect */}
+        <div
+          className={cn(
+            'relative size-[60px] shrink-0 overflow-hidden rounded-sm border border-border bg-card',
+            'shadow-[0px_3.17px_0px_0px_rgba(0,0,0,0.25)]',
+          )}
+        >
+          {/* Content container with inner rounded corners and 8px padding */}
+          <div className="relative h-full w-full overflow-hidden rounded-[2px] p-2">
+            <img
+              src="/images/profile_picture.webp"
+              alt="Donnie Silalahi"
+              className="h-full w-full rounded-[2px] object-cover object-[50%_30%]"
+            />
+
+            {/* Texture overlay - paper-like effect */}
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='texture'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.4' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23texture)'/%3E%3C/svg%3E")`,
+                opacity: 0.04,
+                mixBlendMode: 'overlay',
+              }}
+              aria-hidden="true"
+            />
+
+            {/* Noise overlay - grainy film effect */}
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='1' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+                opacity: 0.1,
+                mixBlendMode: 'soft-light',
+                backgroundColor: 'rgba(246, 243, 241, 0.1)',
+              }}
+              aria-hidden="true"
+            />
+          </div>
         </div>
 
         {/* Name and Role */}
