@@ -1,5 +1,8 @@
-import { Linkedin } from './icons/custom-social/linkedin'
-import { Twitter } from './icons/custom-social/twitter'
+import { HugeiconsIcon } from '@hugeicons/react'
+import {
+  Linkedin01Icon,
+  NewTwitterRectangleIcon,
+} from '@hugeicons/core-free-icons'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -79,7 +82,7 @@ export function ProfileSection() {
             />
           }
         >
-          <Linkedin className="size-4" />
+          <HugeiconsIcon icon={Linkedin01Icon} size={16} />
           Connect
         </Button>
 
@@ -94,7 +97,7 @@ export function ProfileSection() {
             />
           }
         >
-          <Twitter className="size-4 scale-[0.9]" />
+          <HugeiconsIcon icon={NewTwitterRectangleIcon} size={16} />
           Say hi
         </Button>
       </div>
