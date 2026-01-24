@@ -1,5 +1,5 @@
-import { cn } from '@/lib/utils'
 import { NoiseOverlay, TextureOverlay } from './postcard-frame'
+import { cn } from '@/lib/utils'
 
 interface PostcardStampProps {
   src: string
