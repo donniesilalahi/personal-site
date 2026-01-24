@@ -84,9 +84,9 @@ export function PostcardBackCover({
       {/* Inner content container with 16px padding and 12px gap */}
       <div className="relative flex h-full w-full gap-3 p-4">
         {/* Left column - Message area */}
-        <div className="flex min-w-0 flex-1 flex-col justify-end">
-          {/* Content paragraphs */}
-          <div className="flex w-full flex-col gap-1.5">
+        <div className="flex min-w-0 flex-1 flex-col">
+          {/* Content paragraphs - fills available space and aligns to top */}
+          <div className="flex w-full flex-1 flex-col gap-1.5">
             {postcardParagraphs.map((paragraph, index) => (
               <p
                 key={index}
@@ -97,8 +97,8 @@ export function PostcardBackCover({
             ))}
           </div>
 
-          {/* Signature */}
-          <p className="mt-3 self-end text-base font-bold leading-6 text-foreground font-playwrite-is">
+          {/* Signature - stays at bottom */}
+          <p className="mt-3 self-end font-playwrite-is text-base font-bold leading-6 text-foreground">
             Donnie
           </p>
         </div>
