@@ -1,251 +1,230 @@
 import { useMemo } from 'react'
 
 import { ExperienceEntryCard, MilestoneEntry } from './experience-entry-card'
+import { calculatePositioning } from './career-calendar.algorithm'
+import {
+  YEAR_HEIGHT_PX,
+  MIN_EXPERIENCE_HEIGHT_PX,
+  COLUMN_GAP_PX,
+  VERTICAL_GAP_PX,
+} from './career-calendar.constants'
+import type {
+  CareerCalendarProps,
+  PositionedExperience,
+  PositionedMilestone,
+  TimelineBounds,
+} from './career-calendar.types'
+import { areConsecutive, dateToPercent } from './career-calendar.utils'
 
 import type { Experience } from '@/lib/experiences'
 import { cn } from '@/lib/utils'
 
-interface CareerCalendarProps {
-  experiences: Array<Experience>
-  className?: string
-}
-
-/** Fixed height per year in pixels (allows 3 non-overlapping 4-month experiences) */
-const YEAR_HEIGHT_PX = 80
-
-/** Minimum height for very short experiences (in pixels) */
-const MIN_EXPERIENCE_HEIGHT_PX = 24
-
-/** Gap between side-by-side columns (in pixels) */
-const COLUMN_GAP_PX = 2
-
-/** Gap between vertically stacked cards (in pixels) */
-const VERTICAL_GAP_PX = 1
-
-// ============================================================================
-// Types for Google Calendar-style positioning
-// ============================================================================
-
-interface PositionedExperience {
-  experience: Experience
-  /** Column index (0 = leftmost) */
-  column: number
-  /** Maximum columns in this overlap group (determines width) */
-  maxColumnsInGroup: number
-  /** Top position as percentage of total timeline height */
-  topPercent: number
-  /** Height as percentage of total timeline height */
-  heightPercent: number
-  /** Top position in pixels (original, based on date) */
-  topPx: number
-  /** Height in pixels */
-  heightPx: number
-  /** Final top position in pixels (after gap adjustment) */
-  finalTopPx: number
-  /** Final height in pixels (after gap adjustment) */
-  finalHeightPx: number
-}
-
 /**
- * Check if two experiences are consecutive (no gap between them).
- * Consecutive means: expA ends in month M, expB starts in month M+1 (or same month)
- * We treat month-level precision: "2022-02" ends → "2022-03" starts = consecutive
+ * Calculate timeline bounds from experiences
  */
-function areConsecutive(
-  expAEnd: Date | null,
-  expBStart: Date,
+function calculateTimelineBounds(
+  regularExperiences: Array<Experience>,
+  milestones: Array<Experience>,
   now: Date,
-): boolean {
-  const endDate = expAEnd ?? now
-
-  // Get year/month for comparison
-  const endYear = endDate.getFullYear()
-  const endMonth = endDate.getMonth()
-  const startYear = expBStart.getFullYear()
-  const startMonth = expBStart.getMonth()
-
-  // Calculate months difference
-  const monthsDiff = (startYear - endYear) * 12 + (startMonth - endMonth)
-
-  // Consecutive if start is 0 or 1 month after end
-  // 0 = same month (overlap or same month boundary)
-  // 1 = next month (truly consecutive)
-  return monthsDiff >= 0 && monthsDiff <= 1
-}
-
-interface PositionedMilestone {
-  experience: Experience
-  topPercent: number
-  topPx: number
-}
-
-// ============================================================================
-// Core Algorithm: Google Calendar-style column assignment
-// ============================================================================
-
-/**
- * Check if two time intervals overlap.
- * Intervals are [startA, endA] and [startB, endB].
- * Overlap occurs when: startA < endB AND startB < endA
- */
-function intervalsOverlap(
-  startA: Date,
-  endA: Date,
-  startB: Date,
-  endB: Date,
-): boolean {
-  return startA < endB && startB < endA
-}
-
-/**
- * PHASE 1: Assign columns to experiences using Google Calendar's algorithm.
- * - Sort by startDate ASC, then endDate ASC
- * - Assign each to leftmost column where it doesn't overlap with existing events
- * - Column reuse: non-overlapping events can share the same column
- */
-function assignColumns(
-  experiences: Array<Experience>,
-  now: Date,
-): Map<string, number> {
-  if (experiences.length === 0) {
-    return new Map()
+): TimelineBounds {
+  const allExperiences = [...regularExperiences, ...milestones]
+  if (allExperiences.length === 0) {
+    const currentYear = now.getFullYear()
+    return {
+      years: [currentYear],
+      ceilingYear: currentYear + 1,
+      timelineStart: new Date(currentYear, 0, 1),
+      timelineEnd: new Date(currentYear + 1, 0, 1),
+    }
   }
 
-  // Sort by startDate ASC, then endDate ASC (null endDate = now)
-  const sorted = [...experiences].sort((a, b) => {
-    const startDiff = a.startDateParsed.getTime() - b.startDateParsed.getTime()
-    if (startDiff !== 0) return startDiff
+  let minDate = new Date(allExperiences[0].startDateParsed)
+  let maxDate = allExperiences[0].endDateParsed ?? now
 
-    const aEnd = a.endDateParsed?.getTime() ?? now.getTime()
-    const bEnd = b.endDateParsed?.getTime() ?? now.getTime()
-    return aEnd - bEnd
+  for (const exp of allExperiences) {
+    if (exp.startDateParsed < minDate) {
+      minDate = new Date(exp.startDateParsed)
+    }
+    const endDate = exp.endDateParsed ?? now
+    if (endDate > maxDate) {
+      maxDate = endDate
+    }
+  }
+
+  // Round to year boundaries
+  const startYear = minDate.getFullYear()
+  const endYear = maxDate.getFullYear()
+
+  // Ceiling year = endYear + 1 (just label + line at top, no full lane)
+  const ceiling = endYear + 1
+
+  // Build years array (descending - newest at top)
+  // These are the actual year lanes (endYear down to startYear)
+  const yearsList: Array<number> = []
+  for (let y = endYear; y >= startYear; y--) {
+    yearsList.push(y)
+  }
+
+  // Timeline spans from start of startYear to start of ceiling year
+  const timelineStartDate = new Date(startYear, 0, 1)
+  const timelineEndDate = new Date(ceiling, 0, 1)
+
+  return {
+    years: yearsList,
+    ceilingYear: ceiling,
+    timelineStart: timelineStartDate,
+    timelineEnd: timelineEndDate,
+  }
+}
+
+/**
+ * Position experiences with gap adjustments for consecutive items
+ */
+function positionExperiences(
+  regularExperiences: Array<Experience>,
+  positioningMap: Map<string, { column: number; maxConcurrent: number }>,
+  totalHeightPx: number,
+  timelineStart: Date,
+  timelineEnd: Date,
+  now: Date,
+): Array<PositionedExperience> {
+  // First pass: calculate positions based on dates
+  const basePositions = regularExperiences.map((exp) => {
+    const start = exp.startDateParsed
+    const end = exp.endDateParsed ?? now
+
+    // Top = where experience ends (newest point) - DATE BASED, NEVER CHANGES
+    const topPercent = dateToPercent(end, timelineStart, timelineEnd)
+    const topPx = (topPercent / 100) * totalHeightPx
+
+    // Height calculated from EXACT dates (same scale as position)
+    // This ensures cards span exactly from end date to start date on timeline
+    const startPercent = dateToPercent(start, timelineStart, timelineEnd)
+    let heightPx = ((startPercent - topPercent) / 100) * totalHeightPx
+
+    // Enforce minimum height
+    if (heightPx < MIN_EXPERIENCE_HEIGHT_PX) {
+      heightPx = MIN_EXPERIENCE_HEIGHT_PX
+    }
+
+    const heightPercent = (heightPx / totalHeightPx) * 100
+
+    const positioning = positioningMap.get(exp.id) ?? {
+      column: 0,
+      maxConcurrent: 1,
+    }
+
+    return {
+      experience: exp,
+      column: positioning.column,
+      maxColumnsInGroup: positioning.maxConcurrent,
+      topPercent,
+      heightPercent,
+      topPx: Math.round(topPx),
+      heightPx: Math.round(heightPx),
+      finalTopPx: Math.round(topPx),
+      finalHeightPx: Math.round(heightPx),
+    }
   })
 
-  const columnAssignments = new Map<string, number>()
-
-  // Each column tracks which experiences are in it
-  const columns: Array<Array<string>> = []
-
-  for (const exp of sorted) {
-    const start = exp.startDateParsed
-    const end = exp.endDateParsed ?? now
-
-    // Find leftmost column where this experience fits (no overlap)
-    let assignedColumn = -1
-
-    for (let colIdx = 0; colIdx < columns.length; colIdx++) {
-      const hasOverlap = columns[colIdx].some((existingId) => {
-        const existingExp = experiences.find((e) => e.id === existingId)
-        if (!existingExp) return false
-
-        const existingStart = existingExp.startDateParsed
-        const existingEnd = existingExp.endDateParsed ?? now
-
-        return intervalsOverlap(start, end, existingStart, existingEnd)
-      })
-
-      if (!hasOverlap) {
-        assignedColumn = colIdx
-        break
-      }
-    }
-
-    // If no existing column works, create a new one
-    if (assignedColumn === -1) {
-      assignedColumn = columns.length
-      columns.push([])
-    }
-
-    columns[assignedColumn].push(exp.id)
-    columnAssignments.set(exp.id, assignedColumn)
+  // Group cards by column for efficient processing
+  const byColumn = new Map<number, Array<PositionedExperience>>()
+  for (const entry of basePositions) {
+    const list = byColumn.get(entry.column) ?? []
+    list.push(entry)
+    byColumn.set(entry.column, list)
   }
 
-  return columnAssignments
-}
+  // Second pass: resolve overlaps and ensure consistent gaps within each column
+  // Key insight: For CONSECUTIVE experiences (no time gap), enforce uniform visual gap
+  // For NON-consecutive experiences (real time gap), preserve the time-proportional gap
+  for (const [, colCards] of byColumn) {
+    // Sort by topPx (newest/higher cards first)
+    colCards.sort((a, b) => a.finalTopPx - b.finalTopPx)
 
-/**
- * PHASE 2: Calculate max concurrent events during each experience's duration.
- * This determines the width of each event - NOT based on transitive overlap groups,
- * but on actual maximum concurrency at any point during the event's span.
- *
- * Key insight: Width is determined by maximum concurrent events during the
- * event's ENTIRE duration, not moment-by-moment or by global overlap chains.
- */
-function calculateMaxConcurrency(
-  experiences: Array<Experience>,
-  now: Date,
-): Map<string, number> {
-  const maxConcurrencyMap = new Map<string, number>()
+    for (let i = 0; i < colCards.length - 1; i++) {
+      const current = colCards[i]
+      const next = colCards[i + 1]
 
-  for (const exp of experiences) {
-    const start = exp.startDateParsed
-    const end = exp.endDateParsed ?? now
+      const currentBottom = current.finalTopPx + current.finalHeightPx
+      const gap = next.finalTopPx - currentBottom
 
-    // Collect all time points to check within this experience's duration
-    // We need to check at boundaries of all potentially overlapping events
-    const checkPoints: Array<Date> = [start, end]
+      // Check if these experiences are consecutive (no real time gap)
+      // Note: "current" is above (ends later), "next" is below (starts earlier)
+      // So we check if current's START is consecutive to next's END
+      const isConsecutive = areConsecutive(
+        next.experience.endDateParsed,
+        current.experience.startDateParsed,
+        now,
+      )
 
-    // Add start/end points of all events that overlap with this one
-    for (const other of experiences) {
-      const otherStart = other.startDateParsed
-      const otherEnd = other.endDateParsed ?? now
+      // For consecutive experiences: enforce exactly VERTICAL_GAP_PX
+      // For non-consecutive: only act if gap < VERTICAL_GAP_PX (overlap)
+      if (isConsecutive) {
+        // Always normalize consecutive cards to have exactly VERTICAL_GAP_PX
+        // Directly set the height so bottom aligns with expected gap
+        const newHeight = next.finalTopPx - current.finalTopPx - VERTICAL_GAP_PX
 
-      if (intervalsOverlap(start, end, otherStart, otherEnd)) {
-        // Only add points that fall within our event's span
-        if (otherStart >= start && otherStart <= end) {
-          checkPoints.push(otherStart)
+        if (newHeight >= MIN_EXPERIENCE_HEIGHT_PX) {
+          current.finalHeightPx = newHeight
+        } else {
+          // Can't shrink enough - enforce min height and push next card down
+          current.finalHeightPx = MIN_EXPERIENCE_HEIGHT_PX
+          const newNextTop =
+            current.finalTopPx + MIN_EXPERIENCE_HEIGHT_PX + VERTICAL_GAP_PX
+          const shift = newNextTop - next.finalTopPx
+
+          for (let j = i + 1; j < colCards.length; j++) {
+            colCards[j].finalTopPx += shift
+          }
         }
-        if (otherEnd >= start && otherEnd <= end) {
-          checkPoints.push(otherEnd)
+      } else if (gap < VERTICAL_GAP_PX) {
+        // Non-consecutive but overlapping/too close - ensure minimum gap
+        const desiredHeight =
+          next.finalTopPx - current.finalTopPx - VERTICAL_GAP_PX
+
+        if (desiredHeight >= MIN_EXPERIENCE_HEIGHT_PX) {
+          current.finalHeightPx = desiredHeight
+        } else {
+          current.finalHeightPx = MIN_EXPERIENCE_HEIGHT_PX
+          const newNextTop =
+            current.finalTopPx + MIN_EXPERIENCE_HEIGHT_PX + VERTICAL_GAP_PX
+          const shift = newNextTop - next.finalTopPx
+
+          for (let j = i + 1; j < colCards.length; j++) {
+            colCards[j].finalTopPx += shift
+          }
         }
       }
     }
-
-    // Find maximum concurrency at any check point
-    let maxConcurrent = 1 // At minimum, the event itself
-
-    for (const checkTime of checkPoints) {
-      // Count how many events are active at this exact time
-      // An event is active if: start <= checkTime < end (or start <= checkTime <= end for end boundary)
-      const concurrent = experiences.filter((e) => {
-        const eStart = e.startDateParsed
-        const eEnd = e.endDateParsed ?? now
-        // Event is active at checkTime if it contains this point
-        return eStart <= checkTime && checkTime <= eEnd
-      }).length
-
-      maxConcurrent = Math.max(maxConcurrent, concurrent)
-    }
-
-    maxConcurrencyMap.set(exp.id, maxConcurrent)
   }
 
-  return maxConcurrencyMap
+  return basePositions
 }
 
 /**
- * PHASE 3: Combine column assignment and max concurrency for final positioning.
- * - column: which column (0 = leftmost)
- * - maxConcurrent: determines width (100% / maxConcurrent)
- * - left position: column * width
+ * Position milestones (simple - no columns)
  */
-function calculatePositioning(
-  experiences: Array<Experience>,
-  now: Date,
-): Map<string, { column: number; maxConcurrent: number }> {
-  const columnAssignments = assignColumns(experiences, now)
-  const maxConcurrencyMap = calculateMaxConcurrency(experiences, now)
+function positionMilestones(
+  milestones: Array<Experience>,
+  totalHeightPx: number,
+  timelineStart: Date,
+  timelineEnd: Date,
+): Array<PositionedMilestone> {
+  return milestones.map((m) => {
+    const topPercent = dateToPercent(
+      m.startDateParsed,
+      timelineStart,
+      timelineEnd,
+    )
+    const topPx = (topPercent / 100) * totalHeightPx
 
-  const result = new Map<string, { column: number; maxConcurrent: number }>()
-
-  for (const exp of experiences) {
-    const column = columnAssignments.get(exp.id) ?? 0
-    const maxConcurrent = maxConcurrencyMap.get(exp.id) ?? 1
-
-    result.set(exp.id, { column, maxConcurrent })
-  }
-
-  return result
+    return {
+      experience: m,
+      topPercent,
+      topPx,
+    }
+  })
 }
 
 // ============================================================================
@@ -270,70 +249,13 @@ export function CareerCalendar({
   )
 
   // Calculate timeline bounds
-  // ceilingYear = next year (shown as label + line at top, no full lane)
-  // years = actual year lanes from endYear down to startYear
-  const { years, ceilingYear, timelineStart, timelineEnd } = useMemo(() => {
-    const allExperiences = [...regularExperiences, ...milestones]
-    if (allExperiences.length === 0) {
-      const currentYear = now.getFullYear()
-      return {
-        years: [currentYear],
-        ceilingYear: currentYear + 1,
-        timelineStart: new Date(currentYear, 0, 1),
-        timelineEnd: new Date(currentYear + 1, 0, 1),
-      }
-    }
-
-    let minDate = new Date(allExperiences[0].startDateParsed)
-    let maxDate = allExperiences[0].endDateParsed ?? now
-
-    for (const exp of allExperiences) {
-      if (exp.startDateParsed < minDate) {
-        minDate = new Date(exp.startDateParsed)
-      }
-      const endDate = exp.endDateParsed ?? now
-      if (endDate > maxDate) {
-        maxDate = endDate
-      }
-    }
-
-    // Round to year boundaries
-    const startYear = minDate.getFullYear()
-    const endYear = maxDate.getFullYear()
-
-    // Ceiling year = endYear + 1 (just label + line at top, no full lane)
-    const ceiling = endYear + 1
-
-    // Build years array (descending - newest at top)
-    // These are the actual year lanes (endYear down to startYear)
-    const yearsList: Array<number> = []
-    for (let y = endYear; y >= startYear; y--) {
-      yearsList.push(y)
-    }
-
-    // Timeline spans from start of startYear to start of ceiling year
-    const timelineStartDate = new Date(startYear, 0, 1)
-    const timelineEndDate = new Date(ceiling, 0, 1)
-
-    return {
-      years: yearsList,
-      ceilingYear: ceiling,
-      timelineStart: timelineStartDate,
-      timelineEnd: timelineEndDate,
-    }
-  }, [regularExperiences, milestones, now])
+  const { years, ceilingYear, timelineStart, timelineEnd } = useMemo(
+    () => calculateTimelineBounds(regularExperiences, milestones, now),
+    [regularExperiences, milestones, now],
+  )
 
   // Total timeline height in pixels
   const totalHeightPx = years.length * YEAR_HEIGHT_PX
-
-  // Convert date to position (0% = top/newest, 100% = bottom/oldest)
-  // Since years are displayed newest at top, we invert the calculation
-  const dateToPercent = (date: Date): number => {
-    const totalMs = timelineEnd.getTime() - timelineStart.getTime()
-    if (totalMs === 0) return 0
-    // Invert: newest (timelineEnd) = 0%, oldest (timelineStart) = 100%
-    return ((timelineEnd.getTime() - date.getTime()) / totalMs) * 100
-  }
 
   // Calculate positioning using Google Calendar algorithm (column + max concurrency)
   const positioningMap = useMemo(
@@ -342,135 +264,32 @@ export function CareerCalendar({
   )
 
   // Position all experiences: date-based positioning with overlap adjustment
-  const positionedExperiences: Array<PositionedExperience> = useMemo(() => {
-    // First pass: calculate positions based on dates
-    const basePositions = regularExperiences.map((exp) => {
-      const start = exp.startDateParsed
-      const end = exp.endDateParsed ?? now
-
-      // Top = where experience ends (newest point) - DATE BASED, NEVER CHANGES
-      const topPercent = dateToPercent(end)
-      const topPx = (topPercent / 100) * totalHeightPx
-
-      // Height calculated from EXACT dates (same scale as position)
-      // This ensures cards span exactly from end date to start date on timeline
-      const startPercent = dateToPercent(start)
-      let heightPx = ((startPercent - topPercent) / 100) * totalHeightPx
-
-      // Enforce minimum height
-      if (heightPx < MIN_EXPERIENCE_HEIGHT_PX) {
-        heightPx = MIN_EXPERIENCE_HEIGHT_PX
-      }
-
-      const heightPercent = (heightPx / totalHeightPx) * 100
-
-      const positioning = positioningMap.get(exp.id) ?? {
-        column: 0,
-        maxConcurrent: 1,
-      }
-
-      return {
-        experience: exp,
-        column: positioning.column,
-        maxColumnsInGroup: positioning.maxConcurrent,
-        topPercent,
-        heightPercent,
-        topPx: Math.round(topPx),
-        heightPx: Math.round(heightPx),
-        finalTopPx: Math.round(topPx),
-        finalHeightPx: Math.round(heightPx),
-      }
-    })
-
-    // Group cards by column for efficient processing
-    const byColumn = new Map<number, Array<PositionedExperience>>()
-    for (const entry of basePositions) {
-      const list = byColumn.get(entry.column) ?? []
-      list.push(entry)
-      byColumn.set(entry.column, list)
-    }
-
-    // Second pass: resolve overlaps and ensure consistent gaps within each column
-    // Key insight: For CONSECUTIVE experiences (no time gap), enforce uniform visual gap
-    // For NON-consecutive experiences (real time gap), preserve the time-proportional gap
-    for (const [, colCards] of byColumn) {
-      // Sort by topPx (newest/higher cards first)
-      colCards.sort((a, b) => a.finalTopPx - b.finalTopPx)
-
-      for (let i = 0; i < colCards.length - 1; i++) {
-        const current = colCards[i]
-        const next = colCards[i + 1]
-
-        const currentBottom = current.finalTopPx + current.finalHeightPx
-        const gap = next.finalTopPx - currentBottom
-
-        // Check if these experiences are consecutive (no real time gap)
-        // Note: "current" is above (ends later), "next" is below (starts earlier)
-        // So we check if current's START is consecutive to next's END
-        const isConsecutive = areConsecutive(
-          next.experience.endDateParsed,
-          current.experience.startDateParsed,
-          now,
-        )
-
-        // For consecutive experiences: enforce exactly VERTICAL_GAP_PX
-        // For non-consecutive: only act if gap < VERTICAL_GAP_PX (overlap)
-        if (isConsecutive) {
-          // Always normalize consecutive cards to have exactly VERTICAL_GAP_PX
-          // Directly set the height so bottom aligns with expected gap
-          const newHeight =
-            next.finalTopPx - current.finalTopPx - VERTICAL_GAP_PX
-
-          if (newHeight >= MIN_EXPERIENCE_HEIGHT_PX) {
-            current.finalHeightPx = newHeight
-          } else {
-            // Can't shrink enough - enforce min height and push next card down
-            current.finalHeightPx = MIN_EXPERIENCE_HEIGHT_PX
-            const newNextTop =
-              current.finalTopPx + MIN_EXPERIENCE_HEIGHT_PX + VERTICAL_GAP_PX
-            const shift = newNextTop - next.finalTopPx
-
-            for (let j = i + 1; j < colCards.length; j++) {
-              colCards[j].finalTopPx += shift
-            }
-          }
-        } else if (gap < VERTICAL_GAP_PX) {
-          // Non-consecutive but overlapping/too close - ensure minimum gap
-          const desiredHeight =
-            next.finalTopPx - current.finalTopPx - VERTICAL_GAP_PX
-
-          if (desiredHeight >= MIN_EXPERIENCE_HEIGHT_PX) {
-            current.finalHeightPx = desiredHeight
-          } else {
-            current.finalHeightPx = MIN_EXPERIENCE_HEIGHT_PX
-            const newNextTop =
-              current.finalTopPx + MIN_EXPERIENCE_HEIGHT_PX + VERTICAL_GAP_PX
-            const shift = newNextTop - next.finalTopPx
-
-            for (let j = i + 1; j < colCards.length; j++) {
-              colCards[j].finalTopPx += shift
-            }
-          }
-        }
-      }
-    }
-
-    return basePositions
-  }, [regularExperiences, positioningMap, totalHeightPx, now])
+  const positionedExperiences = useMemo(
+    () =>
+      positionExperiences(
+        regularExperiences,
+        positioningMap,
+        totalHeightPx,
+        timelineStart,
+        timelineEnd,
+        now,
+      ),
+    [
+      regularExperiences,
+      positioningMap,
+      totalHeightPx,
+      timelineStart,
+      timelineEnd,
+      now,
+    ],
+  )
 
   // Position milestones (simple - no columns)
-  const positionedMilestones: Array<PositionedMilestone> = useMemo(() => {
-    return milestones.map((m) => {
-      const topPercent = dateToPercent(m.startDateParsed)
-      const topPx = (topPercent / 100) * totalHeightPx
-
-      return {
-        experience: m,
-        topPercent,
-        topPx,
-      }
-    })
-  }, [milestones, totalHeightPx])
+  const positionedMilestones = useMemo(
+    () =>
+      positionMilestones(milestones, totalHeightPx, timelineStart, timelineEnd),
+    [milestones, totalHeightPx, timelineStart, timelineEnd],
+  )
 
   return (
     <div
