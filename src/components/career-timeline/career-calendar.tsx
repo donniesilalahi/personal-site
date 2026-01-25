@@ -13,8 +13,8 @@ interface CareerCalendarProps {
 /** Fixed height per year in pixels (allows 3 non-overlapping 4-month experiences) */
 const YEAR_HEIGHT_PX = 80
 
-/** Height per year for experience cards (used in dynamic height formula) */
-const YEAR_CARD_HEIGHT_PX = 72
+/** Height per year for experience cards - MUST MATCH YEAR_HEIGHT_PX for proper alignment */
+const YEAR_CARD_HEIGHT_PX = YEAR_HEIGHT_PX
 
 /** Minimum height for very short experiences (in pixels) */
 const MIN_EXPERIENCE_HEIGHT_PX = 24
@@ -23,7 +23,7 @@ const MIN_EXPERIENCE_HEIGHT_PX = 24
 const COLUMN_GAP_PX = 2
 
 /** Gap between vertically stacked cards (in pixels) */
-const VERTICAL_GAP_PX = 2
+const VERTICAL_GAP_PX = 1
 
 // ============================================================================
 // Types for Google Calendar-style positioning
@@ -39,10 +39,14 @@ interface PositionedExperience {
   topPercent: number
   /** Height as percentage of total timeline height */
   heightPercent: number
-  /** Top position in pixels */
+  /** Top position in pixels (original, based on date) */
   topPx: number
   /** Height in pixels */
   heightPx: number
+  /** Final top position in pixels (after gap adjustment) */
+  finalTopPx: number
+  /** Final height in pixels (after gap adjustment) */
+  finalHeightPx: number
 }
 
 interface PositionedMilestone {
@@ -313,19 +317,21 @@ export function CareerCalendar({
     [regularExperiences, now],
   )
 
-  // Position all experiences
+  // Position all experiences: date-based positioning with overlap adjustment
   const positionedExperiences: Array<PositionedExperience> = useMemo(() => {
-    return regularExperiences.map((exp) => {
+    // First pass: calculate positions based on dates
+    const basePositions = regularExperiences.map((exp) => {
+      const start = exp.startDateParsed
       const end = exp.endDateParsed ?? now
 
-      // Top = where experience ends (newest point)
+      // Top = where experience ends (newest point) - DATE BASED, NEVER CHANGES
       const topPercent = dateToPercent(end)
-
-      // Convert to pixels
       const topPx = (topPercent / 100) * totalHeightPx
 
-      // B1: Dynamic card height formula: (duration_in_months / 12) * 120px
-      let heightPx = (exp.durationMonths / 12) * YEAR_CARD_HEIGHT_PX
+      // Height calculated from EXACT dates (same scale as position)
+      // This ensures cards span exactly from end date to start date on timeline
+      const startPercent = dateToPercent(start)
+      let heightPx = ((startPercent - topPercent) / 100) * totalHeightPx
 
       // Enforce minimum height
       if (heightPx < MIN_EXPERIENCE_HEIGHT_PX) {
@@ -345,10 +351,57 @@ export function CareerCalendar({
         maxColumnsInGroup: positioning.maxConcurrent,
         topPercent,
         heightPercent,
-        topPx,
-        heightPx,
+        topPx: Math.round(topPx),
+        heightPx: Math.round(heightPx),
+        finalTopPx: Math.round(topPx),
+        finalHeightPx: Math.round(heightPx),
       }
     })
+
+    // Group cards by column for efficient processing
+    const byColumn = new Map<number, Array<PositionedExperience>>()
+    for (const entry of basePositions) {
+      const list = byColumn.get(entry.column) ?? []
+      list.push(entry)
+      byColumn.set(entry.column, list)
+    }
+
+    // Second pass: resolve overlaps and ensure minimum gaps within each column
+    // Strategy: only shrink/push when cards overlap or are too close
+    // Preserve natural time gaps - don't extend cards to fill empty time
+    for (const [, colCards] of byColumn) {
+      // Sort by topPx (newest/higher cards first)
+      colCards.sort((a, b) => a.finalTopPx - b.finalTopPx)
+
+      for (let i = 0; i < colCards.length - 1; i++) {
+        const current = colCards[i]
+        const next = colCards[i + 1]
+
+        const currentBottom = current.finalTopPx + current.finalHeightPx
+        const gap = next.finalTopPx - currentBottom
+
+        // Only act if gap is less than required (overlap or too close)
+        if (gap < VERTICAL_GAP_PX) {
+          const desiredHeight = next.finalTopPx - current.finalTopPx - VERTICAL_GAP_PX
+
+          if (desiredHeight >= MIN_EXPERIENCE_HEIGHT_PX) {
+            // Shrink current card to create minimum gap
+            current.finalHeightPx = Math.round(desiredHeight)
+          } else {
+            // Can't shrink enough - enforce min height and push next card down
+            current.finalHeightPx = MIN_EXPERIENCE_HEIGHT_PX
+            const newNextTop = current.finalTopPx + current.finalHeightPx + VERTICAL_GAP_PX
+            const shift = newNextTop - next.finalTopPx
+
+            for (let j = i + 1; j < colCards.length; j++) {
+              colCards[j].finalTopPx = Math.round(colCards[j].finalTopPx + shift)
+            }
+          }
+        }
+      }
+    }
+
+    return basePositions
   }, [regularExperiences, positioningMap, totalHeightPx, now])
 
   // Position milestones (simple - no columns)
@@ -443,7 +496,7 @@ export function CareerCalendar({
 
           {/* Experience cards container - offset by 16px for indicator line visibility */}
           <div className="absolute top-0 bottom-0 left-4 right-0">
-            {positionedExperiences.map((entry, index) => {
+            {positionedExperiences.map((entry) => {
               const { column, maxColumnsInGroup } = entry
 
               // Calculate width and left position
@@ -458,21 +511,6 @@ export function CareerCalendar({
               const gapOffset = column * COLUMN_GAP_PX
               const widthReduction = totalGapPx / maxColumnsInGroup
 
-              // B3: Calculate vertical gap offset for stacked cards
-              // Find the maximum overlap from cards in the same column that would visually overlap
-              let verticalGapOffset = 0
-              for (const other of positionedExperiences.slice(0, index)) {
-                if (other.column !== column) continue
-
-                const otherBottom = other.topPx + other.heightPx
-                // Check if other card's bottom overlaps or touches this card's top
-                if (otherBottom >= entry.topPx - VERTICAL_GAP_PX) {
-                  // Calculate how much we need to offset to avoid overlap + add gap
-                  const neededOffset = otherBottom - entry.topPx + VERTICAL_GAP_PX
-                  verticalGapOffset = Math.max(verticalGapOffset, neededOffset)
-                }
-              }
-
               const isShortDuration = entry.experience.durationMonths <= 12
               const isVeryShortDuration = entry.experience.durationMonths <= 6
               const hasOverlap = maxColumnsInGroup > 1
@@ -482,8 +520,8 @@ export function CareerCalendar({
                   key={entry.experience.id}
                   className="absolute"
                   style={{
-                    top: entry.topPx + verticalGapOffset,
-                    height: entry.heightPx - verticalGapOffset,
+                    top: entry.finalTopPx,
+                    height: entry.finalHeightPx,
                     left: `calc(${leftPercent}% + ${gapOffset}px)`,
                     width: `calc(${columnWidthPercent}% - ${widthReduction}px)`,
                     paddingRight:

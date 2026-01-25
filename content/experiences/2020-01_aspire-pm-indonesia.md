@@ -1,7 +1,7 @@
 ---
 company: 'Aspire'
 role: 'Product Manager, Indonesia'
-startDate: '2021-02'
+startDate: '2020-02'
 endDate: '2020-07'
 companyWebsite: 'https://aspireapp.com'
 category: 'primary'
