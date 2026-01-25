@@ -1,21 +1,29 @@
 import { useMemo } from 'react'
-import { cn } from '@/lib/utils'
-import type { Experience } from '@/lib/experiences'
+
 import { ExperienceEntryCard, MilestoneEntry } from './experience-entry-card'
+
+import type { Experience } from '@/lib/experiences'
+import { cn } from '@/lib/utils'
 
 interface CareerCalendarProps {
   experiences: Array<Experience>
   className?: string
 }
 
-/** Fixed height per year in pixels */
-const YEAR_HEIGHT_PX = 48
+/** Fixed height per year in pixels (32px x 4 = 128px for up to 4 quarter-duration experiences) */
+const YEAR_HEIGHT_PX = 128
+
+/** Height per year for experience cards (128px - 8px padding = 120px) */
+const YEAR_CARD_HEIGHT_PX = 120
 
 /** Minimum height for very short experiences (in pixels) */
-const MIN_EXPERIENCE_HEIGHT_PX = 32
+const MIN_EXPERIENCE_HEIGHT_PX = 24
 
 /** Gap between side-by-side columns (in pixels) */
-const COLUMN_GAP_PX = 4
+const COLUMN_GAP_PX = 1.6
+
+/** Gap between vertically stacked cards (in pixels) */
+const VERTICAL_GAP_PX = 1.6
 
 // ============================================================================
 // Types for Google Calendar-style positioning
@@ -234,15 +242,17 @@ export function CareerCalendar({
   )
 
   // Calculate timeline bounds
-  const { years, timelineStart, timelineEnd } = useMemo(() => {
+  // ceilingYear = next year (shown as label + line at top, no full lane)
+  // years = actual year lanes from endYear down to startYear
+  const { years, ceilingYear, timelineStart, timelineEnd } = useMemo(() => {
     const allExperiences = [...regularExperiences, ...milestones]
     if (allExperiences.length === 0) {
       const currentYear = now.getFullYear()
       return {
         years: [currentYear],
+        ceilingYear: currentYear + 1,
         timelineStart: new Date(currentYear, 0, 1),
-        timelineEnd: new Date(currentYear, 11, 31),
-        totalMonths: 12,
+        timelineEnd: new Date(currentYear + 1, 0, 1),
       }
     }
 
@@ -263,18 +273,23 @@ export function CareerCalendar({
     const startYear = minDate.getFullYear()
     const endYear = maxDate.getFullYear()
 
+    // Ceiling year = endYear + 1 (just label + line at top, no full lane)
+    const ceiling = endYear + 1
+
     // Build years array (descending - newest at top)
+    // These are the actual year lanes (endYear down to startYear)
     const yearsList: Array<number> = []
     for (let y = endYear; y >= startYear; y--) {
       yearsList.push(y)
     }
 
-    // Timeline spans from start of startYear to end of endYear
+    // Timeline spans from start of startYear to start of ceiling year
     const timelineStartDate = new Date(startYear, 0, 1)
-    const timelineEndDate = new Date(endYear + 1, 0, 1) // Start of next year
+    const timelineEndDate = new Date(ceiling, 0, 1)
 
     return {
       years: yearsList,
+      ceilingYear: ceiling,
       timelineStart: timelineStartDate,
       timelineEnd: timelineEndDate,
     }
@@ -301,25 +316,23 @@ export function CareerCalendar({
   // Position all experiences
   const positionedExperiences: Array<PositionedExperience> = useMemo(() => {
     return regularExperiences.map((exp) => {
-      const start = exp.startDateParsed
       const end = exp.endDateParsed ?? now
 
       // Top = where experience ends (newest point)
       const topPercent = dateToPercent(end)
-      // Bottom = where experience starts (oldest point)
-      const bottomPercent = dateToPercent(start)
-      // Height = difference
-      let heightPercent = bottomPercent - topPercent
 
       // Convert to pixels
-      let topPx = (topPercent / 100) * totalHeightPx
-      let heightPx = (heightPercent / 100) * totalHeightPx
+      const topPx = (topPercent / 100) * totalHeightPx
+
+      // B1: Dynamic card height formula: (duration_in_months / 12) * 120px
+      let heightPx = (exp.durationMonths / 12) * YEAR_CARD_HEIGHT_PX
 
       // Enforce minimum height
       if (heightPx < MIN_EXPERIENCE_HEIGHT_PX) {
         heightPx = MIN_EXPERIENCE_HEIGHT_PX
-        heightPercent = (heightPx / totalHeightPx) * 100
       }
+
+      const heightPercent = (heightPx / totalHeightPx) * 100
 
       const positioning = positioningMap.get(exp.id) ?? {
         column: 0,
@@ -352,14 +365,6 @@ export function CareerCalendar({
     })
   }, [milestones, totalHeightPx])
 
-  // Calculate year line positions
-  const getYearTopPx = (year: number): number => {
-    // Year label marks the START of that year
-    // Newest year (first in array) is at top
-    const yearDate = new Date(year + 1, 0, 1) // End of year = start of next
-    return (dateToPercent(yearDate) / 100) * totalHeightPx
-  }
-
   return (
     <div
       className={cn(
@@ -368,43 +373,77 @@ export function CareerCalendar({
       )}
     >
       <div className="flex">
-        {/* Year labels column */}
-        <div className="flex flex-col shrink-0 w-12 relative">
-          {years.map((year) => (
-            <div
-              key={year}
-              className="flex items-start justify-end pr-3"
-              style={{ height: YEAR_HEIGHT_PX }}
-            >
-              <span className="text-[10px] font-medium text-muted-foreground leading-none pt-1">
-                {year}
-              </span>
-            </div>
-          ))}
+        {/* Year labels column - fixed width for year text */}
+        <div
+          className="shrink-0 w-10 relative"
+          style={{ height: totalHeightPx }}
+        >
+          {/* Ceiling year label at top (e.g., 2027) */}
+          <div
+            className="absolute left-0 right-0 flex items-center"
+            style={{
+              top: 0,
+              transform: 'translateY(-50%)',
+            }}
+          >
+            <span className="text-[10px] font-medium text-muted-foreground leading-none">
+              {ceilingYear}
+            </span>
+          </div>
+
+          {/* Year labels at the BOTTOM of each year lane (start of that year) */}
+          {years.map((year, index) => {
+            const yearBottomPx = (index + 1) * YEAR_HEIGHT_PX
+
+            return (
+              <div
+                key={year}
+                className="absolute left-0 right-0 flex items-center"
+                style={{
+                  top: yearBottomPx,
+                  transform: 'translateY(-50%)',
+                }}
+              >
+                <span className="text-[10px] font-medium text-muted-foreground leading-none">
+                  {year}
+                </span>
+              </div>
+            )
+          })}
         </div>
 
-        {/* Timeline container */}
-        <div className="flex-1 relative" style={{ height: totalHeightPx }}>
-          {/* Horizontal year divider lines */}
-          {years.map((year) => {
-            const topPx = getYearTopPx(year)
+        {/* Timeline container with horizontal lines */}
+        <div className="flex-1 relative pl-4" style={{ height: totalHeightPx }}>
+          {/* Ceiling year indicator line at top */}
+          <div
+            className="absolute h-px bg-border"
+            style={{
+              top: 0,
+              left: 0,
+              right: 0,
+            }}
+          />
+
+          {/* Horizontal indicator lines - at the BOTTOM of each year lane (start of year) */}
+          {years.map((year, index) => {
+            const lineTopPx = (index + 1) * YEAR_HEIGHT_PX
+
             return (
               <div
                 key={`line-${year}`}
-                className="absolute left-0 right-0 h-px bg-border"
-                style={{ top: topPx }}
+                className="absolute h-px bg-border"
+                style={{
+                  top: lineTopPx,
+                  left: 0,
+                  right: 0,
+                }}
               />
             )
           })}
-          {/* Bottom line (end of timeline) */}
-          <div
-            className="absolute left-0 right-0 h-px bg-border"
-            style={{ top: totalHeightPx }}
-          />
 
-          {/* Experience cards container */}
-          <div className="absolute inset-0">
-            {positionedExperiences.map((entry) => {
+          {/* Experience cards container - offset by 16px for indicator line visibility */}
+          <div className="absolute top-0 bottom-0 left-4 right-0">
+            {positionedExperiences.map((entry, index) => {
               const { column, maxColumnsInGroup } = entry
 
               // Calculate width and left position
@@ -419,7 +458,24 @@ export function CareerCalendar({
               const gapOffset = column * COLUMN_GAP_PX
               const widthReduction = totalGapPx / maxColumnsInGroup
 
-              const isShortDuration = entry.experience.durationMonths < 12
+              // B3: Calculate vertical gap offset for stacked cards
+              // Find cards that end exactly where this one starts (vertically adjacent)
+              const verticalGapOffset = positionedExperiences
+                .slice(0, index)
+                .some((other) => {
+                  // Check if other card is in same column and ends at our start
+                  const otherBottom = other.topPx + other.heightPx
+                  const threshold = 2 // Small threshold for floating point comparison
+                  return (
+                    other.column === column &&
+                    Math.abs(otherBottom - entry.topPx) < threshold
+                  )
+                })
+                ? VERTICAL_GAP_PX
+                : 0
+
+              const isShortDuration = entry.experience.durationMonths <= 12
+              const isVeryShortDuration = entry.experience.durationMonths <= 6
               const hasOverlap = maxColumnsInGroup > 1
 
               return (
@@ -427,8 +483,8 @@ export function CareerCalendar({
                   key={entry.experience.id}
                   className="absolute"
                   style={{
-                    top: entry.topPx,
-                    height: entry.heightPx,
+                    top: entry.topPx + verticalGapOffset,
+                    height: entry.heightPx - verticalGapOffset,
                     left: `calc(${leftPercent}% + ${gapOffset}px)`,
                     width: `calc(${columnWidthPercent}% - ${widthReduction}px)`,
                     paddingRight:
@@ -438,6 +494,7 @@ export function CareerCalendar({
                   <ExperienceEntryCard
                     experience={entry.experience}
                     isShortDuration={isShortDuration}
+                    isVeryShortDuration={isVeryShortDuration}
                     hasOverlap={hasOverlap}
                     className="h-full w-full"
                   />
@@ -450,7 +507,7 @@ export function CareerCalendar({
           {positionedMilestones.map((m) => (
             <div
               key={m.experience.id}
-              className="absolute left-0 z-10"
+              className="absolute left-4 z-10"
               style={{ top: m.topPx }}
             >
               <MilestoneEntry experience={m.experience} />

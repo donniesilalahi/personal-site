@@ -1,20 +1,21 @@
 ---
-company: 'Brick (Antler, SG5)'
-role: 'CEO Office'
-startDate: '2022-07'
-endDate: 'present'
-companyWebsite: 'https://onebrick.io'
+company: 'Aspire'
+role: 'Head of Growth'
+startDate: '2019-05'
+endDate: '2020-01'
+companyWebsite: 'https://aspireapp.com'
 category: 'primary'
 subcategory: 'work'
 arrangement: 'full-time'
-icon: 'pocket-knife'
+icon: ''
 location: 'Remote'
 isMilestone: FALSE
 ---
 
-Brick is real-time payments and inclusive open finance infrastructure leader in Indonesia.
+Aspire is leading financial OS for businesses in Southeast Asia.
+I joined as #1 in Indonesia when Aspire was still in SME credit line business.
 
-## CEO Office (H2 2025)
+## Country Launcher and Digital Marketing Manager
 **Shapeshifting role evolving every 6 months to meet critical business needs**
 - Hired and onboarded key roles (Finance, Legal, Partnerships, Business Intelligence) post-major org restructure
 

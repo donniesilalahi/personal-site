@@ -5,27 +5,37 @@ import { SUBCATEGORY_COLORS } from '@/lib/experiences'
 
 interface ExperienceEntryCardProps {
   experience: Experience
-  isShortDuration?: boolean // Less than 12 months
-  hasOverlap?: boolean // Has overlapping experience (side-by-side)
+  isShortDuration?: boolean // Less than or equal to 12 months
+  isVeryShortDuration?: boolean // Less than or equal to 6 months
+  hasOverlap?: boolean // Card has overlapping experiences (side by side)
   className?: string
 }
 
 type LucideIconComponent = React.ComponentType<{ className?: string }>
 
 /**
- * Format date to "MMM YY" format (e.g., "Jan 24")
+ * Format date to "MMM YY" format in ALL CAPS (e.g., "JAN 24")
  */
 function formatDate(date: Date): string {
-  return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+  return date
+    .toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+    .toUpperCase()
 }
 
 /**
- * Format duration string (e.g., "Jan 24 - Dec 24" or "Jan 24 - Present")
+ * Format duration string (e.g., "JAN 24 - DEC 24" or "JAN 24 - PRESENT")
  */
 function formatDuration(startDate: Date, endDate: Date | null): string {
   const start = formatDate(startDate)
-  const end = endDate ? formatDate(endDate) : 'Present'
+  const end = endDate ? formatDate(endDate) : 'PRESENT'
   return `${start} - ${end}`
+}
+
+/**
+ * Format start date only (for short duration with overlap)
+ */
+function formatStartOnly(startDate: Date): string {
+  return formatDate(startDate)
 }
 
 /**
@@ -58,31 +68,33 @@ function AtSeparator({ className }: { className?: string }) {
  * Experience entry card for calendar timeline view
  *
  * Layout rules:
- * - Default (>= 12 months, no overlap): 4 lines - icon, role, @company, dates
- * - Short duration (< 12 months, no overlap): 1 line - icon role @ company dates
- * - Short duration with overlap (<= 12 months): 3 lines - icon, role, @company (no dates)
- * - Long duration with overlap (> 12 months): Keep 4-line layout
+ * - B5: Long duration (> 12 months): icon top-left, info bottom-left, allow wrap
+ * - B6: Very short duration (<= 6 months): no wrap, truncate role+company
+ * - B7: Short duration (<= 12 months) with overlap: show only start date
  */
 export function ExperienceEntryCard({
   experience,
   isShortDuration = false,
+  isVeryShortDuration = false,
   hasOverlap = false,
   className,
 }: ExperienceEntryCardProps) {
   const colors: SubcategoryColorScheme =
     SUBCATEGORY_COLORS[experience.subcategory]
   const IconComponent = getIconComponent(experience.icon)
-  const duration = formatDuration(
-    experience.startDateParsed,
-    experience.endDateParsed,
-  )
 
-  // Layout: Short duration with overlap (side-by-side, <= 12 months)
-  if (isShortDuration && hasOverlap) {
+  // B7: Show only start date for short duration with overlap
+  const dateDisplay =
+    isShortDuration && hasOverlap
+      ? formatStartOnly(experience.startDateParsed)
+      : formatDuration(experience.startDateParsed, experience.endDateParsed)
+
+  // B6: Very short duration (<= 6 months) - compact single line, no wrap, truncate
+  if (isVeryShortDuration) {
     return (
       <div
         className={cn(
-          'flex flex-col gap-0.5 px-2 py-1.5 rounded-md border',
+          'flex items-center gap-1 px-1.5 py-1 rounded-md border overflow-hidden',
           colors.bg,
           colors.border,
           colors.bgHover,
@@ -90,32 +102,25 @@ export function ExperienceEntryCard({
           className,
         )}
       >
-        {/* Line 1: Icon */}
         {IconComponent && (
-          <IconComponent className={cn('size-4 shrink-0', colors.text)} />
+          <IconComponent className={cn('size-3 shrink-0', colors.text)} />
         )}
-
-        {/* Line 2: Role */}
-        <span
-          className={cn(
-            'text-xs font-normal leading-tight text-muted-foreground',
-          )}
-        >
+        <span className="text-[10px] font-normal text-muted-foreground truncate">
           {experience.role}
         </span>
-
-        {/* Line 3: @ Company */}
-        <div className="flex items-center gap-1">
-          <AtSeparator className="text-xs" />
-          <span className="text-xs font-normal text-muted-foreground truncate">
-            {experience.company}
-          </span>
-        </div>
+        {/* B4: text-3xs (8px) for <= 12 months */}
+        <AtSeparator className="text-[8px] shrink-0" />
+        <span className="text-[10px] font-normal text-muted-foreground truncate">
+          {experience.company}
+        </span>
+        <span className="text-[8px] text-muted-foreground shrink-0 ml-auto">
+          {dateDisplay}
+        </span>
       </div>
     )
   }
 
-  // Layout: Short duration, no overlap (single row)
+  // Short duration (> 6 months && <= 12 months) - single line layout
   if (isShortDuration) {
     return (
       <div
@@ -129,27 +134,28 @@ export function ExperienceEntryCard({
         )}
       >
         {IconComponent && (
-          <IconComponent className={cn('size-4 shrink-0', colors.text)} />
+          <IconComponent className={cn('size-3.5 shrink-0', colors.text)} />
         )}
-        <span className={cn('text-xs font-normal text-muted-foreground')}>
+        <span className="text-xs font-normal text-muted-foreground">
           {experience.role}
         </span>
-        <AtSeparator className="text-xs" />
+        {/* B4: text-3xs (8px) for <= 12 months */}
+        <AtSeparator className="text-[8px]" />
         <span className="text-xs font-normal text-muted-foreground truncate flex-1">
           {experience.company}
         </span>
-        <span className="text-[10px] text-muted-foreground shrink-0">
-          {duration}
+        <span className="text-[8px] text-muted-foreground shrink-0">
+          {dateDisplay}
         </span>
       </div>
     )
   }
 
-  // Layout: Default (>= 12 months) - 4 lines
+  // B5: Long duration (> 12 months) - icon top-left, info bottom-left, allow wrap
   return (
     <div
       className={cn(
-        'flex flex-col gap-0.5 px-3 py-2 rounded-lg border',
+        'flex flex-col justify-between h-full px-2.5 py-2 rounded-lg border',
         colors.bg,
         colors.border,
         colors.bgHover,
@@ -157,28 +163,26 @@ export function ExperienceEntryCard({
         className,
       )}
     >
-      {/* Line 1: Icon */}
-      {IconComponent && <IconComponent className={cn('size-4', colors.text)} />}
+      {/* Top-left: Icon */}
+      {IconComponent && (
+        <IconComponent className={cn('size-4 shrink-0', colors.text)} />
+      )}
 
-      {/* Line 2: Role */}
-      <span
-        className={cn(
-          'text-sm font-normal leading-tight text-muted-foreground',
-        )}
-      >
-        {experience.role}
-      </span>
-
-      {/* Line 3: @ Company */}
-      <div className="flex items-center gap-1">
-        <AtSeparator className="text-sm" />
-        <span className="text-sm font-normal text-muted-foreground">
-          {experience.company}
-        </span>
+      {/* Bottom-left: Role @ Company + Dates - allow wrap */}
+      <div className="flex flex-col gap-0.5 mt-auto">
+        <div className="flex flex-wrap items-center gap-x-1">
+          <span className="text-xs font-normal leading-tight text-muted-foreground">
+            {experience.role}
+          </span>
+          {/* B4: text-2xs (10px) for > 12 months */}
+          <AtSeparator className="text-[10px]" />
+          <span className="text-xs font-normal text-muted-foreground">
+            {experience.company}
+          </span>
+        </div>
+        {/* B4: text-2xs (10px) for > 12 months */}
+        <span className="text-[10px] text-muted-foreground">{dateDisplay}</span>
       </div>
-
-      {/* Line 4: Duration */}
-      <span className="text-[10px] text-muted-foreground">{duration}</span>
     </div>
   )
 }

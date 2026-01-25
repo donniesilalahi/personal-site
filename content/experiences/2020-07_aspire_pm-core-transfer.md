@@ -1,14 +1,14 @@
 ---
-company: 'Aspire (YC W18)'
-role: 'Country Launcher, Head of Growth, and PM'
-startDate: '2019-02'
-endDate: '2021-02'
+company: 'Aspire'
+role: 'Product Manager, Core Transfer'
+startDate: '2020-08'
+endDate: '2021-01'
 companyWebsite: 'https://aspireapp.com'
 category: 'primary'
 subcategory: 'work'
 arrangement: 'full-time'
 icon: ''
-location: 'Remote'
+location: 'Remote, Singapore'
 isMilestone: FALSE
 ---
 
