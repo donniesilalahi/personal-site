@@ -62,15 +62,15 @@ function intervalsOverlap(
 }
 
 /**
- * Assign columns to experiences using Google Calendar's algorithm:
- * 1. Sort by startDate ASC, then endDate ASC
- * 2. For each experience, assign to leftmost column where it doesn't overlap
- * 3. Track max columns per overlap group for width calculation
+ * PHASE 1: Assign columns to experiences using Google Calendar's algorithm.
+ * - Sort by startDate ASC, then endDate ASC
+ * - Assign each to leftmost column where it doesn't overlap with existing events
+ * - Column reuse: non-overlapping events can share the same column
  */
 function assignColumns(
   experiences: Array<Experience>,
   now: Date,
-): Map<string, { column: number; maxColumnsInGroup: number }> {
+): Map<string, number> {
   if (experiences.length === 0) {
     return new Map()
   }
@@ -85,24 +85,21 @@ function assignColumns(
     return aEnd - bEnd
   })
 
-  // Track which column each experience is assigned to
   const columnAssignments = new Map<string, number>()
 
-  // Track active experiences per column (experiences that haven't ended yet at current point)
-  // Each column contains list of experiences with their end dates
-  const columns: Array<Array<{ id: string; end: Date }>> = []
+  // Each column tracks which experiences are in it
+  const columns: Array<Array<string>> = []
 
   for (const exp of sorted) {
     const start = exp.startDateParsed
     const end = exp.endDateParsed ?? now
 
-    // Find leftmost column where this experience fits
+    // Find leftmost column where this experience fits (no overlap)
     let assignedColumn = -1
 
     for (let colIdx = 0; colIdx < columns.length; colIdx++) {
-      // Check if any experience in this column overlaps with current
-      const hasOverlap = columns[colIdx].some((existing) => {
-        const existingExp = experiences.find((e) => e.id === existing.id)
+      const hasOverlap = columns[colIdx].some((existingId) => {
+        const existingExp = experiences.find((e) => e.id === existingId)
         if (!existingExp) return false
 
         const existingStart = existingExp.startDateParsed
@@ -123,72 +120,96 @@ function assignColumns(
       columns.push([])
     }
 
-    // Add experience to its column
-    columns[assignedColumn].push({ id: exp.id, end })
+    columns[assignedColumn].push(exp.id)
     columnAssignments.set(exp.id, assignedColumn)
   }
 
-  // Now calculate maxColumnsInGroup for each experience
-  // An overlap group is all experiences that share any overlap chain
-  const maxColumnsMap = new Map<
-    string,
-    { column: number; maxColumnsInGroup: number }
-  >()
+  return columnAssignments
+}
 
-  for (const exp of sorted) {
-    const column = columnAssignments.get(exp.id) ?? 0
+/**
+ * PHASE 2: Calculate max concurrent events during each experience's duration.
+ * This determines the width of each event - NOT based on transitive overlap groups,
+ * but on actual maximum concurrency at any point during the event's span.
+ *
+ * Key insight: Width is determined by maximum concurrent events during the
+ * event's ENTIRE duration, not moment-by-moment or by global overlap chains.
+ */
+function calculateMaxConcurrency(
+  experiences: Array<Experience>,
+  now: Date,
+): Map<string, number> {
+  const maxConcurrencyMap = new Map<string, number>()
+
+  for (const exp of experiences) {
     const start = exp.startDateParsed
     const end = exp.endDateParsed ?? now
 
-    // Find all experiences that overlap with this one
-    const overlappingExps = sorted.filter((other) => {
-      if (other.id === exp.id) return false
+    // Collect all time points to check within this experience's duration
+    // We need to check at boundaries of all potentially overlapping events
+    const checkPoints: Array<Date> = [start, end]
+
+    // Add start/end points of all events that overlap with this one
+    for (const other of experiences) {
       const otherStart = other.startDateParsed
       const otherEnd = other.endDateParsed ?? now
-      return intervalsOverlap(start, end, otherStart, otherEnd)
-    })
 
-    // Max columns = max column index among overlapping + 1 (including self)
-    let maxCol = column
-    for (const other of overlappingExps) {
-      const otherCol = columnAssignments.get(other.id) ?? 0
-      if (otherCol > maxCol) maxCol = otherCol
-    }
-
-    // Also need to check transitive overlaps - experiences that overlap with our overlaps
-    // This ensures all members of an overlap group get the same maxColumnsInGroup
-    const visited = new Set<string>([exp.id])
-    const queue = [...overlappingExps]
-
-    while (queue.length > 0) {
-      const current = queue.shift()!
-      if (visited.has(current.id)) continue
-      visited.add(current.id)
-
-      const currentCol = columnAssignments.get(current.id) ?? 0
-      if (currentCol > maxCol) maxCol = currentCol
-
-      const currentStart = current.startDateParsed
-      const currentEnd = current.endDateParsed ?? now
-
-      // Find experiences that overlap with current
-      for (const other of sorted) {
-        if (visited.has(other.id)) continue
-        const otherStart = other.startDateParsed
-        const otherEnd = other.endDateParsed ?? now
-        if (intervalsOverlap(currentStart, currentEnd, otherStart, otherEnd)) {
-          queue.push(other)
+      if (intervalsOverlap(start, end, otherStart, otherEnd)) {
+        // Only add points that fall within our event's span
+        if (otherStart >= start && otherStart <= end) {
+          checkPoints.push(otherStart)
+        }
+        if (otherEnd >= start && otherEnd <= end) {
+          checkPoints.push(otherEnd)
         }
       }
     }
 
-    maxColumnsMap.set(exp.id, {
-      column,
-      maxColumnsInGroup: maxCol + 1,
-    })
+    // Find maximum concurrency at any check point
+    let maxConcurrent = 1 // At minimum, the event itself
+
+    for (const checkTime of checkPoints) {
+      // Count how many events are active at this exact time
+      // An event is active if: start <= checkTime < end (or start <= checkTime <= end for end boundary)
+      const concurrent = experiences.filter((e) => {
+        const eStart = e.startDateParsed
+        const eEnd = e.endDateParsed ?? now
+        // Event is active at checkTime if it contains this point
+        return eStart <= checkTime && checkTime <= eEnd
+      }).length
+
+      maxConcurrent = Math.max(maxConcurrent, concurrent)
+    }
+
+    maxConcurrencyMap.set(exp.id, maxConcurrent)
   }
 
-  return maxColumnsMap
+  return maxConcurrencyMap
+}
+
+/**
+ * PHASE 3: Combine column assignment and max concurrency for final positioning.
+ * - column: which column (0 = leftmost)
+ * - maxConcurrent: determines width (100% / maxConcurrent)
+ * - left position: column * width
+ */
+function calculatePositioning(
+  experiences: Array<Experience>,
+  now: Date,
+): Map<string, { column: number; maxConcurrent: number }> {
+  const columnAssignments = assignColumns(experiences, now)
+  const maxConcurrencyMap = calculateMaxConcurrency(experiences, now)
+
+  const result = new Map<string, { column: number; maxConcurrent: number }>()
+
+  for (const exp of experiences) {
+    const column = columnAssignments.get(exp.id) ?? 0
+    const maxConcurrent = maxConcurrencyMap.get(exp.id) ?? 1
+
+    result.set(exp.id, { column, maxConcurrent })
+  }
+
+  return result
 }
 
 // ============================================================================
@@ -271,9 +292,9 @@ export function CareerCalendar({
     return ((timelineEnd.getTime() - date.getTime()) / totalMs) * 100
   }
 
-  // Assign columns using Google Calendar algorithm
-  const columnAssignments = useMemo(
-    () => assignColumns(regularExperiences, now),
+  // Calculate positioning using Google Calendar algorithm (column + max concurrency)
+  const positioningMap = useMemo(
+    () => calculatePositioning(regularExperiences, now),
     [regularExperiences, now],
   )
 
@@ -300,22 +321,22 @@ export function CareerCalendar({
         heightPercent = (heightPx / totalHeightPx) * 100
       }
 
-      const assignment = columnAssignments.get(exp.id) ?? {
+      const positioning = positioningMap.get(exp.id) ?? {
         column: 0,
-        maxColumnsInGroup: 1,
+        maxConcurrent: 1,
       }
 
       return {
         experience: exp,
-        column: assignment.column,
-        maxColumnsInGroup: assignment.maxColumnsInGroup,
+        column: positioning.column,
+        maxColumnsInGroup: positioning.maxConcurrent,
         topPercent,
         heightPercent,
         topPx,
         heightPx,
       }
     })
-  }, [regularExperiences, columnAssignments, totalHeightPx, now])
+  }, [regularExperiences, positioningMap, totalHeightPx, now])
 
   // Position milestones (simple - no columns)
   const positionedMilestones: Array<PositionedMilestone> = useMemo(() => {
