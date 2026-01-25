@@ -38,7 +38,6 @@ function getIconComponent(iconName: string): LucideIconComponent | null {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join('')
 
-   
   const icons = LucideIcons as Record<string, any>
   const IconComponent = icons[pascalCase] as LucideIconComponent | undefined
   return IconComponent || null
@@ -97,14 +96,18 @@ export function ExperienceEntryCard({
         )}
 
         {/* Line 2: Role */}
-        <span className={cn('text-xs font-medium leading-tight', colors.text)}>
+        <span
+          className={cn(
+            'text-xs font-normal leading-tight text-muted-foreground',
+          )}
+        >
           {experience.role}
         </span>
 
         {/* Line 3: @ Company */}
         <div className="flex items-center gap-1">
           <AtSeparator className="text-xs" />
-          <span className="text-xs text-muted-foreground truncate">
+          <span className="text-xs font-normal text-muted-foreground truncate">
             {experience.company}
           </span>
         </div>
@@ -128,11 +131,11 @@ export function ExperienceEntryCard({
         {IconComponent && (
           <IconComponent className={cn('size-4 shrink-0', colors.text)} />
         )}
-        <span className={cn('text-xs font-medium', colors.text)}>
+        <span className={cn('text-xs font-normal text-muted-foreground')}>
           {experience.role}
         </span>
         <AtSeparator className="text-xs" />
-        <span className="text-xs text-muted-foreground truncate flex-1">
+        <span className="text-xs font-normal text-muted-foreground truncate flex-1">
           {experience.company}
         </span>
         <span className="text-[10px] text-muted-foreground shrink-0">
@@ -155,19 +158,23 @@ export function ExperienceEntryCard({
       )}
     >
       {/* Line 1: Icon */}
-      {IconComponent && (
-        <IconComponent className={cn('size-4', colors.text)} />
-      )}
+      {IconComponent && <IconComponent className={cn('size-4', colors.text)} />}
 
       {/* Line 2: Role */}
-      <span className={cn('text-sm font-medium leading-tight', colors.text)}>
+      <span
+        className={cn(
+          'text-sm font-normal leading-tight text-muted-foreground',
+        )}
+      >
         {experience.role}
       </span>
 
       {/* Line 3: @ Company */}
       <div className="flex items-center gap-1">
         <AtSeparator className="text-sm" />
-        <span className="text-sm text-muted-foreground">{experience.company}</span>
+        <span className="text-sm font-normal text-muted-foreground">
+          {experience.company}
+        </span>
       </div>
 
       {/* Line 4: Duration */}
