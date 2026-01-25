@@ -10,20 +10,20 @@ interface CareerCalendarProps {
   className?: string
 }
 
-/** Fixed height per year in pixels (32px x 4 = 128px for up to 4 quarter-duration experiences) */
-const YEAR_HEIGHT_PX = 128
+/** Fixed height per year in pixels (allows 3 non-overlapping 4-month experiences) */
+const YEAR_HEIGHT_PX = 80
 
-/** Height per year for experience cards (128px - 8px padding = 120px) */
-const YEAR_CARD_HEIGHT_PX = 120
+/** Height per year for experience cards (used in dynamic height formula) */
+const YEAR_CARD_HEIGHT_PX = 72
 
 /** Minimum height for very short experiences (in pixels) */
 const MIN_EXPERIENCE_HEIGHT_PX = 24
 
 /** Gap between side-by-side columns (in pixels) */
-const COLUMN_GAP_PX = 1.6
+const COLUMN_GAP_PX = 2
 
 /** Gap between vertically stacked cards (in pixels) */
-const VERTICAL_GAP_PX = 1.6
+const VERTICAL_GAP_PX = 2
 
 // ============================================================================
 // Types for Google Calendar-style positioning
@@ -459,20 +459,19 @@ export function CareerCalendar({
               const widthReduction = totalGapPx / maxColumnsInGroup
 
               // B3: Calculate vertical gap offset for stacked cards
-              // Find cards that end exactly where this one starts (vertically adjacent)
-              const verticalGapOffset = positionedExperiences
-                .slice(0, index)
-                .some((other) => {
-                  // Check if other card is in same column and ends at our start
-                  const otherBottom = other.topPx + other.heightPx
-                  const threshold = 2 // Small threshold for floating point comparison
-                  return (
-                    other.column === column &&
-                    Math.abs(otherBottom - entry.topPx) < threshold
-                  )
-                })
-                ? VERTICAL_GAP_PX
-                : 0
+              // Find the maximum overlap from cards in the same column that would visually overlap
+              let verticalGapOffset = 0
+              for (const other of positionedExperiences.slice(0, index)) {
+                if (other.column !== column) continue
+
+                const otherBottom = other.topPx + other.heightPx
+                // Check if other card's bottom overlaps or touches this card's top
+                if (otherBottom >= entry.topPx - VERTICAL_GAP_PX) {
+                  // Calculate how much we need to offset to avoid overlap + add gap
+                  const neededOffset = otherBottom - entry.topPx + VERTICAL_GAP_PX
+                  verticalGapOffset = Math.max(verticalGapOffset, neededOffset)
+                }
+              }
 
               const isShortDuration = entry.experience.durationMonths <= 12
               const isVeryShortDuration = entry.experience.durationMonths <= 6
