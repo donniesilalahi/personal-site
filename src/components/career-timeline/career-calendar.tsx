@@ -1,168 +1,55 @@
 import { useMemo } from 'react'
 import { cn } from '@/lib/utils'
-import type { Experience, ExperienceCategory } from '@/lib/experiences'
-import { LANE_LABELS } from '@/lib/experiences'
+import type { Experience } from '@/lib/experiences'
 import { ExperienceEntryCard, MilestoneEntry } from './experience-entry-card'
 
 interface CareerCalendarProps {
-  experiences: Experience[]
+  experiences: Array<Experience>
   className?: string
 }
 
-/** Height per month in pixels */
-const MONTH_HEIGHT_PX = 24
-
-/** Minimum height for an entry card */
-const MIN_ENTRY_HEIGHT_PX = 48
-
-/** Threshold for compact mode (less than 3 months) */
-const COMPACT_THRESHOLD_MONTHS = 3
-
-interface TimelineRow {
-  year: number
-  months: number // Number of months in this year to display
-}
+/** Fixed height per year row in pixels */
+const YEAR_ROW_HEIGHT_PX = 40
 
 interface PositionedExperience {
   experience: Experience
-  top: number // Offset from timeline start in pixels
-  height: number // Height in pixels
-  isCompact: boolean // Whether to use compact layout
-  spansBothLanes: boolean // Whether this entry spans both lanes
-  lanePosition: 'left' | 'right' | 'full' // Position within lane for side-by-side
+  top: number // Absolute position from timeline start
+  height: number // Total height spanning multiple years
+  isShortDuration: boolean
+  hasOverlap: boolean
+  column: number // 0 = full, 1 = left, 2 = right
 }
 
-interface LaneData {
-  category: ExperienceCategory
-  label: string
-  entries: PositionedExperience[]
-}
-
-/**
- * Check if two date ranges overlap
- */
-function dateRangesOverlap(
-  start1: Date,
-  end1: Date | null,
-  start2: Date,
-  end2: Date | null,
-): boolean {
-  const effectiveEnd1 = end1 || new Date()
-  const effectiveEnd2 = end2 || new Date()
-
-  return start1 <= effectiveEnd2 && start2 <= effectiveEnd1
+interface PositionedMilestone {
+  experience: Experience
+  top: number
 }
 
 /**
- * Calculate the pixel offset from the timeline start
+ * Check if two experiences overlap in time
  */
-function calculateTopOffset(startDate: Date, timelineStartDate: Date): number {
-  const monthsDiff =
-    (startDate.getFullYear() - timelineStartDate.getFullYear()) * 12 +
-    (startDate.getMonth() - timelineStartDate.getMonth())
-  return monthsDiff * MONTH_HEIGHT_PX
-}
-
-/**
- * Process experiences into positioned entries for a lane
- */
-function processLaneExperiences(
-  experiences: Experience[],
-  timelineStartDate: Date,
-  otherLaneExperiences: Experience[],
-): PositionedExperience[] {
-  const positioned: PositionedExperience[] = []
-
-  for (const exp of experiences) {
-    const top = calculateTopOffset(exp.startDateParsed, timelineStartDate)
-    const rawHeight = exp.durationMonths * MONTH_HEIGHT_PX
-    const height = Math.max(rawHeight, MIN_ENTRY_HEIGHT_PX)
-    const isCompact = exp.durationMonths < COMPACT_THRESHOLD_MONTHS
-
-    // Check if this experience overlaps with any in the other lane
-    const hasOverlapWithOtherLane = otherLaneExperiences.some((other) =>
-      dateRangesOverlap(
-        exp.startDateParsed,
-        exp.endDateParsed,
-        other.startDateParsed,
-        other.endDateParsed,
-      ),
-    )
-
-    // Spans both lanes if no overlap with other lane
-    const spansBothLanes = !hasOverlapWithOtherLane
-
-    // Check for overlaps within the same lane for side-by-side placement
-    const overlappingInLane = positioned.filter((p) =>
-      dateRangesOverlap(
-        exp.startDateParsed,
-        exp.endDateParsed,
-        p.experience.startDateParsed,
-        p.experience.endDateParsed,
-      ),
-    )
-
-    let lanePosition: 'left' | 'right' | 'full' = 'full'
-    if (overlappingInLane.length > 0) {
-      // Check which positions are taken
-      const hasLeft = overlappingInLane.some((p) => p.lanePosition === 'left')
-      const hasRight = overlappingInLane.some((p) => p.lanePosition === 'right')
-
-      if (!hasLeft) {
-        lanePosition = 'left'
-      } else if (!hasRight) {
-        lanePosition = 'right'
-      } else {
-        // Both positions taken, stack on the right
-        lanePosition = 'right'
-      }
-
-      // Update overlapping entries to split position if they were full
-      for (const overlap of overlappingInLane) {
-        if (overlap.lanePosition === 'full') {
-          overlap.lanePosition = 'left'
-        }
-      }
-    }
-
-    positioned.push({
-      experience: exp,
-      top,
-      height,
-      isCompact,
-      spansBothLanes,
-      lanePosition: spansBothLanes ? 'full' : lanePosition,
-    })
-  }
-
-  return positioned
+function experiencesOverlap(a: Experience, b: Experience): boolean {
+  const aEnd = a.endDateParsed || new Date()
+  const bEnd = b.endDateParsed || new Date()
+  return a.startDateParsed <= bEnd && b.startDateParsed <= aEnd
 }
 
 /**
  * Career Calendar Component
- * Displays experiences in a vertical calendar/timeline view
+ * Displays experiences in a single-lane vertical calendar with fixed year rows
+ * Experience cards span across year boundaries based on their actual duration
  */
 export function CareerCalendar({
   experiences,
   className,
 }: CareerCalendarProps) {
-  // Separate experiences by category
-  const primaryExperiences = useMemo(
+  // Separate regular experiences from milestones
+  const regularExperiences = useMemo(
     () =>
       experiences
-        .filter((e) => e.category === 'primary' && !e.isMilestone)
+        .filter((e) => !e.isMilestone)
         .sort(
-          (a, b) => a.startDateParsed.getTime() - b.startDateParsed.getTime(),
-        ),
-    [experiences],
-  )
-
-  const secondaryExperiences = useMemo(
-    () =>
-      experiences
-        .filter((e) => e.category === 'secondary' && !e.isMilestone)
-        .sort(
-          (a, b) => a.startDateParsed.getTime() - b.startDateParsed.getTime(),
+          (a, b) => b.startDateParsed.getTime() - a.startDateParsed.getTime(),
         ),
     [experiences],
   )
@@ -172,208 +59,248 @@ export function CareerCalendar({
       experiences
         .filter((e) => e.isMilestone)
         .sort(
-          (a, b) => a.startDateParsed.getTime() - b.startDateParsed.getTime(),
+          (a, b) => b.startDateParsed.getTime() - a.startDateParsed.getTime(),
         ),
     [experiences],
   )
 
-  // Calculate timeline range
-  const { timelineStartDate, years } = useMemo(() => {
-    const allExperiences = [
-      ...primaryExperiences,
-      ...secondaryExperiences,
-      ...milestones,
-    ]
+  // Calculate year range (newest first, descending order)
+  const { years, timelineStartYear, timelineEndYear } = useMemo(() => {
+    const allExperiences = [...regularExperiences, ...milestones]
     if (allExperiences.length === 0) {
-      const now = new Date()
-      return {
-        timelineStartDate: new Date(now.getFullYear(), 0, 1),
-        years: [{ year: now.getFullYear(), months: now.getMonth() + 1 }],
-      }
+      const now = new Date().getFullYear()
+      return { years: [now], timelineStartYear: now, timelineEndYear: now }
     }
 
-    // Find min start date and max end date
-    let minStart = allExperiences[0].startDateParsed
-    let maxEnd = allExperiences[0].endDateParsed || new Date()
+    let minYear = Infinity
+    let maxYear = -Infinity
 
     for (const exp of allExperiences) {
-      if (exp.startDateParsed < minStart) minStart = exp.startDateParsed
-      const end = exp.endDateParsed || new Date()
-      if (end > maxEnd) maxEnd = end
+      const startYear = exp.startDateParsed.getFullYear()
+      const endYear =
+        exp.endDateParsed?.getFullYear() ?? new Date().getFullYear()
+      if (startYear < minYear) minYear = startYear
+      if (endYear > maxYear) maxYear = endYear
     }
 
-    // Normalize to start of year for cleaner display
-    const startDate = new Date(minStart.getFullYear(), 0, 1)
-    const endDate = maxEnd
-
-    // Generate year rows
-    const yearRows: TimelineRow[] = []
-    for (let y = startDate.getFullYear(); y <= endDate.getFullYear(); y++) {
-      const isFirstYear = y === startDate.getFullYear()
-      const isLastYear = y === endDate.getFullYear()
-
-      let monthsInYear = 12
-      if (isFirstYear && isLastYear) {
-        monthsInYear = endDate.getMonth() - startDate.getMonth() + 1
-      } else if (isLastYear) {
-        monthsInYear = endDate.getMonth() + 1
-      }
-
-      yearRows.push({ year: y, months: monthsInYear })
+    // Years in descending order (newest at top)
+    const yearList: Array<number> = []
+    for (let y = maxYear; y >= minYear; y--) {
+      yearList.push(y)
     }
 
     return {
-      timelineStartDate: startDate,
-      years: yearRows,
+      years: yearList,
+      timelineStartYear: maxYear, // Top of timeline
+      timelineEndYear: minYear, // Bottom of timeline
     }
-  }, [primaryExperiences, secondaryExperiences, milestones])
+  }, [regularExperiences, milestones])
 
-  // Process positioned experiences for each lane
-  const primaryLane: LaneData = useMemo(
-    () => ({
-      category: 'primary',
-      label: LANE_LABELS.primary,
-      entries: processLaneExperiences(
-        primaryExperiences,
-        timelineStartDate,
-        secondaryExperiences,
-      ),
-    }),
-    [primaryExperiences, secondaryExperiences, timelineStartDate],
-  )
+  // Total timeline height
+  const totalHeight = years.length * YEAR_ROW_HEIGHT_PX
 
-  const secondaryLane: LaneData = useMemo(
-    () => ({
-      category: 'secondary',
-      label: LANE_LABELS.secondary,
-      entries: processLaneExperiences(
-        secondaryExperiences,
-        timelineStartDate,
-        primaryExperiences,
-      ),
-    }),
-    [secondaryExperiences, primaryExperiences, timelineStartDate],
-  )
+  // Calculate year offset from top (year at top = 0)
+  const getYearOffset = (year: number): number => {
+    return (timelineStartYear - year) * YEAR_ROW_HEIGHT_PX
+  }
+
+  // Calculate position for an experience based on its dates
+  // Timeline is displayed newest (top) to oldest (bottom)
+  // Year row = 40px. Each year label marks the START of that year.
+  // So 2026 line is at top=0, 2025 line at top=40, etc.
+  const getExperiencePosition = (
+    exp: Experience,
+  ): { top: number; height: number } => {
+    const endDate = exp.endDateParsed || new Date()
+    const endYear = endDate.getFullYear()
+    const endMonth = endDate.getMonth() // 0-11
+
+    const startYear = exp.startDateParsed.getFullYear()
+    const startMonth = exp.startDateParsed.getMonth() // 0-11
+
+    // Top position: where the experience ENDS (newest point)
+    // If ends in Jan 2026 (month 0), and timeline starts at 2026, top = 0
+    // If ends in Dec 2025 (month 11), top = (2026-2025) * 40 - (11/12) * 40 = 40 - 36.67 = 3.33px
+    const yearsFromTop = timelineStartYear - endYear
+    const monthFractionFromYearStart = endMonth / 12
+    const top = Math.max(
+      0,
+      (yearsFromTop - monthFractionFromYearStart) * YEAR_ROW_HEIGHT_PX,
+    )
+
+    // Bottom position: where the experience STARTS (oldest point)
+    const startYearsFromTop = timelineStartYear - startYear
+    const startMonthFraction = startMonth / 12
+    const bottom = (startYearsFromTop - startMonthFraction + 1) * YEAR_ROW_HEIGHT_PX
+
+    // Height: from top to bottom
+    const height = Math.max(bottom - top, 32)
+
+    return { top, height }
+  }
+
+  // Position experiences with overlap detection
+  // When experiences overlap, put them side by side
+  const positionedExperiences: Array<PositionedExperience> = useMemo(() => {
+    const positioned: Array<PositionedExperience> = []
+
+    // Sort by end date (newest first) to process in timeline order
+    const sortedExperiences = [...regularExperiences].sort((a, b) => {
+      const aEnd = a.endDateParsed || new Date()
+      const bEnd = b.endDateParsed || new Date()
+      return bEnd.getTime() - aEnd.getTime()
+    })
+
+    for (const exp of sortedExperiences) {
+      const { top, height } = getExperiencePosition(exp)
+      const isShortDuration = exp.durationMonths < 12
+
+      // Check for overlaps with already positioned experiences
+      const overlapping = positioned.filter((p) =>
+        experiencesOverlap(exp, p.experience),
+      )
+
+      let column = 0 // Full width by default
+      const hasOverlap = overlapping.length > 0
+
+      if (hasOverlap) {
+        // Count already assigned columns
+        const leftCount = overlapping.filter((p) => p.column === 1).length
+        const rightCount = overlapping.filter((p) => p.column === 2).length
+        const fullCount = overlapping.filter((p) => p.column === 0).length
+
+        // If there are full-width entries, they need to be split
+        if (fullCount > 0) {
+          // Primary goes left, secondary goes right
+          if (exp.category === 'primary') {
+            column = 1
+            for (const overlap of overlapping) {
+              if (overlap.column === 0) {
+                overlap.column = 2
+                overlap.hasOverlap = true
+              }
+            }
+          } else {
+            column = 2
+            for (const overlap of overlapping) {
+              if (overlap.column === 0) {
+                overlap.column = 1
+                overlap.hasOverlap = true
+              }
+            }
+          }
+        } else {
+          // Put in the less crowded column, preferring left for primary
+          if (exp.category === 'primary') {
+            column = leftCount <= rightCount ? 1 : 2
+          } else {
+            column = rightCount <= leftCount ? 2 : 1
+          }
+        }
+      }
+
+      positioned.push({
+        experience: exp,
+        top,
+        height,
+        isShortDuration,
+        hasOverlap,
+        column,
+      })
+    }
+
+    return positioned
+  }, [regularExperiences, timelineStartYear])
 
   // Position milestones
-  const positionedMilestones = useMemo(
-    () =>
-      milestones.map((m) => ({
-        experience: m,
-        top: calculateTopOffset(m.startDateParsed, timelineStartDate),
-      })),
-    [milestones, timelineStartDate],
-  )
+  const positionedMilestones: Array<PositionedMilestone> = useMemo(() => {
+    return milestones.map((m) => {
+      const year = m.startDateParsed.getFullYear()
+      const month = m.startDateParsed.getMonth()
+      const yearFromTop = timelineStartYear - year
+      const monthOffset = month / 12
+      const top = (yearFromTop + monthOffset) * YEAR_ROW_HEIGHT_PX
 
-  // Calculate total timeline height
-  const totalHeight = useMemo(() => {
-    const totalMonths = years.reduce((acc, y) => acc + y.months, 0)
-    return totalMonths * MONTH_HEIGHT_PX
-  }, [years])
+      return { experience: m, top }
+    })
+  }, [milestones, timelineStartYear])
 
   return (
-    <div className={cn('flex gap-4', className)}>
-      {/* Year Timeline (leftmost) */}
-      <div className="flex flex-col shrink-0 w-12">
-        {years.map((yearRow) => (
-          <div
-            key={yearRow.year}
-            className="flex items-start justify-end pr-2 text-sm font-medium text-muted-foreground"
-            style={{ height: yearRow.months * MONTH_HEIGHT_PX }}
-          >
-            {yearRow.year}
-          </div>
-        ))}
-      </div>
-
-      {/* Timeline Line */}
-      <div className="relative w-px bg-border shrink-0">
-        {/* Milestones on the timeline */}
-        {positionedMilestones.map((m) => (
-          <div
-            key={m.experience.id}
-            className="absolute left-1/2 -translate-x-1/2"
-            style={{ top: m.top }}
-          >
-            <MilestoneEntry experience={m.experience} />
-          </div>
-        ))}
-      </div>
-
-      {/* Lanes Container */}
-      <div className="flex-1 flex gap-4">
-        {/* Primary Lane (Work) */}
-        <div className="flex-1 flex flex-col">
-          <div className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
-            {primaryLane.label}
-          </div>
-          <div className="relative" style={{ height: totalHeight }}>
-            {primaryLane.entries.map((entry) => (
-              <div
-                key={entry.experience.id}
-                className={cn(
-                  'absolute',
-                  entry.spansBothLanes ? 'left-0 right-0' : '',
-                  !entry.spansBothLanes &&
-                    entry.lanePosition === 'left' &&
-                    'left-0 w-[48%]',
-                  !entry.spansBothLanes &&
-                    entry.lanePosition === 'right' &&
-                    'right-0 w-[48%]',
-                  !entry.spansBothLanes &&
-                    entry.lanePosition === 'full' &&
-                    'left-0 right-0',
-                )}
-                style={{
-                  top: entry.top,
-                  minHeight: entry.height,
-                }}
-              >
-                <ExperienceEntryCard
-                  experience={entry.experience}
-                  isCompact={entry.isCompact}
-                  className="h-full"
-                />
-              </div>
-            ))}
-          </div>
+    <div
+      className={cn(
+        'border rounded-lg p-4 max-sm:p-2 bg-background',
+        className,
+      )}
+    >
+      <div className="flex">
+        {/* Year labels column */}
+        <div className="flex flex-col shrink-0 w-10 relative">
+          {years.map((year) => (
+            <div
+              key={year}
+              className="h-10 flex items-start justify-end pr-2"
+            >
+              <span className="text-[8px] font-medium text-muted-foreground leading-none pt-0.5">
+                {year}
+              </span>
+            </div>
+          ))}
         </div>
 
-        {/* Secondary Lane (Hustle) */}
-        <div className="flex-1 flex flex-col">
-          <div className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
-            {secondaryLane.label}
-          </div>
-          <div className="relative" style={{ height: totalHeight }}>
-            {secondaryLane.entries.map((entry) => (
+        {/* Timeline container with horizontal lines and cards */}
+        <div className="flex-1 relative" style={{ height: totalHeight }}>
+          {/* Horizontal year divider lines (lined journal style) */}
+          {years.map((year) => {
+            const top = getYearOffset(year)
+            return (
               <div
-                key={entry.experience.id}
-                className={cn(
-                  'absolute',
-                  entry.spansBothLanes ? 'left-0 right-0' : '',
-                  !entry.spansBothLanes &&
-                    entry.lanePosition === 'left' &&
-                    'left-0 w-[48%]',
-                  !entry.spansBothLanes &&
-                    entry.lanePosition === 'right' &&
-                    'right-0 w-[48%]',
-                  !entry.spansBothLanes &&
-                    entry.lanePosition === 'full' &&
-                    'left-0 right-0',
-                )}
-                style={{
-                  top: entry.top,
-                  minHeight: entry.height,
-                }}
-              >
-                <ExperienceEntryCard
-                  experience={entry.experience}
-                  isCompact={entry.isCompact}
-                  className="h-full"
-                />
-              </div>
-            ))}
-          </div>
+                key={`line-${year}`}
+                className="absolute left-0 right-0 h-px bg-border"
+                style={{ top }}
+              />
+            )
+          })}
+          {/* Bottom line */}
+          <div
+            className="absolute left-0 right-0 h-px bg-border"
+            style={{ top: totalHeight }}
+          />
+
+          {/* Experience cards */}
+          {positionedExperiences.map((entry, index) => (
+            <div
+              key={entry.experience.id}
+              className={cn(
+                'absolute px-0.5',
+                entry.column === 0 && 'left-0 right-0',
+                entry.column === 1 && 'left-0 w-1/2 pr-0.5',
+                entry.column === 2 && 'left-1/2 w-1/2 pl-0.5',
+              )}
+              style={{
+                top: entry.top,
+                height: entry.height,
+                zIndex: positionedExperiences.length - index, // Newer experiences on top
+              }}
+            >
+              <ExperienceEntryCard
+                experience={entry.experience}
+                isShortDuration={entry.isShortDuration}
+                hasOverlap={entry.hasOverlap}
+                className="h-full"
+              />
+            </div>
+          ))}
+
+          {/* Milestones */}
+          {positionedMilestones.map((m) => (
+            <div
+              key={m.experience.id}
+              className="absolute left-0"
+              style={{ top: m.top }}
+            >
+              <MilestoneEntry experience={m.experience} />
+            </div>
+          ))}
         </div>
       </div>
     </div>

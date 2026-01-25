@@ -54,7 +54,7 @@ export interface Experience extends ExperienceFrontmatter {
 export interface TimelineLane {
   id: ExperienceCategory
   label: string
-  experiences: Experience[]
+  experiences: Array<Experience>
 }
 
 /** Year marker for timeline */
@@ -78,71 +78,67 @@ export const SUBCATEGORY_COLORS: Record<
   ExperienceSubcategory,
   SubcategoryColorScheme
 > = {
-  // Primary lane colors (cooler tones)
+  // Primary category: white background
   work: {
-    bg: 'bg-slate-100',
-    bgHover: 'hover:bg-slate-200',
-    border: 'border-slate-300',
-    text: 'text-slate-700',
+    bg: 'bg-white',
+    bgHover: 'hover:bg-slate-50',
+    border: 'border-slate-200',
+    text: 'text-foreground',
     dot: 'bg-slate-500',
   },
+  // Secondary category: neutral tones (50 shades)
+  // Teaching & Consulting share Slate
   consulting: {
-    bg: 'bg-cyan-50',
-    bgHover: 'hover:bg-cyan-100',
-    border: 'border-cyan-200',
-    text: 'text-cyan-700',
-    dot: 'bg-cyan-500',
-  },
-  agency: {
-    bg: 'bg-indigo-50',
-    bgHover: 'hover:bg-indigo-100',
-    border: 'border-indigo-200',
-    text: 'text-indigo-700',
-    dot: 'bg-indigo-500',
-  },
-  // Secondary lane colors (warmer tones)
-  entrepreneurship: {
-    bg: 'bg-blue-50',
-    bgHover: 'hover:bg-blue-100',
-    border: 'border-blue-200',
-    text: 'text-blue-700',
-    dot: 'bg-blue-500',
-  },
-  'side project': {
-    bg: 'bg-emerald-50',
-    bgHover: 'hover:bg-emerald-100',
-    border: 'border-emerald-200',
-    text: 'text-emerald-700',
-    dot: 'bg-emerald-500',
+    bg: 'bg-slate-50',
+    bgHover: 'hover:bg-slate-100',
+    border: 'border-slate-200',
+    text: 'text-foreground',
+    dot: 'bg-slate-400',
   },
   teaching: {
-    bg: 'bg-amber-50',
-    bgHover: 'hover:bg-amber-100',
-    border: 'border-amber-200',
-    text: 'text-amber-700',
-    dot: 'bg-amber-500',
+    bg: 'bg-slate-50',
+    bgHover: 'hover:bg-slate-100',
+    border: 'border-slate-200',
+    text: 'text-foreground',
+    dot: 'bg-slate-400',
+  },
+  // Entrepreneurship & Agency share Gray
+  entrepreneurship: {
+    bg: 'bg-gray-50',
+    bgHover: 'hover:bg-gray-100',
+    border: 'border-gray-200',
+    text: 'text-foreground',
+    dot: 'bg-gray-400',
+  },
+  agency: {
+    bg: 'bg-gray-50',
+    bgHover: 'hover:bg-gray-100',
+    border: 'border-gray-200',
+    text: 'text-foreground',
+    dot: 'bg-gray-400',
+  },
+  // Other secondary subcategories
+  'side project': {
+    bg: 'bg-zinc-50',
+    bgHover: 'hover:bg-zinc-100',
+    border: 'border-zinc-200',
+    text: 'text-foreground',
+    dot: 'bg-zinc-400',
   },
   study: {
-    bg: 'bg-violet-50',
-    bgHover: 'hover:bg-violet-100',
-    border: 'border-violet-200',
-    text: 'text-violet-700',
-    dot: 'bg-violet-500',
+    bg: 'bg-neutral-50',
+    bgHover: 'hover:bg-neutral-100',
+    border: 'border-neutral-200',
+    text: 'text-foreground',
+    dot: 'bg-neutral-400',
   },
   volunteer: {
-    bg: 'bg-rose-50',
-    bgHover: 'hover:bg-rose-100',
-    border: 'border-rose-200',
-    text: 'text-rose-700',
-    dot: 'bg-rose-500',
+    bg: 'bg-stone-50',
+    bgHover: 'hover:bg-stone-100',
+    border: 'border-stone-200',
+    text: 'text-foreground',
+    dot: 'bg-stone-400',
   },
 }
 
-/** Lane labels */
-export const LANE_LABELS: Record<
-  Exclude<ExperienceCategory, 'tertiary'>,
-  string
-> = {
-  primary: 'Work',
-  secondary: 'Hustle',
-}
+

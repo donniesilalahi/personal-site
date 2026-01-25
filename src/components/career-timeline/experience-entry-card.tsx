@@ -1,11 +1,12 @@
 import * as LucideIcons from 'lucide-react'
-import { cn } from '@/lib/utils'
 import type { Experience, SubcategoryColorScheme } from '@/lib/experiences'
+import { cn } from '@/lib/utils'
 import { SUBCATEGORY_COLORS } from '@/lib/experiences'
 
 interface ExperienceEntryCardProps {
   experience: Experience
-  isCompact?: boolean // When duration is too short for multi-row layout
+  isShortDuration?: boolean // Less than 12 months
+  hasOverlap?: boolean // Has overlapping experience (side-by-side)
   className?: string
 }
 
@@ -37,19 +38,36 @@ function getIconComponent(iconName: string): LucideIconComponent | null {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join('')
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const icons = LucideIcons as Record<string, any>
   const IconComponent = icons[pascalCase] as LucideIconComponent | undefined
   return IconComponent || null
 }
 
 /**
+ * @ separator with Bricolage Grotesque font
+ */
+function AtSeparator({ className }: { className?: string }) {
+  return (
+    <span className={cn('font-bricolage text-muted-foreground', className)}>
+      @
+    </span>
+  )
+}
+
+/**
  * Experience entry card for calendar timeline view
- * Displays icon, role, company, and duration
+ *
+ * Layout rules:
+ * - Default (>= 12 months, no overlap): 4 lines - icon, role, @company, dates
+ * - Short duration (< 12 months, no overlap): 1 line - icon role @ company dates
+ * - Short duration with overlap (<= 12 months): 3 lines - icon, role, @company (no dates)
+ * - Long duration with overlap (> 12 months): Keep 4-line layout
  */
 export function ExperienceEntryCard({
   experience,
-  isCompact = false,
+  isShortDuration = false,
+  hasOverlap = false,
   className,
 }: ExperienceEntryCardProps) {
   const colors: SubcategoryColorScheme =
@@ -60,12 +78,46 @@ export function ExperienceEntryCard({
     experience.endDateParsed,
   )
 
-  if (isCompact) {
-    // Single-row compact layout for short durations
+  // Layout: Short duration with overlap (side-by-side, <= 12 months)
+  if (isShortDuration && hasOverlap) {
     return (
       <div
         className={cn(
-          'flex items-center gap-2 px-2 py-1 rounded-md border text-xs',
+          'flex flex-col gap-0.5 px-2 py-1.5 rounded-md border',
+          colors.bg,
+          colors.border,
+          colors.bgHover,
+          'transition-colors cursor-default',
+          className,
+        )}
+      >
+        {/* Line 1: Icon */}
+        {IconComponent && (
+          <IconComponent className={cn('size-4 shrink-0', colors.text)} />
+        )}
+
+        {/* Line 2: Role */}
+        <span className={cn('text-xs font-medium leading-tight', colors.text)}>
+          {experience.role}
+        </span>
+
+        {/* Line 3: @ Company */}
+        <div className="flex items-center gap-1">
+          <AtSeparator className="text-xs" />
+          <span className="text-xs text-muted-foreground truncate">
+            {experience.company}
+          </span>
+        </div>
+      </div>
+    )
+  }
+
+  // Layout: Short duration, no overlap (single row)
+  if (isShortDuration) {
+    return (
+      <div
+        className={cn(
+          'flex items-center gap-1.5 px-2 py-1.5 rounded-md border',
           colors.bg,
           colors.border,
           colors.bgHover,
@@ -74,20 +126,23 @@ export function ExperienceEntryCard({
         )}
       >
         {IconComponent && (
-          <IconComponent className={cn('size-3 shrink-0', colors.text)} />
+          <IconComponent className={cn('size-4 shrink-0', colors.text)} />
         )}
-        <span className={cn('font-medium truncate', colors.text)}>
+        <span className={cn('text-xs font-medium', colors.text)}>
           {experience.role}
         </span>
-        <span className="text-muted-foreground">·</span>
-        <span className="text-muted-foreground truncate">
+        <AtSeparator className="text-xs" />
+        <span className="text-xs text-muted-foreground truncate flex-1">
           {experience.company}
+        </span>
+        <span className="text-[10px] text-muted-foreground shrink-0">
+          {duration}
         </span>
       </div>
     )
   }
 
-  // Multi-row standard layout
+  // Layout: Default (>= 12 months) - 4 lines
   return (
     <div
       className={cn(
@@ -99,20 +154,24 @@ export function ExperienceEntryCard({
         className,
       )}
     >
-      {/* Row 1: Icon */}
-      {IconComponent && <IconComponent className={cn('size-4', colors.text)} />}
+      {/* Line 1: Icon */}
+      {IconComponent && (
+        <IconComponent className={cn('size-4', colors.text)} />
+      )}
 
-      {/* Row 2: Role · Company */}
-      <div className="flex items-center gap-1.5 text-sm">
-        <span className={cn('font-medium', colors.text)}>
-          {experience.role}
-        </span>
-        <span className="text-muted-foreground">·</span>
-        <span className="text-muted-foreground">{experience.company}</span>
+      {/* Line 2: Role */}
+      <span className={cn('text-sm font-medium leading-tight', colors.text)}>
+        {experience.role}
+      </span>
+
+      {/* Line 3: @ Company */}
+      <div className="flex items-center gap-1">
+        <AtSeparator className="text-sm" />
+        <span className="text-sm text-muted-foreground">{experience.company}</span>
       </div>
 
-      {/* Row 3: Duration */}
-      <span className="text-xs text-muted-foreground">{duration}</span>
+      {/* Line 4: Duration */}
+      <span className="text-[10px] text-muted-foreground">{duration}</span>
     </div>
   )
 }
@@ -124,25 +183,35 @@ interface MilestoneEntryProps {
 
 /**
  * Milestone entry (single-point event like graduation, award)
- * Displayed as a dot with smaller text
+ * Ghost button style with hover container
  */
 export function MilestoneEntry({ experience, className }: MilestoneEntryProps) {
   const colors: SubcategoryColorScheme =
     SUBCATEGORY_COLORS[experience.subcategory]
 
   return (
-    <div className={cn('flex items-center gap-2', className)}>
+    <div
+      className={cn(
+        'inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded',
+        'hover:bg-muted/50 transition-colors cursor-default',
+        className,
+      )}
+    >
       {/* Dot indicator */}
-      <div className={cn('size-2 rounded-full shrink-0', colors.dot)} />
+      <div className={cn('size-1.5 rounded-full shrink-0', colors.dot)} />
 
-      {/* Text content */}
-      <div className="flex items-center gap-1 text-xs">
-        <span className={cn('font-medium', colors.text)}>
-          {experience.role}
-        </span>
-        <span className="text-muted-foreground">·</span>
-        <span className="text-muted-foreground">{experience.company}</span>
-      </div>
+      {/* Role */}
+      <span className="text-[10px] font-medium text-foreground">
+        {experience.role}
+      </span>
+
+      {/* @ */}
+      <AtSeparator className="text-[10px]" />
+
+      {/* Company */}
+      <span className="text-[10px] text-muted-foreground">
+        {experience.company}
+      </span>
     </div>
   )
 }

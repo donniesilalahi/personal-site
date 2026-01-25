@@ -1,7 +1,7 @@
-import { cn } from '@/lib/utils'
-import { getAllExperiences, calculateTotalExperience } from '@/lib/experiences'
 import { TimelineSectionHeading } from './timeline-section-heading'
 import { CareerCalendar } from './career-calendar'
+import { cn } from '@/lib/utils'
+import { calculateTotalExperience, getAllExperiences } from '@/lib/experiences'
 
 interface CareerTimelineSectionProps {
   className?: string
@@ -9,10 +9,7 @@ interface CareerTimelineSectionProps {
 
 /**
  * Career Timeline Section
- * Displays career experiences in a calendar-style vertical timeline
- *
- * Future: Will support different view modes (Calendar, Horizontal Timeline, Resume List)
- * v1 only implements Calendar view
+ * Displays career experiences in a single-lane calendar-style vertical timeline
  */
 export function CareerTimelineSection({
   className,
@@ -22,13 +19,10 @@ export function CareerTimelineSection({
 
   return (
     <section className={cn('flex flex-col gap-6', className)}>
-      {/* Section Heading */}
       <TimelineSectionHeading
         label="Career timeline"
         totalExperience={totalExperience}
       />
-
-      {/* Calendar View (v1 only) */}
       <CareerCalendar experiences={experiences} />
     </section>
   )

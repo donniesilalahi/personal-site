@@ -5,21 +5,21 @@
 
 import type {
   Experience,
-  ExperienceFrontmatter,
-  ExperienceCategory,
-  ExperienceSubcategory,
   ExperienceArrangement,
+  ExperienceCategory,
+  ExperienceFrontmatter,
+  ExperienceSubcategory,
 } from './types'
 
 /** Valid category values */
-const VALID_CATEGORIES: ExperienceCategory[] = [
+const VALID_CATEGORIES: Array<ExperienceCategory> = [
   'primary',
   'secondary',
   'tertiary',
 ]
 
 /** Valid subcategory values */
-const VALID_SUBCATEGORIES: ExperienceSubcategory[] = [
+const VALID_SUBCATEGORIES: Array<ExperienceSubcategory> = [
   'work',
   'side project',
   'entrepreneurship',
@@ -31,7 +31,7 @@ const VALID_SUBCATEGORIES: ExperienceSubcategory[] = [
 ]
 
 /** Valid arrangement values */
-const VALID_ARRANGEMENTS: ExperienceArrangement[] = [
+const VALID_ARRANGEMENTS: Array<ExperienceArrangement> = [
   'full-time',
   'part-time',
   'contract',
@@ -97,7 +97,7 @@ function validateFrontmatter(
   frontmatter: Record<string, unknown>,
   filename: string,
 ): ExperienceFrontmatter {
-  const errors: string[] = []
+  const errors: Array<string> = []
 
   // Required fields
   if (typeof frontmatter.company !== 'string' || !frontmatter.company) {
@@ -243,8 +243,8 @@ const experienceModules = import.meta.glob<string>(
 /**
  * Get all experiences, sorted by start date (newest first)
  */
-export function getAllExperiences(): Experience[] {
-  const experiences: Experience[] = []
+export function getAllExperiences(): Array<Experience> {
+  const experiences: Array<Experience> = []
 
   for (const [filepath, content] of Object.entries(experienceModules)) {
     try {
@@ -268,7 +268,7 @@ export function getAllExperiences(): Experience[] {
  */
 export function getExperiencesByCategory(
   category: ExperienceCategory,
-): Experience[] {
+): Array<Experience> {
   return getAllExperiences().filter((exp) => exp.category === category)
 }
 
