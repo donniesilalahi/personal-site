@@ -13,9 +13,6 @@ interface CareerCalendarProps {
 /** Fixed height per year in pixels (allows 3 non-overlapping 4-month experiences) */
 const YEAR_HEIGHT_PX = 80
 
-/** Height per year for experience cards - MUST MATCH YEAR_HEIGHT_PX for proper alignment */
-const YEAR_CARD_HEIGHT_PX = YEAR_HEIGHT_PX
-
 /** Minimum height for very short experiences (in pixels) */
 const MIN_EXPERIENCE_HEIGHT_PX = 24
 
@@ -47,6 +44,33 @@ interface PositionedExperience {
   finalTopPx: number
   /** Final height in pixels (after gap adjustment) */
   finalHeightPx: number
+}
+
+/**
+ * Check if two experiences are consecutive (no gap between them).
+ * Consecutive means: expA ends in month M, expB starts in month M+1 (or same month)
+ * We treat month-level precision: "2022-02" ends → "2022-03" starts = consecutive
+ */
+function areConsecutive(
+  expAEnd: Date | null,
+  expBStart: Date,
+  now: Date,
+): boolean {
+  const endDate = expAEnd ?? now
+
+  // Get year/month for comparison
+  const endYear = endDate.getFullYear()
+  const endMonth = endDate.getMonth()
+  const startYear = expBStart.getFullYear()
+  const startMonth = expBStart.getMonth()
+
+  // Calculate months difference
+  const monthsDiff = (startYear - endYear) * 12 + (startMonth - endMonth)
+
+  // Consecutive if start is 0 or 1 month after end
+  // 0 = same month (overlap or same month boundary)
+  // 1 = next month (truly consecutive)
+  return monthsDiff >= 0 && monthsDiff <= 1
 }
 
 interface PositionedMilestone {
@@ -366,9 +390,9 @@ export function CareerCalendar({
       byColumn.set(entry.column, list)
     }
 
-    // Second pass: resolve overlaps and ensure minimum gaps within each column
-    // Strategy: only shrink/push when cards overlap or are too close
-    // Preserve natural time gaps - don't extend cards to fill empty time
+    // Second pass: resolve overlaps and ensure consistent gaps within each column
+    // Key insight: For CONSECUTIVE experiences (no time gap), enforce uniform visual gap
+    // For NON-consecutive experiences (real time gap), preserve the time-proportional gap
     for (const [, colCards] of byColumn) {
       // Sort by topPx (newest/higher cards first)
       colCards.sort((a, b) => a.finalTopPx - b.finalTopPx)
@@ -380,21 +404,51 @@ export function CareerCalendar({
         const currentBottom = current.finalTopPx + current.finalHeightPx
         const gap = next.finalTopPx - currentBottom
 
-        // Only act if gap is less than required (overlap or too close)
-        if (gap < VERTICAL_GAP_PX) {
-          const desiredHeight = next.finalTopPx - current.finalTopPx - VERTICAL_GAP_PX
+        // Check if these experiences are consecutive (no real time gap)
+        // Note: "current" is above (ends later), "next" is below (starts earlier)
+        // So we check if current's START is consecutive to next's END
+        const isConsecutive = areConsecutive(
+          next.experience.endDateParsed,
+          current.experience.startDateParsed,
+          now,
+        )
 
-          if (desiredHeight >= MIN_EXPERIENCE_HEIGHT_PX) {
-            // Shrink current card to create minimum gap
-            current.finalHeightPx = Math.round(desiredHeight)
+        // For consecutive experiences: enforce exactly VERTICAL_GAP_PX
+        // For non-consecutive: only act if gap < VERTICAL_GAP_PX (overlap)
+        if (isConsecutive) {
+          // Always normalize consecutive cards to have exactly VERTICAL_GAP_PX
+          // Directly set the height so bottom aligns with expected gap
+          const newHeight =
+            next.finalTopPx - current.finalTopPx - VERTICAL_GAP_PX
+
+          if (newHeight >= MIN_EXPERIENCE_HEIGHT_PX) {
+            current.finalHeightPx = newHeight
           } else {
             // Can't shrink enough - enforce min height and push next card down
             current.finalHeightPx = MIN_EXPERIENCE_HEIGHT_PX
-            const newNextTop = current.finalTopPx + current.finalHeightPx + VERTICAL_GAP_PX
+            const newNextTop =
+              current.finalTopPx + MIN_EXPERIENCE_HEIGHT_PX + VERTICAL_GAP_PX
             const shift = newNextTop - next.finalTopPx
 
             for (let j = i + 1; j < colCards.length; j++) {
-              colCards[j].finalTopPx = Math.round(colCards[j].finalTopPx + shift)
+              colCards[j].finalTopPx += shift
+            }
+          }
+        } else if (gap < VERTICAL_GAP_PX) {
+          // Non-consecutive but overlapping/too close - ensure minimum gap
+          const desiredHeight =
+            next.finalTopPx - current.finalTopPx - VERTICAL_GAP_PX
+
+          if (desiredHeight >= MIN_EXPERIENCE_HEIGHT_PX) {
+            current.finalHeightPx = desiredHeight
+          } else {
+            current.finalHeightPx = MIN_EXPERIENCE_HEIGHT_PX
+            const newNextTop =
+              current.finalTopPx + MIN_EXPERIENCE_HEIGHT_PX + VERTICAL_GAP_PX
+            const shift = newNextTop - next.finalTopPx
+
+            for (let j = i + 1; j < colCards.length; j++) {
+              colCards[j].finalTopPx += shift
             }
           }
         }
