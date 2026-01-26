@@ -4,13 +4,9 @@ import { useState } from 'react'
 import { TimelineSectionHeading } from './timeline-section-heading'
 import { CareerCalendar } from './career-calendar'
 import { ExperienceDialogDrawer } from './experience-dialog-drawer'
-import type {Experience} from '@/lib/experiences';
+import type { Experience } from '@/lib/experiences'
 import { cn } from '@/lib/utils'
-import {
-  
-  calculateTotalExperience,
-  getAllExperiences
-} from '@/lib/experiences'
+import { calculateTotalExperience, getAllExperiences } from '@/lib/experiences'
 
 interface CareerTimelineSectionProps {
   className?: string

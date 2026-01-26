@@ -32,6 +32,14 @@ export interface PositionedExperience {
   isOverlapped: boolean
   /** Whether this positioned item is a milestone */
   isMilestone: boolean
+  /** Ready-to-use CSS left value */
+  cssLeft: string
+  /** Ready-to-use CSS width value */
+  cssWidth: string
+  /** Z-index for stacking */
+  zIndex: number
+  /** Card type for rendering */
+  cardType: 'regular' | 'deprioritized' | 'milestone' | 'milestone-no-overlap'
 }
 
 export interface PositionedMilestone {
@@ -54,12 +62,20 @@ export interface TimelineBounds {
 export interface ExperiencePositioning {
   /** Which column (0 = leftmost) */
   column: number
-  /** Left position as percentage (0-100) */
+  /** Left position as percentage (0-100) - for non-special cards */
   leftPercent: number
-  /** Width as percentage (0-100) */
+  /** Width as percentage (0-100) - for non-special cards */
   widthPercent: number
   /** Number of events overlapping at this event's start time (for debugging) */
   overlapAtStart: number
   /** Whether this card has another card overlapping it from the right */
   isOverlapped: boolean
+  /** Ready-to-use CSS left value (e.g., "0%", "calc(100% - 48px)") */
+  cssLeft: string
+  /** Ready-to-use CSS width value (e.g., "100%", "48px") */
+  cssWidth: string
+  /** Z-index for stacking order */
+  zIndex: number
+  /** Card type for rendering decisions */
+  cardType: 'regular' | 'deprioritized' | 'milestone' | 'milestone-no-overlap'
 }

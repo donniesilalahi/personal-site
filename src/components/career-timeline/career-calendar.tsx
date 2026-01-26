@@ -3,9 +3,6 @@ import { useMemo } from 'react'
 import { ExperienceEntryCard, MilestoneEntry } from './experience-entry-card'
 import { calculatePositioning } from './career-calendar.algorithm'
 import {
-  COLUMN_GAP_PX,
-  DEPRIORITIZED_CARD_WIDTH_PX,
-  MILESTONE_CARD_WIDTH_PX,
   MIN_EXPERIENCE_HEIGHT_PX,
   VERTICAL_GAP_PX,
   YEAR_HEIGHT_PX,
@@ -13,6 +10,7 @@ import {
 import { areConsecutive, dateToPercent } from './career-calendar.utils'
 import type {
   CareerCalendarProps,
+  ExperiencePositioning,
   PositionedExperience,
   TimelineBounds,
 } from './career-calendar.types'
@@ -83,16 +81,7 @@ function calculateTimelineBounds(
  */
 function positionExperiences(
   items: Array<Experience>,
-  positioningMap: Map<
-    string,
-    {
-      column: number
-      leftPercent: number
-      widthPercent: number
-      overlapAtStart: number
-      isOverlapped: boolean
-    }
-  >,
+  positioningMap: Map<string, ExperiencePositioning>,
   totalHeightPx: number,
   timelineStart: Date,
   timelineEnd: Date,
@@ -108,7 +97,6 @@ function positionExperiences(
     const topPx = (topPercent / 100) * totalHeightPx
 
     // Height calculated from EXACT dates (same scale as position)
-    // This ensures cards span exactly from end date to start date on timeline
     const startPercent = dateToPercent(start, timelineStart, timelineEnd)
     let heightPx = ((startPercent - topPercent) / 100) * totalHeightPx
 
@@ -120,21 +108,24 @@ function positionExperiences(
     const heightPercent = (heightPx / totalHeightPx) * 100
 
     const positioningData = positioningMap.get(exp.id)
-    const positioning = {
-      column: positioningData?.column ?? 0,
-      leftPercent: positioningData?.leftPercent ?? 0,
-      widthPercent: positioningData?.widthPercent ?? 100,
-      overlapAtStart: positioningData?.overlapAtStart ?? 1,
-      isOverlapped: positioningData?.isOverlapped ?? false,
+    const positioning: ExperiencePositioning = positioningData ?? {
+      column: 0,
+      leftPercent: 0,
+      widthPercent: 100,
+      overlapAtStart: 1,
+      isOverlapped: false,
+      cssLeft: '0%',
+      cssWidth: '100%',
+      zIndex: 1,
+      cardType: 'regular',
     }
 
     return {
       experience: exp,
       column: positioning.column,
-      // Store the new positioning values for rendering
       leftPercent: positioning.leftPercent,
       widthPercent: positioning.widthPercent,
-      maxColumnsInGroup: positioning.overlapAtStart, // Keep for backward compatibility
+      maxColumnsInGroup: positioning.overlapAtStart,
       topPercent,
       heightPercent,
       topPx: Math.round(topPx),
@@ -143,6 +134,10 @@ function positionExperiences(
       finalHeightPx: Math.round(heightPx),
       isOverlapped: positioning.isOverlapped,
       isMilestone: exp.isMilestone || false,
+      cssLeft: positioning.cssLeft,
+      cssWidth: positioning.cssWidth,
+      zIndex: positioning.zIndex,
+      cardType: positioning.cardType,
     }
   })
 
@@ -271,7 +266,7 @@ export function CareerCalendar({
   return (
     <div
       className={cn(
-        'border rounded-lg p-4 max-sm:p-2 bg-background',
+        'border rounded-sm py-8 px-4 max-sm:py-4 max-sm:px-2 bg-neutral-50',
         className,
       )}
     >
@@ -347,247 +342,51 @@ export function CareerCalendar({
           {/* Experience cards container - offset by 16px for indicator line visibility */}
           <div className="absolute top-0 bottom-0 left-4 right-0">
             {positionedExperiences.map((entry) => {
-              const { column, leftPercent, widthPercent } = entry
               const exp = entry.experience
-              const isDeprioritized = exp.isDeprioritized
-              const isMilestone = exp.isMilestone
+              const { cssLeft, cssWidth, zIndex, cardType } = entry
 
-              const hasOverlap = widthPercent < 100
+              const hasOverlap =
+                entry.widthPercent < 100 || cardType !== 'regular'
               const isShortDuration = exp.durationMonths <= 12
               const isVeryShortDuration = exp.durationMonths <= 6
 
-              // Helper to check if two experiences temporally overlap
-              const checkTemporalOverlap = (
-                a: PositionedExperience,
-                b: PositionedExperience,
-              ): boolean => {
-                const aStart = a.experience.startDateParsed.getTime()
-                const aEnd =
-                  a.experience.endDateParsed?.getTime() ?? now.getTime()
-                const bStart = b.experience.startDateParsed.getTime()
-                const bEnd =
-                  b.experience.endDateParsed?.getTime() ?? now.getTime()
-                return aStart <= bEnd && bStart <= aEnd
-              }
-
-              // Find all deprioritized cards that temporally overlap with this entry
-              // (regardless of algorithm's widthPercent - we always want to respect deprioritized cards)
-              const overlappingDeprioritized = positionedExperiences.filter(
-                (other) => {
-                  if (other.experience.id === exp.id) return false
-                  if (!other.experience.isDeprioritized) return false
-                  return checkTemporalOverlap(entry, other)
-                },
-              )
-
-              // Find all milestones with algorithm-detected overlap that temporally overlap with this entry
-              const overlappingMilestones = positionedExperiences.filter(
-                (other) => {
-                  if (other.experience.id === exp.id) return false
-                  if (!other.experience.isMilestone) return false
-                  if (other.widthPercent >= 100) return false // Only milestones with algorithm overlap
-                  return checkTemporalOverlap(entry, other)
-                },
-              )
-
-              // Combined "special cards" = deprioritized + overlapping milestones
-              const overlappingSpecialEntries = [
-                ...overlappingDeprioritized,
-                ...overlappingMilestones,
-              ]
-
-              // Determine if this entry should be treated as a special card
-              // - Deprioritized: always special
-              // - Milestone: only if it has overlap (with any card, not just special)
-              const hasAnyTemporalOverlap =
-                overlappingSpecialEntries.length > 0 ||
-                positionedExperiences.some(
-                  (other) =>
-                    other.experience.id !== exp.id &&
-                    checkTemporalOverlap(entry, other),
-                )
-              const isSpecialCard =
-                isDeprioritized || (isMilestone && hasAnyTemporalOverlap)
-
-              // Get width for a special card
-              const getSpecialCardWidth = (e: PositionedExperience): number => {
-                if (e.experience.isDeprioritized)
-                  return DEPRIORITIZED_CARD_WIDTH_PX
-                if (e.experience.isMilestone) return MILESTONE_CARD_WIDTH_PX
-                return 0
-              }
-
-              // Calculate total deprioritized width only (for regular cards)
-              const deprioritizedOnlyWidthPx = overlappingDeprioritized.reduce(
-                (acc) => acc + DEPRIORITIZED_CARD_WIDTH_PX + COLUMN_GAP_PX,
-                0,
-              )
-
-              // Calculate card positioning based on type
-              let cardWidth: string
-              let cardLeft: string
-
-              if (isSpecialCard) {
-                // Special cards (deprioritized or milestone with overlap):
-                // Fixed pixel width, positioned at the right edge
-                const myWidth = getSpecialCardWidth(entry)
-
-                // Deprioritized cards: positioned at far right, only account for other deprioritized cards
-                // Milestones: positioned to the left of deprioritized cards
-                if (isDeprioritized) {
-                  // Get all deprioritized cards overlapping at this time, sorted by start date DESC
-                  // (earlier start date = further right = processed later in offset calculation)
-                  const allOverlappingDeprioritized = [
-                    entry,
-                    ...overlappingDeprioritized,
-                  ].sort(
-                    (a, b) =>
-                      b.experience.startDateParsed.getTime() -
-                      a.experience.startDateParsed.getTime(),
-                  )
-
-                  // Calculate offset from right edge (only deprioritized cards)
-                  let offsetFromRight = myWidth
-                  for (const other of allOverlappingDeprioritized) {
-                    if (other.experience.id === exp.id) break
-                    offsetFromRight +=
-                      getSpecialCardWidth(other) + COLUMN_GAP_PX
-                  }
-
-                  cardWidth = `${myWidth}px`
-                  cardLeft = `calc(100% - ${offsetFromRight}px)`
-                } else {
-                  // Milestone: positioned to the left of ALL deprioritized cards it overlaps with
-                  const totalDeprioritizedWidthPx =
-                    overlappingDeprioritized.reduce(
-                      (acc, e) => acc + getSpecialCardWidth(e) + COLUMN_GAP_PX,
-                      0,
-                    )
-
-                  // Get all milestones overlapping at this time, sorted by start date DESC
-                  const allOverlappingMilestones = [
-                    entry,
-                    ...overlappingMilestones,
-                  ].sort(
-                    (a, b) =>
-                      b.experience.startDateParsed.getTime() -
-                      a.experience.startDateParsed.getTime(),
-                  )
-
-                  // Calculate offset from right edge (after deprioritized cards)
-                  let offsetFromRight = totalDeprioritizedWidthPx + myWidth
-                  for (const other of allOverlappingMilestones) {
-                    if (other.experience.id === exp.id) break
-                    offsetFromRight +=
-                      getSpecialCardWidth(other) + COLUMN_GAP_PX
-                  }
-
-                  cardWidth = `${myWidth}px`
-                  cardLeft = `calc(100% - ${offsetFromRight}px)`
-                }
-
-                // Milestone without overlap: ghost button style, positioned at left
-                if (isMilestone && !hasOverlap) {
-                  return (
-                    <div
-                      key={exp.id}
-                      className="absolute z-10"
-                      style={{
-                        top: entry.topPx,
-                        left: 0,
-                      }}
-                      onClick={() => onExperienceClick?.(exp)}
-                    >
-                      <MilestoneEntry experience={exp} />
-                    </div>
-                  )
-                }
-              } else if (deprioritizedOnlyWidthPx > 0) {
-                // Regular card overlapping with deprioritized cards:
-                // Expand to fill space minus the deprioritized cards' fixed width
-                // (Milestones are handled separately and don't affect regular card width)
-                //
-                // Find all non-deprioritized, non-milestone-with-overlap cards that temporally overlap
-                const nonSpecialOverlapping = positionedExperiences.filter(
-                  (other) => {
-                    if (other.experience.isDeprioritized) return false
-                    // Check if other is a milestone with overlap (making it special)
-                    const otherIsMilestoneSpecial =
-                      other.experience.isMilestone &&
-                      positionedExperiences.some(
-                        (o) =>
-                          o.experience.id !== other.experience.id &&
-                          checkTemporalOverlap(other, o),
-                      )
-                    if (otherIsMilestoneSpecial) return false
-                    return checkTemporalOverlap(entry, other)
-                  },
-                )
-
-                const nonSpecialCount = nonSpecialOverlapping.length
-
-                // My column among non-special cards (sorted by algorithm column)
-                const myNonSpecialColumn = nonSpecialOverlapping
-                  .sort((a, b) => a.column - b.column)
-                  .findIndex((e) => e.experience.id === exp.id)
-
-                // Width = (100% - deprioritized cards space) / non-special count
-                cardWidth = `calc((100% - ${deprioritizedOnlyWidthPx}px) / ${nonSpecialCount})`
-                cardLeft = `calc((100% - ${deprioritizedOnlyWidthPx}px) / ${nonSpecialCount} * ${myNonSpecialColumn} + ${myNonSpecialColumn * COLUMN_GAP_PX}px)`
-              } else {
-                // Normal case: no special card overlap, use percentage width
-                cardWidth = `${widthPercent}%`
-                cardLeft = `calc(${leftPercent}% + ${column * COLUMN_GAP_PX}px)`
-              }
-
-              // Determine z-index: special cards on bottom, regular on top by column
-              const zIndex = isSpecialCard ? 0 : column + 1
-
-              // Special rendering for special cards
-              if (isSpecialCard) {
-                if (isMilestone) {
-                  // Milestone: ghost button, width hugs content
-                  return (
-                    <div
-                      key={exp.id}
-                      className="absolute flex items-start"
-                      style={{
-                        top: entry.finalTopPx,
-                        left: cardLeft,
-                        zIndex,
-                      }}
-                      onClick={() => onExperienceClick?.(exp)}
-                    >
-                      <MilestoneEntry experience={exp} />
-                    </div>
-                  )
-                }
-                // Deprioritized: full height card
+              // Milestone without overlap: ghost button, positioned at left
+              if (cardType === 'milestone-no-overlap') {
                 return (
                   <div
                     key={exp.id}
                     className="absolute"
                     style={{
                       top: entry.finalTopPx,
-                      height: entry.finalHeightPx,
-                      left: cardLeft,
-                      width: cardWidth,
+                      left: cssLeft,
                       zIndex,
                     }}
                     onClick={() => onExperienceClick?.(exp)}
                   >
-                    <ExperienceEntryCard
-                      experience={exp}
-                      isShortDuration={isShortDuration}
-                      isVeryShortDuration={isVeryShortDuration}
-                      hasOverlap={hasOverlap}
-                      className="h-full w-full"
-                    />
+                    <MilestoneEntry experience={exp} />
                   </div>
                 )
               }
 
-              // Regular card rendering
+              // Milestone with overlap: ghost button, fixed position from right
+              if (cardType === 'milestone') {
+                return (
+                  <div
+                    key={exp.id}
+                    className="absolute flex items-start"
+                    style={{
+                      top: entry.finalTopPx,
+                      left: cssLeft,
+                      zIndex,
+                    }}
+                    onClick={() => onExperienceClick?.(exp)}
+                  >
+                    <MilestoneEntry experience={exp} />
+                  </div>
+                )
+              }
+
+              // Deprioritized and regular cards: full height
               return (
                 <div
                   key={exp.id}
@@ -595,8 +394,8 @@ export function CareerCalendar({
                   style={{
                     top: entry.finalTopPx,
                     height: entry.finalHeightPx,
-                    left: cardLeft,
-                    width: cardWidth,
+                    left: cssLeft,
+                    width: cssWidth,
                     zIndex,
                   }}
                   onClick={() => onExperienceClick?.(exp)}

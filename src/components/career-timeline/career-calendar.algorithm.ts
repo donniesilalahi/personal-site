@@ -1,66 +1,175 @@
 /**
- * Google Calendar-style "Forward Packing" algorithm
+ * Unified Positioning Algorithm for Career Calendar
  *
- * Key principles:
- * 1. Events that start earlier claim more horizontal space
- * 2. Width is NOT uniform - it's based on overlap depth at each event's start time
- * 3. Later events are "squeezed" into remaining space on the right
- * 4. Column assignment is greedy-leftmost
+ * Single source of truth for all card positioning logic.
  *
- * Important insight from Google Calendar:
- * - When a new event starts, it doesn't "steal" space from running events
- * - Instead, ALL overlapping events at that moment share the space
- * - Width is determined by max concurrency during the event's span
- * - But LEFT POSITION is cumulative based on earlier events
+ * Card Types:
+ * 1. Regular cards: Flex to fill available space, sorted by start date (earliest = leftmost)
+ * 2. Deprioritized cards: Fixed width, always positioned at rightmost edge
+ * 3. Milestones with overlap: Fixed width, positioned to the left of deprioritized cards
+ * 4. Milestones without overlap: Ghost button style, positioned at left edge
+ *
+ * Key Principles:
+ * - Earlier start date = leftmost column (for regular cards)
+ * - Deprioritized cards are always rightmost
+ * - All positioning is calculated here, renderer just applies values
  */
 
+import {
+  COLUMN_GAP_PX,
+  DEPRIORITIZED_CARD_WIDTH_PX,
+  MILESTONE_CARD_WIDTH_PX,
+} from './career-calendar.constants'
 import { intervalsOverlap } from './career-calendar.utils'
 import type { Experience } from '@/lib/experiences'
 import type { ExperiencePositioning } from './career-calendar.types'
 
+interface OverlapGroup {
+  experiences: Array<Experience>
+  regularCards: Array<Experience>
+  deprioritizedCards: Array<Experience>
+  milestonesWithOverlap: Array<Experience>
+  milestonesNoOverlap: Array<Experience>
+}
+
 /**
- * PHASE 1: Assign columns to experiences using greedy leftmost algorithm.
- * - Sort by startDate ASC, then endDate ASC
- * - Assign each to leftmost column where it doesn't overlap with existing events
+ * Check if two experiences overlap in time
  */
-function assignColumns(
+function experiencesOverlap(a: Experience, b: Experience, now: Date): boolean {
+  const aStart = a.startDateParsed
+  const aEnd = a.endDateParsed ?? now
+  const bStart = b.startDateParsed
+  const bEnd = b.endDateParsed ?? now
+  return intervalsOverlap(aStart, aEnd, bStart, bEnd)
+}
+
+/**
+ * Find all experiences that overlap with a given experience
+ */
+function findOverlapping(
+  exp: Experience,
+  allExperiences: Array<Experience>,
+  now: Date,
+): Array<Experience> {
+  return allExperiences.filter(
+    (other) => other.id !== exp.id && experiencesOverlap(exp, other, now),
+  )
+}
+
+/**
+ * Categorize an experience based on its type and overlap status
+ */
+function categorizeExperience(
+  exp: Experience,
+  overlapping: Array<Experience>,
+): 'regular' | 'deprioritized' | 'milestone' | 'milestone-no-overlap' {
+  if (exp.isDeprioritized) return 'deprioritized'
+  if (exp.isMilestone) {
+    return overlapping.length > 0 ? 'milestone' : 'milestone-no-overlap'
+  }
+  return 'regular'
+}
+
+/**
+ * Build overlap groups - connected components of overlapping experiences
+ * Each group contains experiences that transitively overlap with each other
+ */
+function buildOverlapGroups(
   experiences: Array<Experience>,
   now: Date,
-): Map<string, number> {
-  if (experiences.length === 0) {
-    return new Map()
+): Array<OverlapGroup> {
+  const visited = new Set<string>()
+  const groups: Array<OverlapGroup> = []
+
+  for (const exp of experiences) {
+    if (visited.has(exp.id)) continue
+
+    // BFS to find all connected experiences
+    const groupExps: Array<Experience> = []
+    const queue: Array<Experience> = [exp]
+
+    while (queue.length > 0) {
+      const current = queue.shift()!
+      if (visited.has(current.id)) continue
+
+      visited.add(current.id)
+      groupExps.push(current)
+
+      // Find all overlapping experiences
+      for (const other of experiences) {
+        if (!visited.has(other.id) && experiencesOverlap(current, other, now)) {
+          queue.push(other)
+        }
+      }
+    }
+
+    // Categorize experiences in this group
+    const regularCards: Array<Experience> = []
+    const deprioritizedCards: Array<Experience> = []
+    const milestonesWithOverlap: Array<Experience> = []
+    const milestonesNoOverlap: Array<Experience> = []
+
+    for (const e of groupExps) {
+      const overlapping = findOverlapping(e, groupExps, now)
+      const category = categorizeExperience(e, overlapping)
+
+      switch (category) {
+        case 'regular':
+          regularCards.push(e)
+          break
+        case 'deprioritized':
+          deprioritizedCards.push(e)
+          break
+        case 'milestone':
+          milestonesWithOverlap.push(e)
+          break
+        case 'milestone-no-overlap':
+          milestonesNoOverlap.push(e)
+          break
+      }
+    }
+
+    groups.push({
+      experiences: groupExps,
+      regularCards,
+      deprioritizedCards,
+      milestonesWithOverlap,
+      milestonesNoOverlap,
+    })
   }
 
-  // Sort by startDate ASC, then endDate ASC (null endDate = now)
-  const sorted = [...experiences].sort((a, b) => {
-    const startDiff = a.startDateParsed.getTime() - b.startDateParsed.getTime()
-    if (startDiff !== 0) return startDiff
+  return groups
+}
 
-    const aEnd = a.endDateParsed?.getTime() ?? now.getTime()
-    const bEnd = b.endDateParsed?.getTime() ?? now.getTime()
-    return aEnd - bEnd
-  })
+/**
+ * Assign columns to regular cards using greedy leftmost algorithm
+ * Sort by start date ASC → earlier starters get lower column numbers (leftmost)
+ */
+function assignColumnsToRegularCards(
+  regularCards: Array<Experience>,
+  now: Date,
+): Map<string, number> {
+  if (regularCards.length === 0) return new Map()
+
+  // Sort by start date ASC (earlier = processed first = leftmost)
+  const sorted = [...regularCards].sort(
+    (a, b) => a.startDateParsed.getTime() - b.startDateParsed.getTime(),
+  )
 
   const columnAssignments = new Map<string, number>()
-
-  // Each column tracks which experiences are in it
-  const columns: Array<Array<string>> = []
+  const columns: Array<Array<Experience>> = []
 
   for (const exp of sorted) {
     const start = exp.startDateParsed
     const end = exp.endDateParsed ?? now
 
-    // Find leftmost column where this experience fits (no overlap)
+    // Find leftmost column without overlap
     let assignedColumn = -1
 
     for (let colIdx = 0; colIdx < columns.length; colIdx++) {
-      const hasOverlap = columns[colIdx].some((existingId) => {
-        const existingExp = experiences.find((e) => e.id === existingId)
-        if (!existingExp) return false
-
-        const existingStart = existingExp.startDateParsed
-        const existingEnd = existingExp.endDateParsed ?? now
-
+      const hasOverlap = columns[colIdx].some((existing) => {
+        const existingStart = existing.startDateParsed
+        const existingEnd = existing.endDateParsed ?? now
         return intervalsOverlap(start, end, existingStart, existingEnd)
       })
 
@@ -70,13 +179,12 @@ function assignColumns(
       }
     }
 
-    // If no existing column works, create a new one
     if (assignedColumn === -1) {
       assignedColumn = columns.length
       columns.push([])
     }
 
-    columns[assignedColumn].push(exp.id)
+    columns[assignedColumn].push(exp)
     columnAssignments.set(exp.id, assignedColumn)
   }
 
@@ -84,194 +192,149 @@ function assignColumns(
 }
 
 /**
- * PHASE 2: Calculate max concurrency for each event.
- *
- * Key insight from Google Calendar:
- * - Width is determined by the MAXIMUM number of concurrent events
- *   at ANY POINT during this event's duration
- * - This ensures consistent column widths for overlapping events
- */
-function calculateMaxConcurrency(
-  experiences: Array<Experience>,
-  now: Date,
-): Map<string, number> {
-  const maxConcurrencyMap = new Map<string, number>()
-
-  for (const exp of experiences) {
-    const start = exp.startDateParsed
-    const end = exp.endDateParsed ?? now
-
-    // Collect all time points to check within this experience's duration
-    const checkPoints: Array<Date> = [start, end]
-
-    // Add start/end points of all events that overlap with this one
-    for (const other of experiences) {
-      const otherStart = other.startDateParsed
-      const otherEnd = other.endDateParsed ?? now
-
-      if (intervalsOverlap(start, end, otherStart, otherEnd)) {
-        if (otherStart >= start && otherStart <= end) {
-          checkPoints.push(otherStart)
-        }
-        if (otherEnd >= start && otherEnd <= end) {
-          checkPoints.push(otherEnd)
-        }
-      }
-    }
-
-    // Find maximum concurrency at any check point
-    let maxConcurrent = 1
-
-    for (const checkTime of checkPoints) {
-      const concurrent = experiences.filter((e) => {
-        const eStart = e.startDateParsed
-        const eEnd = e.endDateParsed ?? now
-        return eStart <= checkTime && checkTime <= eEnd
-      }).length
-
-      maxConcurrent = Math.max(maxConcurrent, concurrent)
-    }
-
-    maxConcurrencyMap.set(exp.id, maxConcurrent)
-  }
-
-  return maxConcurrencyMap
-}
-
-/**
- * PHASE 3: Calculate widths and positions using Forward Packing.
- *
- * Google Calendar style:
- * - All events in the same overlap group share width equally
- * - Width = 100% / maxConcurrency
- * - Left position = column * width
- *
- * The "forward packing" aspect comes from:
- * - Events starting earlier get lower column numbers (assigned first)
- * - Lower column = further left position
- * - So early starters naturally appear on the left
- */
-function calculateWidthsAndPositions(
-  experiences: Array<Experience>,
-  columnAssignments: Map<string, number>,
-  maxConcurrencyMap: Map<string, number>,
-): Map<
-  string,
-  { leftPercent: number; widthPercent: number; overlapAtStart: number }
-> {
-  const result = new Map<
-    string,
-    { leftPercent: number; widthPercent: number; overlapAtStart: number }
-  >()
-
-  for (const exp of experiences) {
-    const column = columnAssignments.get(exp.id) ?? 0
-    const maxConcurrent = maxConcurrencyMap.get(exp.id) ?? 1
-
-    // Width is uniform for all events in the same overlap group
-    const widthPercent = 100 / maxConcurrent
-
-    // Left position is based on column number
-    const leftPercent = column * widthPercent
-
-    result.set(exp.id, {
-      leftPercent,
-      widthPercent,
-      overlapAtStart: maxConcurrent,
-    })
-  }
-
-  return result
-}
-
-/**
- * PHASE 4: Calculate which cards are overlapped by others on the right.
- *
- * A card is "overlapped" if there exists another card in a higher column
- * that temporally overlaps with it. This is used to add padding-right
- * for better readability.
- */
-function calculateOverlappedStatus(
-  experiences: Array<Experience>,
-  columnAssignments: Map<string, number>,
-  now: Date,
-): Map<string, boolean> {
-  const overlappedMap = new Map<string, boolean>()
-
-  for (const exp of experiences) {
-    const column = columnAssignments.get(exp.id) ?? 0
-    const start = exp.startDateParsed
-    const end = exp.endDateParsed ?? now
-
-    // Check if any other experience in a HIGHER column overlaps this one
-    let isOverlapped = false
-    for (const other of experiences) {
-      if (other.id === exp.id) continue
-
-      const otherColumn = columnAssignments.get(other.id) ?? 0
-      if (otherColumn <= column) continue // Only care about cards to the right
-
-      const otherStart = other.startDateParsed
-      const otherEnd = other.endDateParsed ?? now
-
-      if (intervalsOverlap(start, end, otherStart, otherEnd)) {
-        isOverlapped = true
-        break
-      }
-    }
-
-    overlappedMap.set(exp.id, isOverlapped)
-  }
-
-  return overlappedMap
-}
-
-/**
- * PHASE 5: Combine all calculations for final positioning.
- *
- * Returns complete positioning info for each experience:
- * - column: logical column (0 = leftmost)
- * - leftPercent: horizontal position (0-100%)
- * - widthPercent: width (0-100%)
- * - overlapAtStart: number of max concurrent events (for debugging)
- * - isOverlapped: whether another card overlaps this one from the right
+ * Calculate final CSS positioning for all experiences
  */
 export function calculatePositioning(
   experiences: Array<Experience>,
   now: Date,
 ): Map<string, ExperiencePositioning> {
-  const columnAssignments = assignColumns(experiences, now)
-  const maxConcurrencyMap = calculateMaxConcurrency(experiences, now)
-  const widthsAndPositions = calculateWidthsAndPositions(
-    experiences,
-    columnAssignments,
-    maxConcurrencyMap,
-  )
-  const overlappedStatus = calculateOverlappedStatus(
-    experiences,
-    columnAssignments,
-    now,
-  )
-
   const result = new Map<string, ExperiencePositioning>()
 
-  for (const exp of experiences) {
-    const column = columnAssignments.get(exp.id) ?? 0
-    const { leftPercent, widthPercent, overlapAtStart } =
-      widthsAndPositions.get(exp.id) ?? {
+  // Build overlap groups
+  const groups = buildOverlapGroups(experiences, now)
+
+  for (const group of groups) {
+    const {
+      regularCards,
+      deprioritizedCards,
+      milestonesWithOverlap,
+      milestonesNoOverlap,
+    } = group
+
+    // Assign columns to regular cards
+    const regularColumnMap = assignColumnsToRegularCards(regularCards, now)
+    const numRegularColumns =
+      Math.max(0, ...Array.from(regularColumnMap.values())) +
+      (regularCards.length > 0 ? 1 : 0)
+
+    // Calculate total fixed-width space on the right
+    // Order from right: deprioritized cards, then milestones with overlap
+    const totalDeprioritizedWidth =
+      deprioritizedCards.length * (DEPRIORITIZED_CARD_WIDTH_PX + COLUMN_GAP_PX)
+    const totalMilestoneWidth =
+      milestonesWithOverlap.length * (MILESTONE_CARD_WIDTH_PX + COLUMN_GAP_PX)
+    const totalFixedWidth = totalDeprioritizedWidth + totalMilestoneWidth
+
+    // Sort deprioritized by start date DESC (later = rightmost)
+    const sortedDeprioritized = [...deprioritizedCards].sort(
+      (a, b) => b.startDateParsed.getTime() - a.startDateParsed.getTime(),
+    )
+
+    // Sort milestones by start date DESC (later = rightmost, but left of deprioritized)
+    const sortedMilestones = [...milestonesWithOverlap].sort(
+      (a, b) => b.startDateParsed.getTime() - a.startDateParsed.getTime(),
+    )
+
+    // Position deprioritized cards (rightmost)
+    let rightOffset = 0
+    for (const exp of sortedDeprioritized) {
+      rightOffset += DEPRIORITIZED_CARD_WIDTH_PX
+
+      result.set(exp.id, {
+        column:
+          numRegularColumns +
+          milestonesWithOverlap.length +
+          sortedDeprioritized.indexOf(exp),
+        leftPercent: 0,
+        widthPercent: 0,
+        overlapAtStart: group.experiences.length,
+        isOverlapped: false,
+        cssLeft: `calc(100% - ${rightOffset}px)`,
+        cssWidth: `${DEPRIORITIZED_CARD_WIDTH_PX}px`,
+        zIndex: 0,
+        cardType: 'deprioritized',
+      })
+
+      rightOffset += COLUMN_GAP_PX
+    }
+
+    // Position milestones with overlap (to the left of deprioritized)
+    for (const exp of sortedMilestones) {
+      rightOffset += MILESTONE_CARD_WIDTH_PX
+
+      result.set(exp.id, {
+        column: numRegularColumns + sortedMilestones.indexOf(exp),
+        leftPercent: 0,
+        widthPercent: 0,
+        overlapAtStart: group.experiences.length,
+        isOverlapped: false,
+        cssLeft: `calc(100% - ${rightOffset}px)`,
+        cssWidth: `${MILESTONE_CARD_WIDTH_PX}px`,
+        zIndex: 1,
+        cardType: 'milestone',
+      })
+
+      rightOffset += COLUMN_GAP_PX
+    }
+
+    // Position regular cards (fill remaining space)
+    for (const exp of regularCards) {
+      const column = regularColumnMap.get(exp.id) ?? 0
+      const hasOverlap = regularCards.length > 1 || totalFixedWidth > 0
+
+      let cssLeft: string
+      let cssWidth: string
+
+      if (totalFixedWidth > 0) {
+        // Space is shared: (100% - fixedWidth) / numRegularColumns
+        const availableSpace = `(100% - ${totalFixedWidth}px)`
+        cssWidth =
+          numRegularColumns > 0
+            ? `calc(${availableSpace} / ${numRegularColumns})`
+            : `calc(${availableSpace})`
+        cssLeft =
+          numRegularColumns > 0
+            ? `calc(${availableSpace} / ${numRegularColumns} * ${column} + ${column * COLUMN_GAP_PX}px)`
+            : '0%'
+      } else if (numRegularColumns > 1) {
+        // No fixed cards, but multiple regular cards
+        const widthPercent = 100 / numRegularColumns
+        const leftPercent = column * widthPercent
+        cssWidth = `calc(${widthPercent}% - ${COLUMN_GAP_PX}px)`
+        cssLeft = `calc(${leftPercent}% + ${column * COLUMN_GAP_PX}px)`
+      } else {
+        // Single card, full width
+        cssWidth = '100%'
+        cssLeft = '0%'
+      }
+
+      result.set(exp.id, {
+        column,
+        leftPercent: (column / Math.max(1, numRegularColumns)) * 100,
+        widthPercent: 100 / Math.max(1, numRegularColumns),
+        overlapAtStart: group.experiences.length,
+        isOverlapped: column < numRegularColumns - 1 || totalFixedWidth > 0,
+        cssLeft,
+        cssWidth,
+        zIndex: column + 2,
+        cardType: 'regular',
+      })
+    }
+
+    // Position milestones without overlap (positioned at left edge, ghost style)
+    for (const exp of milestonesNoOverlap) {
+      result.set(exp.id, {
+        column: 0,
         leftPercent: 0,
         widthPercent: 100,
         overlapAtStart: 1,
-      }
-    const isOverlapped = overlappedStatus.get(exp.id) ?? false
-
-    result.set(exp.id, {
-      column,
-      leftPercent,
-      widthPercent,
-      overlapAtStart,
-      isOverlapped,
-    })
+        isOverlapped: false,
+        cssLeft: '0px',
+        cssWidth: 'auto',
+        zIndex: 10,
+        cardType: 'milestone-no-overlap',
+      })
+    }
   }
 
   return result
