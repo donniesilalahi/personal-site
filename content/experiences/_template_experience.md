@@ -41,7 +41,7 @@ subcategory: 'work'
 arrangement: 'full-time'
 
 # Visual
-icon: 'briefcase' # Lucide icon name (e.g., "briefcase", "rocket", "code", "graduation-cap")
+icon: '/images/companies/company-slug.webp' # Company favicon (e.g., "/images/companies/brick.webp")
 location: 'City, Country' # Optional
 
 # Special flags

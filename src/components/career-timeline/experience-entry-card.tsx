@@ -1,4 +1,3 @@
-import * as LucideIcons from 'lucide-react'
 import type { Experience, SubcategoryColorScheme } from '@/lib/experiences'
 import { cn } from '@/lib/utils'
 import { SUBCATEGORY_COLORS } from '@/lib/experiences'
@@ -9,8 +8,6 @@ interface ExperienceEntryCardProps {
   onClick?: () => void
   className?: string
 }
-
-type LucideIconComponent = React.ComponentType<{ className?: string }>
 
 /**
  * Format date to "MMM YY" format in ALL CAPS (e.g., "JAN 24")
@@ -35,21 +32,6 @@ function formatDuration(startDate: Date, endDate: Date | null): string {
  */
 function formatStartOnly(startDate: Date): string {
   return formatDate(startDate)
-}
-
-/**
- * Get Lucide icon component by name
- */
-function getIconComponent(iconName: string): LucideIconComponent | null {
-  // Convert kebab-case to PascalCase (e.g., "graduation-cap" -> "GraduationCap")
-  const pascalCase = iconName
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join('')
-
-  const icons = LucideIcons as Record<string, any>
-  const IconComponent = icons[pascalCase] as LucideIconComponent | undefined
-  return IconComponent || null
 }
 
 /**
@@ -80,7 +62,6 @@ export function ExperienceEntryCard({
 }: ExperienceEntryCardProps) {
   const colors: SubcategoryColorScheme =
     SUBCATEGORY_COLORS[experience.subcategory]
-  const IconComponent = getIconComponent(experience.icon)
 
   // Always show only start date
   const dateDisplay = formatStartOnly(experience.startDateParsed)
@@ -107,9 +88,14 @@ export function ExperienceEntryCard({
         onClick={onClick}
       >
         {/* Icon - NOT rotated, stays upright, aligned to bottom-left */}
-        {IconComponent && (
-          <IconComponent className={cn('size-3 shrink-0', colors.text)} />
-        )}
+        <img
+          src={experience.icon}
+          alt={experience.company}
+          className={cn(
+            'size-3 shrink-0 object-contain rounded-[1.5px]',
+            colors.text,
+          )}
+        />
 
         {/* Role @ Company - single vertical text line, bottom-to-top */}
         <span
@@ -151,9 +137,14 @@ export function ExperienceEntryCard({
         )}
         onClick={onClick}
       >
-        {IconComponent && (
-          <IconComponent className={cn('size-3 shrink-0', colors.text)} />
-        )}
+        <img
+          src={experience.icon}
+          alt={experience.company}
+          className={cn(
+            'size-3 shrink-0 object-contain rounded-[1.5px]',
+            colors.text,
+          )}
+        />
         <span className="text-[10px] font-normal text-muted-foreground truncate">
           {experience.role}
         </span>
@@ -184,9 +175,14 @@ export function ExperienceEntryCard({
       onClick={onClick}
     >
       {/* Line 1: Icon */}
-      {IconComponent && (
-        <IconComponent className={cn('size-3 shrink-0', colors.text)} />
-      )}
+      <img
+        src={experience.icon}
+        alt={experience.company}
+        className={cn(
+          'size-3 shrink-0 object-contain rounded-[1.5px]',
+          colors.text,
+        )}
+      />
 
       {/* Line 2: Role @ Company (left) + Date (right) */}
       <div className="flex items-center justify-between">

@@ -7,7 +7,7 @@ companyWebsite: 'https://www.instagram.com/katalistkarir/'
 category: 'secondary'
 subcategory: 'side project'
 arrangement: 'self-employed'
-icon: ''
+icon: '/images/companies/kataliskarir.webp'
 location: 'Jakarta, Indonesia'
 isMilestone: FALSE
 isDeprioritized: TRUE

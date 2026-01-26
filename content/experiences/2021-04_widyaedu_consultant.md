@@ -7,7 +7,7 @@ companyWebsite: 'https://instagram.com/widyaedu'
 category: 'secondary'
 subcategory: 'consulting'
 arrangement: 'part-time'
-icon: ''
+icon: '/images/companies/widyaedu.webp'
 location: 'Remote'
 isMilestone: FALSE
 ---

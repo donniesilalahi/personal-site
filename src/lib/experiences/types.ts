@@ -36,7 +36,7 @@ export interface ExperienceFrontmatter {
   category: ExperienceCategory
   subcategory: ExperienceSubcategory
   arrangement: ExperienceArrangement
-  icon: string // Lucide icon name
+  icon: string // Company favicon path (e.g., "/images/companies/brick.webp")
   location?: string
   isMilestone: boolean
   /** Mark as deprioritized for compact vertical display when overlapping more important experiences */

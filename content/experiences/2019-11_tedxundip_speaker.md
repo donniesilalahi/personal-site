@@ -7,7 +7,7 @@ companyWebsite: 'https://www.youtube.com/watch?v=gWIEdFj04-Y'
 category: 'secondary'
 subcategory: 'teaching'
 arrangement: 'contract'
-icon: 'graduation-cap'
+icon: '/images/companies/tedxundip.webp'
 location: 'Indonesia'
 isMilestone: TRUE
 ---

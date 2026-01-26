@@ -7,7 +7,7 @@ companyWebsite: 'https://www.instagram.com/ysiseasia/'
 category: 'primary'
 subcategory: 'entrepreneurship'
 arrangement: 'self-employed'
-icon: ''
+icon: '/images/companies/kataliskarir.webp'
 location: 'Jakarta, Indonesia'
 isMilestone: FALSE
 ---

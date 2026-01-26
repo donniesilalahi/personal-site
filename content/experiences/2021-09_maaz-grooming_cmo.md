@@ -1,13 +1,13 @@
 ---
-company: 'Maaz Grooming (D2C Brand)'
-role: 'CMO'
+company: 'Maaz'
+role: 'Marketing'
 startDate: '2021-10-01'
 endDate: '2022-02-28'
 companyWebsite: 'https://shopee.co.id/maaz.grooming'
 category: 'secondary'
 subcategory: 'work'
 arrangement: 'full-time'
-icon: ''
+icon: '/images/companies/maaz.webp'
 location: 'Jakarta, Indonesia'
 isMilestone: false
 ---

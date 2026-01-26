@@ -7,7 +7,7 @@ companyWebsite: 'https://onebrick.io'
 category: 'primary'
 subcategory: 'work'
 arrangement: 'full-time'
-icon: 'pocket-knife'
+icon: '/images/companies/brick.webp'
 location: 'Remote'
 isMilestone: FALSE
 ---

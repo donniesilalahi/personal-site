@@ -1,5 +1,5 @@
 ---
-company: 'Mitraloka (Antler ID1)'
+company: 'Mitraloka'
 role: 'Founder'
 startDate: '2022-03-01'
 endDate: '2022-06-30'
@@ -7,7 +7,7 @@ companyWebsite: 'https://mitraloka.id'
 category: 'primary'
 subcategory: 'work'
 arrangement: 'full-time'
-icon: ''
+icon: '/images/companies/mitraloka.webp'
 location: 'Jakarta, Indonesia'
 isMilestone: false
 ---

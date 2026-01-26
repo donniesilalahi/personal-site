@@ -7,7 +7,7 @@ companyWebsite: 'https://www.etsy.com/shop/windowtoanywhere'
 category: 'secondary'
 subcategory: 'side project'
 arrangement: 'part-time'
-icon: ''
+icon: '/images/companies/windowtoanywhere.webp'
 location: 'Remote'
 isMilestone: FALSE
 ---

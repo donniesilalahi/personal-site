@@ -1,6 +1,5 @@
 'use client'
 
-import * as React from 'react'
 import * as LucideIcons from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import type { Experience } from '@/lib/experiences'
@@ -32,19 +31,6 @@ interface ExperienceDialogDrawerProps {
   allExperiences: Array<Experience>
 }
 
-type LucideIconComponent = React.ComponentType<{ className?: string }>
-
-function getIconComponent(iconName: string): LucideIconComponent | null {
-  const pascalCase = iconName
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join('')
-
-  const icons = LucideIcons as Record<string, any>
-  const IconComponent = icons[pascalCase] as LucideIconComponent | undefined
-  return IconComponent || null
-}
-
 function formatDate(date: Date): string {
   return date
     .toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
@@ -65,7 +51,6 @@ export function ExperienceDialogDrawer({
   allExperiences,
 }: ExperienceDialogDrawerProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)')
-  const IconComponent = getIconComponent(experience.icon)
   const colors: any = SUBCATEGORY_COLORS[experience.subcategory]
 
   const currentIndex = allExperiences.findIndex((e) => e.id === experience.id)
@@ -85,9 +70,11 @@ export function ExperienceDialogDrawer({
   const HeaderContent = (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-1.5">
-        {IconComponent && (
-          <IconComponent className={cn('size-5', colors.text)} />
-        )}
+        <img
+          src={experience.icon}
+          alt={experience.company}
+          className={cn('size-8 object-contain rounded-sm', colors.text)}
+        />
       </div>
       <div className="flex items-center gap-1.5">
         <span className="text-base">{experience.role}</span>

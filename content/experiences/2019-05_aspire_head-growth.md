@@ -7,7 +7,7 @@ companyWebsite: 'https://aspireapp.com'
 category: 'primary'
 subcategory: 'work'
 arrangement: 'full-time'
-icon: ''
+icon: '/images/companies/aspire.webp'
 location: 'Remote'
 isMilestone: FALSE
 ---

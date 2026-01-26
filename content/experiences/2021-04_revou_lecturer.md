@@ -7,7 +7,7 @@ companyWebsite: 'https://revou.co'
 category: 'secondary'
 subcategory: 'teaching'
 arrangement: 'seasonal'
-icon: ''
+icon: '/images/companies/revou.webp'
 location: 'Remote'
 isMilestone: FALSE
 ---
