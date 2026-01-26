@@ -19,7 +19,6 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import { useMediaQuery } from '@/hooks/use-media-query'
@@ -89,40 +88,122 @@ export function ExperienceDialogDrawer({
         {IconComponent && (
           <IconComponent className={cn('size-5', colors.text)} />
         )}
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="text-base">{experience.role}</span>
+        <span className="text-[10px] font-bricolage text-muted-foreground">
+          @
+        </span>
         {experience.companyWebsite ? (
           <a
             href={experience.companyWebsite}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-medium hover:underline flex items-center gap-0.5"
+            className="text-base hover:underline flex items-center gap-0.5"
           >
             {experience.company}
             <LucideIcons.ArrowUpRight className="size-3" />
           </a>
         ) : (
-          <span className="text-sm font-medium">{experience.company}</span>
+          <span className="text-base">{experience.company}</span>
         )}
       </div>
-      <div className="text-sm">{experience.role}</div>
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <span className="uppercase">
-          {experience.arrangement.replace('-', ' ')}
-        </span>
-        <span className="text-muted-foreground">·</span>
+      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
         <span>
           {formatDuration(experience.startDateParsed, experience.endDateParsed)}
         </span>
         <span className="text-muted-foreground">·</span>
-        <Badge variant="outline" className="text-[10px] py-0.5 px-2">
-          {experience.subcategory.toUpperCase()}
-        </Badge>
+        <span className="uppercase">{experience.subcategory}</span>
+        <span className="text-muted-foreground">·</span>
+        <span className="uppercase">
+          {experience.arrangement.replace('-', ' ')}
+        </span>
       </div>
     </div>
   )
 
   const ContentBody = (
-    <div className="prose prose-sm max-w-none dark:prose-invert prose-p:text-muted-foreground prose-h2:text-foreground prose-h2:font-semibold prose-h2:text-base prose-h2:mt-6 prose-h2:mb-3">
-      <ReactMarkdown>{experience.description}</ReactMarkdown>
+    <div className="text-sm leading-relaxed">
+      <ReactMarkdown
+        components={{
+          h1: ({ children }) => (
+            <h1 className="text-3xl text-muted-foreground font-normal mt-6 mb-3">
+              {children}
+            </h1>
+          ),
+          h2: ({ children }) => (
+            <h2 className="text-2xl text-muted-foreground font-normal mt-6 mb-3">
+              {children}
+            </h2>
+          ),
+          h3: ({ children }) => (
+            <h3 className="text-xl text-muted-foreground font-normal mt-6 mb-3">
+              {children}
+            </h3>
+          ),
+          h4: ({ children }) => (
+            <h4 className="text-lg text-muted-foreground font-normal mt-6 mb-3">
+              {children}
+            </h4>
+          ),
+          h5: ({ children }) => (
+            <h5 className="text-base text-muted-foreground font-normal mt-6 mb-3">
+              {children}
+            </h5>
+          ),
+          h6: ({ children }) => (
+            <h6 className="text-sm text-muted-foreground font-normal mt-6 mb-3">
+              {children}
+            </h6>
+          ),
+          p: ({ children }) => (
+            <p className="text-muted-foreground my-2">{children}</p>
+          ),
+          ul: ({ children }) => (
+            <ul className="list-disc pl-6 my-3 space-y-1">{children}</ul>
+          ),
+          ol: ({ children }) => (
+            <ol className="list-decimal pl-6 my-3 space-y-1">{children}</ol>
+          ),
+          li: ({ children }) => (
+            <li className="text-muted-foreground">{children}</li>
+          ),
+          blockquote: ({ children }) => (
+            <blockquote className="border-l-2 border-muted-foreground/30 pl-4 italic text-muted-foreground my-3">
+              {children}
+            </blockquote>
+          ),
+          code: ({ className, children }) => {
+            return className ? (
+              <code className="block bg-muted-foreground/10 text-muted-foreground p-4 rounded-lg overflow-x-auto text-xs my-3">
+                {children}
+              </code>
+            ) : (
+              <code className="bg-muted-foreground/10 text-muted-foreground px-1.5 py-0.5 rounded text-xs">
+                {children}
+              </code>
+            )
+          },
+          a: ({ href, children }) => (
+            <a
+              href={href}
+              className="text-primary hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {children}
+            </a>
+          ),
+          strong: ({ children }) => (
+            <strong className="text-foreground font-semibold">
+              {children}
+            </strong>
+          ),
+          hr: () => <hr className="border-muted-foreground/20 my-4" />,
+        }}
+      >
+        {experience.description}
+      </ReactMarkdown>
     </div>
   )
 
@@ -153,7 +234,7 @@ export function ExperienceDialogDrawer({
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col p-0 gap-0">
-          <DialogHeader className="p-6 pb-4">
+          <DialogHeader className="p-4">
             <DialogTitle className="sr-only">
               {experience.role} at {experience.company}
             </DialogTitle>
@@ -164,7 +245,7 @@ export function ExperienceDialogDrawer({
             {HeaderContent}
           </DialogHeader>
           <Separator className="mb-0" />
-          <div className="flex-1 overflow-y-auto p-6">{ContentBody}</div>
+          <div className="flex-1 overflow-y-auto p-4">{ContentBody}</div>
           <Separator className="mt-0" />
           <div className="p-4">{FooterContent}</div>
         </DialogContent>
@@ -175,7 +256,7 @@ export function ExperienceDialogDrawer({
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="max-h-[85vh] flex flex-col">
-        <DrawerHeader className="p-4 pb-3">
+        <DrawerHeader className="p-4">
           <DrawerTitle className="sr-only">
             {experience.role} at {experience.company}
           </DrawerTitle>
@@ -186,7 +267,7 @@ export function ExperienceDialogDrawer({
           {HeaderContent}
         </DrawerHeader>
         <Separator className="mb-0" />
-        <div className="flex-1 overflow-y-auto px-4 py-4">{ContentBody}</div>
+        <div className="flex-1 overflow-y-auto p-4">{ContentBody}</div>
         <Separator className="mt-0" />
         <div className="p-4 sticky bottom-0 bg-background">{FooterContent}</div>
       </DrawerContent>
