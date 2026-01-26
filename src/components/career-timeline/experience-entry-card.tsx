@@ -5,9 +5,7 @@ import { SUBCATEGORY_COLORS } from '@/lib/experiences'
 
 interface ExperienceEntryCardProps {
   experience: Experience
-  isShortDuration?: boolean // Less than or equal to 12 months
   isVeryShortDuration?: boolean // Less than or equal to 6 months
-  hasOverlap?: boolean // Card has overlapping experiences (side by side)
   onClick?: () => void
   className?: string
 }
@@ -69,15 +67,14 @@ function AtSeparator({ className }: { className?: string }) {
  * Experience entry card for calendar timeline view
  *
  * Layout rules:
- * - B5: Long duration (> 12 months): icon top-left, info bottom-left, allow wrap
- * - B6: Very short duration (<= 6 months): no wrap, truncate role+company
- * - B7: Short duration (<= 12 months) with overlap: show only start date
+ * - ≤ 6 months: single line layout
+ * - >6 months: two-line layout (icon top-left, role @ company + date bottom)
+ * - Date always shows only start date
+ * - Border radius: 2px (rounded-sm)
  */
 export function ExperienceEntryCard({
   experience,
-  isShortDuration = false,
   isVeryShortDuration = false,
-  hasOverlap = false,
   onClick,
   className,
 }: ExperienceEntryCardProps) {
@@ -85,11 +82,8 @@ export function ExperienceEntryCard({
     SUBCATEGORY_COLORS[experience.subcategory]
   const IconComponent = getIconComponent(experience.icon)
 
-  // B7: Show only start date for short duration with overlap
-  const dateDisplay =
-    isShortDuration && hasOverlap
-      ? formatStartOnly(experience.startDateParsed)
-      : formatDuration(experience.startDateParsed, experience.endDateParsed)
+  // Always show only start date
+  const dateDisplay = formatStartOnly(experience.startDateParsed)
 
   // Deprioritized variant: vertical text, compact width, bottom-to-top reading
   // Layout: [icon] [role @ company (vertical)] [dates (vertical)]
@@ -102,7 +96,7 @@ export function ExperienceEntryCard({
     return (
       <div
         className={cn(
-          'flex items-end gap-0.5 h-full px-1 py-1 rounded-md border',
+          'flex items-end gap-0.5 h-full px-2 py-1.5 rounded-sm border',
           colors.bg,
           colors.border,
           colors.bgHover,
@@ -147,7 +141,7 @@ export function ExperienceEntryCard({
     return (
       <div
         className={cn(
-          'flex items-center gap-1 px-1.5 py-1 rounded-md border overflow-hidden',
+          'flex items-center gap-1.5 px-2 py-1.5 rounded-sm border overflow-hidden',
           colors.bg,
           colors.border,
           colors.bgHover,
@@ -175,44 +169,11 @@ export function ExperienceEntryCard({
     )
   }
 
-  // Short duration (> 6 months && <= 12 months) - single line layout
-  if (isShortDuration) {
-    return (
-      <div
-        className={cn(
-          'flex items-center gap-1.5 px-2 py-1.5 rounded-md border',
-          colors.bg,
-          colors.border,
-          colors.bgHover,
-          'transition-colors',
-          onClick ? 'cursor-pointer' : 'cursor-default',
-          className,
-        )}
-        onClick={onClick}
-      >
-        {IconComponent && (
-          <IconComponent className={cn('size-3.5 shrink-0', colors.text)} />
-        )}
-        <span className="text-xs font-normal text-muted-foreground">
-          {experience.role}
-        </span>
-        {/* B4: text-3xs (8px) for <= 12 months */}
-        <AtSeparator className="text-[8px]" />
-        <span className="text-xs font-normal text-muted-foreground truncate flex-1">
-          {experience.company}
-        </span>
-        <span className="text-[8px] text-muted-foreground shrink-0">
-          {dateDisplay}
-        </span>
-      </div>
-    )
-  }
-
-  // B5: Long duration (> 12 months) - icon top-left, info bottom-left, allow wrap
+  // > 6 months: two-line layout
   return (
     <div
       className={cn(
-        'flex flex-col justify-between h-full px-2.5 py-2 rounded-lg border',
+        'flex flex-col justify-between h-full px-2 py-1.5 rounded-sm border',
         colors.bg,
         colors.border,
         colors.bgHover,
@@ -222,25 +183,25 @@ export function ExperienceEntryCard({
       )}
       onClick={onClick}
     >
-      {/* Top-left: Icon */}
+      {/* Line 1: Icon */}
       {IconComponent && (
-        <IconComponent className={cn('size-4 shrink-0', colors.text)} />
+        <IconComponent className={cn('size-3 shrink-0', colors.text)} />
       )}
 
-      {/* Bottom-left: Role @ Company + Dates - allow wrap */}
-      <div className="flex flex-col gap-0.5 mt-auto">
-        <div className="flex flex-wrap items-center gap-x-1">
+      {/* Line 2: Role @ Company (left) + Date (right) */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-x-1">
           <span className="text-xs font-normal leading-tight text-muted-foreground">
             {experience.role}
           </span>
-          {/* B4: text-2xs (10px) for > 12 months */}
-          <AtSeparator className="text-[10px]" />
+          <AtSeparator className="text-[8px]" />
           <span className="text-xs font-normal text-muted-foreground">
             {experience.company}
           </span>
         </div>
-        {/* B4: text-2xs (10px) for > 12 months */}
-        <span className="text-[10px] text-muted-foreground">{dateDisplay}</span>
+        <span className="text-[8px] text-muted-foreground shrink-0">
+          {dateDisplay}
+        </span>
       </div>
     </div>
   )
@@ -269,7 +230,7 @@ export function MilestoneEntry({
   return (
     <div
       className={cn(
-        'inline-flex items-start gap-1 px-1.5 py-0.5 rounded',
+        'inline-flex items-start gap-1 px-2 py-1.5 rounded-sm',
         'hover:bg-muted/50 transition-colors',
         onClick ? 'cursor-pointer' : 'cursor-default',
         className,
