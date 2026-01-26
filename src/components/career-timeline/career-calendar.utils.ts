@@ -13,9 +13,21 @@ export function intervalsOverlap(
 }
 
 /**
- * Check if two experiences are consecutive (no gap between them).
- * Consecutive means: expA ends in month M, expB starts in month M+1 (or same month)
- * We treat month-level precision: "2022-02" ends → "2022-03" starts = consecutive
+ * Check if two experiences are consecutive (no meaningful gap between them).
+ *
+ * With smart date parsing:
+ * - End dates default to last day of month (e.g., "2022-06" → June 30)
+ * - Start dates default to first day of month (e.g., "2022-07" → July 1)
+ *
+ * This means consecutive employment like:
+ * - Job A ends "2022-06" (June 30)
+ * - Job B starts "2022-07" (July 1)
+ * Results in only 1 day difference → truly consecutive.
+ *
+ * We consider experiences consecutive if the gap is <= 7 days.
+ * This handles edge cases like:
+ * - Weekend gaps between jobs
+ * - Minor date recording inconsistencies
  */
 export function areConsecutive(
   expAEnd: Date | null,
@@ -24,19 +36,14 @@ export function areConsecutive(
 ): boolean {
   const endDate = expAEnd ?? now
 
-  // Get year/month for comparison
-  const endYear = endDate.getFullYear()
-  const endMonth = endDate.getMonth()
-  const startYear = expBStart.getFullYear()
-  const startMonth = expBStart.getMonth()
+  // Calculate the gap in days
+  const msPerDay = 24 * 60 * 60 * 1000
+  const gapMs = expBStart.getTime() - endDate.getTime()
+  const gapDays = gapMs / msPerDay
 
-  // Calculate months difference
-  const monthsDiff = (startYear - endYear) * 12 + (startMonth - endMonth)
-
-  // Consecutive if start is 0 or 1 month after end
-  // 0 = same month (overlap or same month boundary)
-  // 1 = next month (truly consecutive)
-  return monthsDiff >= 0 && monthsDiff <= 1
+  // Consecutive if gap is <= 7 days (allows for weekends, minor inconsistencies)
+  // Also handle negative gaps (overlap) as consecutive
+  return gapDays <= 7
 }
 
 /**

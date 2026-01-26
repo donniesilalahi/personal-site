@@ -1,20 +1,20 @@
 ---
-company: 'Brick'
-role: 'Head of Growth and Ops'
-startDate: '2023-07-01'
-endDate: '2025-06-30'
-companyWebsite: 'https://onebrick.io'
-category: 'primary'
-subcategory: 'work'
-arrangement: 'full-time'
-icon: 'pocket-knife'
+company: 'YSI SEA'
+role: 'Impact Fellows'
+startDate: '2018-05'
+endDate: '2018-08'
+companyWebsite: 'https://www.instagram.com/ysiseasia/'
+category: 'secondary'
+subcategory: 'volunteer'
+arrangement: 'part-time'
+icon: ''
 location: 'Remote'
 isMilestone: FALSE
 ---
 
 ## About
 
-Brick is real-time payments and inclusive open finance infrastructure leader in Indonesia.
+Instellar is the top social enterprise incubators in Indonesia with hundreds of impact-driven ventures under their portfolio.
 
 ## Impact
 

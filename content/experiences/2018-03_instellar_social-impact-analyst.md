@@ -1,9 +1,9 @@
 ---
-company: 'Brick'
-role: 'Head of Growth and Ops'
-startDate: '2023-07-01'
-endDate: '2025-06-30'
-companyWebsite: 'https://onebrick.io'
+company: 'Instellar'
+role: 'Social Impact Analyst'
+startDate: '2018-04'
+endDate: '2018-11'
+companyWebsite: 'https://instellar.id'
 category: 'primary'
 subcategory: 'work'
 arrangement: 'full-time'
@@ -14,7 +14,7 @@ isMilestone: FALSE
 
 ## About
 
-Brick is real-time payments and inclusive open finance infrastructure leader in Indonesia.
+Instellar is the top social enterprise incubators in Indonesia with hundreds of impact-driven ventures under their portfolio.
 
 ## Impact
 

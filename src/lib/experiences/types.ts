@@ -39,6 +39,8 @@ export interface ExperienceFrontmatter {
   icon: string // Lucide icon name
   location?: string
   isMilestone: boolean
+  /** Mark as deprioritized for compact vertical display when overlapping more important experiences */
+  isDeprioritized: boolean
 }
 
 /** Parsed experience with computed fields */
@@ -140,5 +142,3 @@ export const SUBCATEGORY_COLORS: Record<
     dot: 'bg-stone-400',
   },
 }
-
-

@@ -8,6 +8,7 @@ interface ExperienceEntryCardProps {
   isShortDuration?: boolean // Less than or equal to 12 months
   isVeryShortDuration?: boolean // Less than or equal to 6 months
   hasOverlap?: boolean // Card has overlapping experiences (side by side)
+  onClick?: () => void
   className?: string
 }
 
@@ -77,6 +78,7 @@ export function ExperienceEntryCard({
   isShortDuration = false,
   isVeryShortDuration = false,
   hasOverlap = false,
+  onClick,
   className,
 }: ExperienceEntryCardProps) {
   const colors: SubcategoryColorScheme =
@@ -89,6 +91,57 @@ export function ExperienceEntryCard({
       ? formatStartOnly(experience.startDateParsed)
       : formatDuration(experience.startDateParsed, experience.endDateParsed)
 
+  // Deprioritized variant: vertical text, compact width, bottom-to-top reading
+  // Layout: [icon] [role @ company (vertical)] [dates (vertical)]
+  if (experience.isDeprioritized) {
+    const deprioritizedDateDisplay = formatDuration(
+      experience.startDateParsed,
+      experience.endDateParsed,
+    )
+
+    return (
+      <div
+        className={cn(
+          'flex items-end gap-0.5 h-full px-1 py-1 rounded-md border',
+          colors.bg,
+          colors.border,
+          colors.bgHover,
+          'transition-colors',
+          onClick ? 'cursor-pointer' : 'cursor-default',
+          className,
+        )}
+        onClick={onClick}
+      >
+        {/* Icon - NOT rotated, stays upright, aligned to bottom-left */}
+        {IconComponent && (
+          <IconComponent className={cn('size-3 shrink-0', colors.text)} />
+        )}
+
+        {/* Role @ Company - single vertical text line, bottom-to-top */}
+        <span
+          className="text-[10px] leading-tight font-normal text-muted-foreground whitespace-nowrap"
+          style={{
+            writingMode: 'vertical-rl',
+            transform: 'rotate(180deg)',
+          }}
+        >
+          {experience.role} @ {experience.company}
+        </span>
+
+        {/* Dates - single vertical text line, bottom-to-top */}
+        <span
+          className="text-[8px] leading-tight text-muted-foreground whitespace-nowrap"
+          style={{
+            writingMode: 'vertical-rl',
+            transform: 'rotate(180deg)',
+          }}
+        >
+          {deprioritizedDateDisplay}
+        </span>
+      </div>
+    )
+  }
+
   // B6: Very short duration (<= 6 months) - compact single line, no wrap, truncate
   if (isVeryShortDuration) {
     return (
@@ -98,9 +151,11 @@ export function ExperienceEntryCard({
           colors.bg,
           colors.border,
           colors.bgHover,
-          'transition-colors cursor-default',
+          'transition-colors',
+          onClick ? 'cursor-pointer' : 'cursor-default',
           className,
         )}
+        onClick={onClick}
       >
         {IconComponent && (
           <IconComponent className={cn('size-3 shrink-0', colors.text)} />
@@ -129,9 +184,11 @@ export function ExperienceEntryCard({
           colors.bg,
           colors.border,
           colors.bgHover,
-          'transition-colors cursor-default',
+          'transition-colors',
+          onClick ? 'cursor-pointer' : 'cursor-default',
           className,
         )}
+        onClick={onClick}
       >
         {IconComponent && (
           <IconComponent className={cn('size-3.5 shrink-0', colors.text)} />
@@ -159,9 +216,11 @@ export function ExperienceEntryCard({
         colors.bg,
         colors.border,
         colors.bgHover,
-        'transition-colors cursor-default',
+        'transition-colors',
+        onClick ? 'cursor-pointer' : 'cursor-default',
         className,
       )}
+      onClick={onClick}
     >
       {/* Top-left: Icon */}
       {IconComponent && (
@@ -189,40 +248,51 @@ export function ExperienceEntryCard({
 
 interface MilestoneEntryProps {
   experience: Experience
+  onClick?: () => void
   className?: string
 }
 
 /**
  * Milestone entry (single-point event like graduation, award)
- * Ghost button style with hover container
+ * Ghost button style - no background/border by default, shows on hover
+ * Content wraps: first line "<dot> <role>", second line "@ <company>"
+ * Width hugs content (inline-block)
  */
-export function MilestoneEntry({ experience, className }: MilestoneEntryProps) {
+export function MilestoneEntry({
+  experience,
+  onClick,
+  className,
+}: MilestoneEntryProps) {
   const colors: SubcategoryColorScheme =
     SUBCATEGORY_COLORS[experience.subcategory]
 
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded',
-        'hover:bg-muted/50 transition-colors cursor-default',
+        'inline-flex items-start gap-1 px-1.5 py-0.5 rounded',
+        'hover:bg-muted/50 transition-colors',
+        onClick ? 'cursor-pointer' : 'cursor-default',
         className,
       )}
+      onClick={onClick}
     >
-      {/* Dot indicator */}
-      <div className={cn('size-1.5 rounded-full shrink-0', colors.dot)} />
+      {/* Dot indicator - aligned to first line */}
+      <div
+        className={cn('size-1.5 rounded-full shrink-0 mt-[3px]', colors.dot)}
+      />
 
-      {/* Role */}
-      <span className="text-[10px] font-medium text-foreground">
-        {experience.role}
-      </span>
-
-      {/* @ */}
-      <AtSeparator className="text-[10px]" />
-
-      {/* Company */}
-      <span className="text-[10px] text-muted-foreground">
-        {experience.company}
-      </span>
+      {/* Role and Company - stacked vertically */}
+      <div className="flex flex-col">
+        <span className="text-[10px] font-medium text-foreground leading-tight">
+          {experience.role}
+        </span>
+        <div className="flex items-center gap-0.5">
+          <AtSeparator className="text-[10px]" />
+          <span className="text-[10px] text-muted-foreground leading-tight">
+            {experience.company}
+          </span>
+        </div>
+      </div>
     </div>
   )
 }

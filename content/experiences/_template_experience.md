@@ -49,6 +49,12 @@ location: 'City, Country' # Optional
 #   - FALSE (default) → Regular experience entry with duration
 #   - TRUE → Milestone entry (graduation, award, achievement)
 isMilestone: FALSE
+
+# isDeprioritized: Mark as lower priority for compact vertical display
+#   - FALSE (default) → Normal horizontal card layout
+#   - TRUE → Compact vertical text (bottom-to-top rotation), hugs content width
+#   - Use for side projects/hustles that overlap with more important primary work
+isDeprioritized: FALSE
 ---
 
 Brief description of the role and key accomplishments.

@@ -136,6 +136,14 @@ function validateFrontmatter(
     errors.push('isMilestone must be TRUE or FALSE')
   }
 
+  // Validate isDeprioritized (optional, defaults to false)
+  if (
+    frontmatter.isDeprioritized !== undefined &&
+    typeof frontmatter.isDeprioritized !== 'boolean'
+  ) {
+    errors.push('isDeprioritized must be TRUE or FALSE')
+  }
+
   if (errors.length > 0) {
     throw new Error(
       `Invalid frontmatter in ${filename}:\n  - ${errors.join('\n  - ')}`,
@@ -154,23 +162,70 @@ function validateFrontmatter(
     icon: (frontmatter.icon as string) || 'briefcase',
     location: (frontmatter.location as string) || undefined,
     isMilestone: frontmatter.isMilestone as boolean,
+    isDeprioritized: (frontmatter.isDeprioritized as boolean) || false,
   }
 }
 
 /**
- * Parse date string (YYYY-MM) to Date object
+ * Parse date string to Date object with smart defaults.
+ *
+ * Supports formats:
+ * - "present" → null (ongoing)
+ * - "YYYY-MM-DD" → exact date
+ * - "YYYY-MM" → smart default based on isEndDate:
+ *   - Start dates: 1st of the month (people typically start on day 1)
+ *   - End dates: last day of the month (people typically leave after final paycheck)
+ *
+ * @param dateStr - Date string in YYYY-MM or YYYY-MM-DD format, or "present"
+ * @param isEndDate - Whether this is an end date (affects YYYY-MM default day)
  */
-function parseDate(dateStr: string): Date | null {
+function parseDate(dateStr: string, isEndDate: boolean = false): Date | null {
   if (dateStr.toLowerCase() === 'present') return null
 
-  const [year, month] = dateStr.split('-').map(Number)
-  if (!year || !month || month < 1 || month > 12) {
-    throw new Error(
-      `Invalid date format: ${dateStr}. Expected YYYY-MM or "present"`,
-    )
+  const parts = dateStr.split('-').map(Number)
+
+  // Full date: YYYY-MM-DD
+  if (parts.length === 3) {
+    const [year, month, day] = parts
+    if (
+      !year ||
+      !month ||
+      month < 1 ||
+      month > 12 ||
+      !day ||
+      day < 1 ||
+      day > 31
+    ) {
+      throw new Error(
+        `Invalid date format: ${dateStr}. Expected YYYY-MM-DD, YYYY-MM, or "present"`,
+      )
+    }
+    return new Date(year, month - 1, day)
   }
 
-  return new Date(year, month - 1, 1) // month is 0-indexed
+  // Month only: YYYY-MM
+  if (parts.length === 2) {
+    const [year, month] = parts
+    if (!year || !month || month < 1 || month > 12) {
+      throw new Error(
+        `Invalid date format: ${dateStr}. Expected YYYY-MM-DD, YYYY-MM, or "present"`,
+      )
+    }
+
+    if (isEndDate) {
+      // End date: last day of the month
+      // new Date(year, month, 0) gives the last day of the previous month
+      // So month (not month-1) gives last day of the target month
+      return new Date(year, month, 0)
+    }
+
+    // Start date: first day of the month
+    return new Date(year, month - 1, 1)
+  }
+
+  throw new Error(
+    `Invalid date format: ${dateStr}. Expected YYYY-MM-DD, YYYY-MM, or "present"`,
+  )
 }
 
 /**
@@ -209,12 +264,12 @@ function processExperience(
   const { frontmatter, body } = parseFrontmatter(content)
   const validated = validateFrontmatter(frontmatter, filepath)
 
-  const startDateParsed = parseDate(validated.startDate)
+  const startDateParsed = parseDate(validated.startDate, false)
   if (!startDateParsed) {
     throw new Error(`Invalid startDate in ${filepath}`)
   }
 
-  const endDateParsed = parseDate(validated.endDate)
+  const endDateParsed = parseDate(validated.endDate, true)
   const durationMonths = calculateDurationMonths(startDateParsed, endDateParsed)
 
   return {
