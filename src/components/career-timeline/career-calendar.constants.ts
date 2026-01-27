@@ -15,8 +15,8 @@ export const VERTICAL_GAP_PX = 2
  */
 export const DEPRIORITIZED_CARD_WIDTH_PX = 48
 
-/** Fixed width for milestone cards when overlapping (in pixels)
- * Ghost button style, content hugs but we need a reference for positioning
- * Layout: dot (6px) + gap (4px) + text (~60px) + padding (6px) ≈ 76px
+/** Estimated width for milestone cards when overlapping (in pixels)
+ * Used for regular card spacing calculation. Actual milestone uses auto width.
+ * Layout: dot (4px) + gap (4px) + text (~40px) + buffer ≈ 56px
  */
-export const MILESTONE_CARD_WIDTH_PX = 76
+export const MILESTONE_CARD_WIDTH_PX = 56

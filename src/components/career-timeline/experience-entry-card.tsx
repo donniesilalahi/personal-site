@@ -211,45 +211,31 @@ interface MilestoneEntryProps {
 
 /**
  * Milestone entry (single-point event like graduation, award)
- * Ghost button style - no background/border by default, shows on hover
- * Content wraps: first line "<dot> <role>", second line "@ <company>"
- * Width hugs content (inline-block)
+ * Link-like style - no padding, underline on hover
+ * Shows only role with a small success-colored dot
  */
 export function MilestoneEntry({
   experience,
   onClick,
   className,
 }: MilestoneEntryProps) {
-  const colors: SubcategoryColorScheme =
-    SUBCATEGORY_COLORS[experience.subcategory]
-
   return (
     <div
       className={cn(
-        'inline-flex items-start gap-1 px-2 py-1.5 rounded-sm',
-        'hover:bg-muted/50 transition-colors',
+        'inline-flex items-center gap-1',
+        'group',
         onClick ? 'cursor-pointer' : 'cursor-default',
         className,
       )}
       onClick={onClick}
     >
-      {/* Dot indicator - aligned to first line */}
-      <div
-        className={cn('size-1.5 rounded-full shrink-0 mt-[3px]', colors.dot)}
-      />
+      {/* Dot indicator - small success color */}
+      <div className="size-1 rounded-full shrink-0 bg-emerald-500" />
 
-      {/* Role and Company - stacked vertically */}
-      <div className="flex flex-col">
-        <span className="text-[10px] font-medium text-foreground leading-tight">
-          {experience.role}
-        </span>
-        <div className="flex items-center gap-0.5">
-          <AtSeparator className="text-[10px]" />
-          <span className="text-[10px] text-muted-foreground leading-tight">
-            {experience.company}
-          </span>
-        </div>
-      </div>
+      {/* Role only - 8px, underline on hover */}
+      <span className="text-[8px] font-medium text-foreground leading-tight whitespace-nowrap group-hover:underline">
+        {experience.role}
+      </span>
     </div>
   )
 }

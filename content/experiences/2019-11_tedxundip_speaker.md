@@ -1,6 +1,6 @@
 ---
 company: 'TEDxUNDIP'
-role: 'Speaker'
+role: 'TEDx Talk'
 startDate: '2019-11-20'
 endDate: '2019-11-20'
 companyWebsite: 'https://www.youtube.com/watch?v=gWIEdFj04-Y'

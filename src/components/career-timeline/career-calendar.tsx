@@ -135,6 +135,7 @@ function positionExperiences(
       isOverlapped: positioning.isOverlapped,
       isMilestone: exp.isMilestone || false,
       cssLeft: positioning.cssLeft,
+      cssRight: positioning.cssRight,
       cssWidth: positioning.cssWidth,
       zIndex: positioning.zIndex,
       cardType: positioning.cardType,
@@ -343,14 +344,10 @@ export function CareerCalendar({
           <div className="absolute top-0 bottom-0 left-4 right-0">
             {positionedExperiences.map((entry) => {
               const exp = entry.experience
-              const { cssLeft, cssWidth, zIndex, cardType } = entry
-
-              const hasOverlap =
-                entry.widthPercent < 100 || cardType !== 'regular'
-              const isShortDuration = exp.durationMonths <= 12
+              const { cssLeft, cssRight, cssWidth, zIndex, cardType } = entry
               const isVeryShortDuration = exp.durationMonths <= 6
 
-              // Milestone without overlap: ghost button, positioned at left
+              // Milestone without overlap: link-like, positioned at left
               if (cardType === 'milestone-no-overlap') {
                 return (
                   <div
@@ -368,15 +365,15 @@ export function CareerCalendar({
                 )
               }
 
-              // Milestone with overlap: ghost button, fixed position from right
+              // Milestone with overlap: link-like, positioned from right with auto width
               if (cardType === 'milestone') {
                 return (
                   <div
                     key={exp.id}
-                    className="absolute flex items-start"
+                    className="absolute"
                     style={{
                       top: entry.finalTopPx,
-                      left: cssLeft,
+                      right: cssRight,
                       zIndex,
                     }}
                     onClick={() => onExperienceClick?.(exp)}
@@ -402,9 +399,7 @@ export function CareerCalendar({
                 >
                   <ExperienceEntryCard
                     experience={exp}
-                    isShortDuration={isShortDuration}
                     isVeryShortDuration={isVeryShortDuration}
-                    hasOverlap={hasOverlap}
                     className="h-full w-full"
                   />
                 </div>

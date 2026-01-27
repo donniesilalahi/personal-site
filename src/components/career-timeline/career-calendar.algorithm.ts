@@ -259,8 +259,10 @@ export function calculatePositioning(
     }
 
     // Position milestones with overlap (to the left of deprioritized)
+    // Milestones use right positioning with auto width to hug content
     for (const exp of sortedMilestones) {
-      rightOffset += MILESTONE_CARD_WIDTH_PX
+      // Position from right edge with gap
+      const milestoneRightOffset = rightOffset + COLUMN_GAP_PX
 
       result.set(exp.id, {
         column: numRegularColumns + sortedMilestones.indexOf(exp),
@@ -268,26 +270,29 @@ export function calculatePositioning(
         widthPercent: 0,
         overlapAtStart: group.experiences.length,
         isOverlapped: false,
-        cssLeft: `calc(100% - ${rightOffset}px)`,
-        cssWidth: `${MILESTONE_CARD_WIDTH_PX}px`,
+        cssLeft: 'auto',
+        cssRight: `${milestoneRightOffset}px`,
+        cssWidth: 'auto',
         zIndex: 1,
         cardType: 'milestone',
       })
 
-      rightOffset += COLUMN_GAP_PX
+      // Add estimated space for this milestone (for regular card calculations)
+      rightOffset += MILESTONE_CARD_WIDTH_PX + COLUMN_GAP_PX
     }
 
     // Position regular cards (fill remaining space)
     for (const exp of regularCards) {
       const column = regularColumnMap.get(exp.id) ?? 0
-      const hasOverlap = regularCards.length > 1 || totalFixedWidth > 0
 
       let cssLeft: string
       let cssWidth: string
 
       if (totalFixedWidth > 0) {
-        // Space is shared: (100% - fixedWidth) / numRegularColumns
-        const availableSpace = `(100% - ${totalFixedWidth}px)`
+        // Space is shared: (100% - fixedWidth - gap) / numRegularColumns
+        // Extra COLUMN_GAP_PX creates gap between regular cards and fixed-width section
+        const totalReserved = totalFixedWidth + COLUMN_GAP_PX
+        const availableSpace = `(100% - ${totalReserved}px)`
         cssWidth =
           numRegularColumns > 0
             ? `calc(${availableSpace} / ${numRegularColumns})`

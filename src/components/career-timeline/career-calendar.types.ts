@@ -34,6 +34,8 @@ export interface PositionedExperience {
   isMilestone: boolean
   /** Ready-to-use CSS left value */
   cssLeft: string
+  /** Ready-to-use CSS right value for right-positioned cards */
+  cssRight?: string
   /** Ready-to-use CSS width value */
   cssWidth: string
   /** Z-index for stacking */
@@ -72,7 +74,9 @@ export interface ExperiencePositioning {
   isOverlapped: boolean
   /** Ready-to-use CSS left value (e.g., "0%", "calc(100% - 48px)") */
   cssLeft: string
-  /** Ready-to-use CSS width value (e.g., "100%", "48px") */
+  /** Ready-to-use CSS right value for right-positioned cards (e.g., "0px", "50px") */
+  cssRight?: string
+  /** Ready-to-use CSS width value (e.g., "100%", "48px", "auto") */
   cssWidth: string
   /** Z-index for stacking order */
   zIndex: number
