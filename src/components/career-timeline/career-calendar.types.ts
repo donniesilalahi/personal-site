@@ -1,5 +1,25 @@
 import type { Experience } from '@/lib/experiences'
 
+// ============================================================================
+// Measurement Phase Types
+// ============================================================================
+
+/** Map of experience ID to measured width in pixels */
+export type MeasuredWidths = Map<string, number>
+
+/** Card types that need width measurement (content-hugging) */
+export type FixedWidthCardType = 'deprioritized' | 'milestone'
+
+/** Experiences that need measurement before positioning */
+export interface MeasurableExperience {
+  experience: Experience
+  cardType: FixedWidthCardType
+}
+
+// ============================================================================
+// Component Props
+// ============================================================================
+
 export interface CareerCalendarProps {
   experiences: Array<Experience>
   className?: string

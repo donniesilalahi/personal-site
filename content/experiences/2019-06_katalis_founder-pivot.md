@@ -1,8 +1,8 @@
 ---
 company: 'Katalis'
 role: 'Founder'
-startDate: '2019-06'
-endDate: '2020-09'
+startDate: '2019-06-01'
+endDate: '2020-08-31'
 companyWebsite: 'https://www.instagram.com/katalistkarir/'
 category: 'secondary'
 subcategory: 'side project'

@@ -1,8 +1,8 @@
 ---
 company: 'Instellar'
 role: 'Social Impact Analyst'
-startDate: '2018-04'
-endDate: '2018-11'
+startDate: '2018-04-01'
+endDate: '2018-11-30'
 companyWebsite: 'https://instellar.id'
 category: 'primary'
 subcategory: 'work'

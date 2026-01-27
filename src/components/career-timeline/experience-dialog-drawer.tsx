@@ -69,13 +69,15 @@ export function ExperienceDialogDrawer({
 
   const HeaderContent = (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-1.5">
-        <img
-          src={experience.icon}
-          alt={experience.company}
-          className={cn('size-8 object-contain rounded-sm', colors.text)}
-        />
-      </div>
+      {experience.icon && (
+        <div className="flex items-center gap-1.5">
+          <img
+            src={experience.icon}
+            alt={experience.company}
+            className={cn('size-8 object-contain rounded-sm', colors.text)}
+          />
+        </div>
+      )}
       <div className="flex items-center gap-1.5">
         <span className="text-base">{experience.role}</span>
         <span className="text-[10px] font-bricolage text-muted-foreground">
@@ -199,7 +201,7 @@ export function ExperienceDialogDrawer({
       <Button
         variant="outline"
         size="sm"
-        onClick={handlePrevious}
+        onClick={handleNext}
         disabled={currentIndex === 0}
       >
         <LucideIcons.ChevronLeft className="size-4" />
@@ -208,7 +210,7 @@ export function ExperienceDialogDrawer({
       <Button
         variant="outline"
         size="sm"
-        onClick={handleNext}
+        onClick={handlePrevious}
         disabled={currentIndex === allExperiences.length - 1}
       >
         Next

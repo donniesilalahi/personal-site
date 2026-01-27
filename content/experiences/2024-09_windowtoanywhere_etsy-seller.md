@@ -1,8 +1,8 @@
 ---
-company: 'WindowToAnywhere'
-role: 'Etsy Seller'
+company: 'WTA'
+role: 'Maker'
 startDate: '2024-09'
-endDate: '2024-12'
+endDate: 'Present'
 companyWebsite: 'https://www.etsy.com/shop/windowtoanywhere'
 category: 'secondary'
 subcategory: 'side project'

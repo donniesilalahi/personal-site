@@ -1,14 +1,14 @@
 ---
 company: 'Aspire'
-role: 'Product Manager, Indonesia'
+role: 'Product Manager'
 startDate: '2020-02-01'
-endDate: '2020-07-31'
+endDate: '2021-01-31'
 companyWebsite: 'https://aspireapp.com'
 category: 'primary'
 subcategory: 'work'
 arrangement: 'full-time'
 icon: '/images/companies/aspire.webp'
-location: 'Remote'
+location: 'Remote, Singapore'
 isMilestone: FALSE
 ---
 

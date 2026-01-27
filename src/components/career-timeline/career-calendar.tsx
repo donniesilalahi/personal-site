@@ -1,7 +1,11 @@
-import { useMemo } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 import { ExperienceEntryCard, MilestoneEntry } from './experience-entry-card'
-import { calculatePositioning } from './career-calendar.algorithm'
+import { CareerCalendarSkeleton } from './career-calendar-skeleton'
+import {
+  calculatePositioning,
+  getFixedWidthExperiences,
+} from './career-calendar.algorithm'
 import {
   MIN_EXPERIENCE_HEIGHT_PX,
   VERTICAL_GAP_PX,
@@ -11,6 +15,7 @@ import { areConsecutive, dateToPercent } from './career-calendar.utils'
 import type {
   CareerCalendarProps,
   ExperiencePositioning,
+  MeasuredWidths,
   PositionedExperience,
   TimelineBounds,
 } from './career-calendar.types'
@@ -221,6 +226,11 @@ function positionExperiences(
 // Career Calendar Component
 // ============================================================================
 
+/**
+ * Measurement phase states
+ */
+type MeasurementPhase = 'mounting' | 'measuring' | 'ready'
+
 export function CareerCalendar({
   experiences,
   className,
@@ -237,32 +247,145 @@ export function CareerCalendar({
   // Total timeline height in pixels
   const totalHeightPx = years.length * YEAR_HEIGHT_PX
 
-  // Calculate positioning for all experiences using same algorithm
-  const positioningMap = useMemo(
-    () => calculatePositioning(experiences, now),
+  // ============================================================================
+  // Two-Phase Rendering: Measure fixed-width cards first, then calculate positions
+  // ============================================================================
+
+  // Phase 1: Identify which cards need measurement
+  const fixedWidthExperiences = useMemo(
+    () => getFixedWidthExperiences(experiences, now),
     [experiences, now],
   )
 
+  // Measurement phase state
+  const [phase, setPhase] = useState<MeasurementPhase>('mounting')
+  const [measuredWidths, setMeasuredWidths] = useState<MeasuredWidths>(
+    new Map(),
+  )
+
+  // Refs for measuring fixed-width cards
+  const measureContainerRef = useRef<HTMLDivElement>(null)
+  const measureRefs = useRef<Map<string, HTMLDivElement | null>>(new Map())
+
+  // Effect to transition from mounting to measuring after first render
+  useEffect(() => {
+    if (phase === 'mounting') {
+      // Use requestAnimationFrame to ensure DOM is fully rendered
+      requestAnimationFrame(() => {
+        setPhase('measuring')
+      })
+    }
+  }, [phase])
+
+  // Measurement effect - runs after DOM is rendered
+  useLayoutEffect(() => {
+    if (phase !== 'measuring') return
+
+    // If no fixed-width cards, skip to ready
+    if (fixedWidthExperiences.length === 0) {
+      setMeasuredWidths(new Map())
+      setPhase('ready')
+      return
+    }
+
+    // Measure all fixed-width cards
+    const widths = new Map<string, number>()
+    let allMeasured = true
+
+    for (const { experience } of fixedWidthExperiences) {
+      const el = measureRefs.current.get(experience.id)
+      if (el) {
+        const width = el.offsetWidth
+        if (width > 0) {
+          widths.set(experience.id, width)
+        } else {
+          allMeasured = false
+        }
+      } else {
+        allMeasured = false
+      }
+    }
+
+    if (allMeasured && widths.size === fixedWidthExperiences.length) {
+      setMeasuredWidths(widths)
+      setPhase('ready')
+    } else {
+      // Retry measurement on next frame
+      requestAnimationFrame(() => {
+        setPhase('measuring')
+      })
+    }
+  }, [phase, fixedWidthExperiences])
+
+  // Phase 2: Calculate positioning with measured widths
+  const positioningMap = useMemo(() => {
+    if (phase !== 'ready') return null
+    return calculatePositioning(experiences, now, measuredWidths)
+  }, [experiences, now, measuredWidths, phase])
+
   // Position all items using the unified positioning logic
-  const positionedExperiences = useMemo(
-    () =>
-      positionExperiences(
-        experiences,
-        positioningMap,
-        totalHeightPx,
-        timelineStart,
-        timelineEnd,
-        now,
-      ),
-    [
+  const positionedExperiences = useMemo(() => {
+    if (!positioningMap) return null
+    return positionExperiences(
       experiences,
       positioningMap,
       totalHeightPx,
       timelineStart,
       timelineEnd,
       now,
-    ],
-  )
+    )
+  }, [
+    experiences,
+    positioningMap,
+    totalHeightPx,
+    timelineStart,
+    timelineEnd,
+    now,
+  ])
+
+  // ============================================================================
+  // Render
+  // ============================================================================
+
+  // During mounting/measuring phase, show measurement layer + skeleton
+  if (phase !== 'ready' || !positionedExperiences) {
+    return (
+      <>
+        {/* Measurement layer - positioned off-screen but rendered for measurement */}
+        <div
+          ref={measureContainerRef}
+          className="fixed left-0 top-0 opacity-0 pointer-events-none"
+          style={{ zIndex: -1000 }}
+          aria-hidden="true"
+        >
+          {fixedWidthExperiences.map(({ experience, cardType }) => (
+            <div
+              key={experience.id}
+              ref={(el) => {
+                measureRefs.current.set(experience.id, el)
+              }}
+              className="inline-block"
+              // For deprioritized cards with vertical text, we need a height context
+              // to properly measure width. Use a reasonable height (100px).
+              style={cardType === 'deprioritized' ? { height: 100 } : undefined}
+            >
+              {cardType === 'milestone' ? (
+                <MilestoneEntry experience={experience} />
+              ) : (
+                <ExperienceEntryCard experience={experience} />
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Skeleton loading state */}
+        <CareerCalendarSkeleton
+          yearCount={years.length}
+          className={className}
+        />
+      </>
+    )
+  }
 
   return (
     <div
@@ -312,7 +435,10 @@ export function CareerCalendar({
         </div>
 
         {/* Timeline container with horizontal lines */}
-        <div className="flex-1 relative pl-4" style={{ height: totalHeightPx }}>
+        <div
+          className="flex-1 relative pl-4 max-sm:pl-2"
+          style={{ height: totalHeightPx }}
+        >
           {/* Ceiling year indicator line at top */}
           <div
             className="absolute h-px bg-border"
@@ -340,8 +466,8 @@ export function CareerCalendar({
             )
           })}
 
-          {/* Experience cards container - offset by 16px for indicator line visibility */}
-          <div className="absolute top-0 bottom-0 left-4 right-0">
+          {/* Experience cards container - offset by 16px (desktop) / 8px (mobile) for indicator line visibility */}
+          <div className="absolute top-0 bottom-0 left-4 max-sm:left-2 right-0">
             {positionedExperiences.map((entry) => {
               const exp = entry.experience
               const { cssLeft, cssRight, cssWidth, zIndex, cardType } = entry

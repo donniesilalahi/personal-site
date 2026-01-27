@@ -1,3 +1,5 @@
+import { forwardRef } from 'react'
+
 import type { Experience, SubcategoryColorScheme } from '@/lib/experiences'
 import { cn } from '@/lib/utils'
 import { SUBCATEGORY_COLORS } from '@/lib/experiences'
@@ -53,13 +55,16 @@ function AtSeparator({ className }: { className?: string }) {
  * - >6 months: two-line layout (icon top-left, role @ company + date bottom)
  * - Date always shows only start date
  * - Border radius: 2px (rounded-sm)
+ *
+ * Supports forwardRef for width measurement during layout calculation.
  */
-export function ExperienceEntryCard({
-  experience,
-  isVeryShortDuration = false,
-  onClick,
-  className,
-}: ExperienceEntryCardProps) {
+export const ExperienceEntryCard = forwardRef<
+  HTMLDivElement,
+  ExperienceEntryCardProps
+>(function ExperienceEntryCard(
+  { experience, isVeryShortDuration = false, onClick, className },
+  ref,
+) {
   const colors: SubcategoryColorScheme =
     SUBCATEGORY_COLORS[experience.subcategory]
 
@@ -76,6 +81,7 @@ export function ExperienceEntryCard({
 
     return (
       <div
+        ref={ref}
         className={cn(
           'flex items-end gap-0.5 h-full px-2 py-1.5 rounded-sm border',
           colors.bg,
@@ -99,10 +105,12 @@ export function ExperienceEntryCard({
 
         {/* Role @ Company - single vertical text line, bottom-to-top */}
         <span
-          className="text-[10px] leading-tight font-normal text-muted-foreground whitespace-nowrap"
+          className="text-[10px] leading-tight font-normal text-muted-foreground whitespace-nowrap overflow-hidden"
           style={{
             writingMode: 'vertical-rl',
             transform: 'rotate(180deg)',
+            textOverflow: 'ellipsis',
+            maxWidth: '100%',
           }}
         >
           {experience.role} @ {experience.company}
@@ -110,10 +118,12 @@ export function ExperienceEntryCard({
 
         {/* Dates - single vertical text line, bottom-to-top */}
         <span
-          className="text-[8px] leading-tight text-muted-foreground whitespace-nowrap"
+          className="text-[8px] leading-tight text-muted-foreground whitespace-nowrap overflow-hidden"
           style={{
             writingMode: 'vertical-rl',
             transform: 'rotate(180deg)',
+            textOverflow: 'ellipsis',
+            maxWidth: '100%',
           }}
         >
           {deprioritizedDateDisplay}
@@ -126,6 +136,7 @@ export function ExperienceEntryCard({
   if (isVeryShortDuration) {
     return (
       <div
+        ref={ref}
         className={cn(
           'flex items-center gap-1.5 px-2 py-1.5 rounded-sm border overflow-hidden',
           colors.bg,
@@ -145,13 +156,14 @@ export function ExperienceEntryCard({
             colors.text,
           )}
         />
-        <span className="text-[10px] font-normal text-muted-foreground truncate">
-          {experience.role}
-        </span>
-        {/* B4: text-3xs (8px) for <= 12 months */}
-        <AtSeparator className="text-[8px] shrink-0" />
-        <span className="text-[10px] font-normal text-muted-foreground truncate">
-          {experience.company}
+        <span className="inline-flex items-center gap-x-1 truncate min-w-0">
+          <span className="text-[10px] font-normal text-muted-foreground">
+            {experience.role}
+          </span>
+          <AtSeparator className="text-[8px]" />
+          <span className="text-[10px] font-normal text-muted-foreground">
+            {experience.company}
+          </span>
         </span>
         <span className="text-[8px] text-muted-foreground shrink-0 ml-auto">
           {dateDisplay}
@@ -163,6 +175,7 @@ export function ExperienceEntryCard({
   // > 6 months: two-line layout
   return (
     <div
+      ref={ref}
       className={cn(
         'flex flex-col justify-between h-full px-2 py-1.5 rounded-sm border',
         colors.bg,
@@ -174,19 +187,24 @@ export function ExperienceEntryCard({
       )}
       onClick={onClick}
     >
-      {/* Line 1: Icon */}
-      <img
-        src={experience.icon}
-        alt={experience.company}
-        className={cn(
-          'size-3 shrink-0 object-contain rounded-[1.5px]',
-          colors.text,
-        )}
-      />
-
-      {/* Line 2: Role @ Company (left) + Date (right) */}
+      {/* Line 1: Icon (left) + Date (right on mobile) */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-x-1">
+        <img
+          src={experience.icon}
+          alt={experience.company}
+          className={cn(
+            'size-3 shrink-0 object-contain rounded-[1.5px]',
+            colors.text,
+          )}
+        />
+        <span className="max-sm:block hidden text-[8px] text-muted-foreground">
+          {dateDisplay}
+        </span>
+      </div>
+
+      {/* Line 2: Role @ Company (left) + Date (right on desktop) */}
+      <div className="flex items-center justify-between">
+        <span className="inline-flex flex-wrap items-center gap-x-1 gap-y-0.5">
           <span className="text-xs font-normal leading-tight text-muted-foreground">
             {experience.role}
           </span>
@@ -194,14 +212,14 @@ export function ExperienceEntryCard({
           <span className="text-xs font-normal text-muted-foreground">
             {experience.company}
           </span>
-        </div>
-        <span className="text-[8px] text-muted-foreground shrink-0">
+        </span>
+        <span className="max-sm:hidden text-[8px] text-muted-foreground shrink-0">
           {dateDisplay}
         </span>
       </div>
     </div>
   )
-}
+})
 
 interface MilestoneEntryProps {
   experience: Experience
@@ -213,29 +231,30 @@ interface MilestoneEntryProps {
  * Milestone entry (single-point event like graduation, award)
  * Link-like style - no padding, underline on hover
  * Shows only role with a small success-colored dot
+ *
+ * Supports forwardRef for width measurement during layout calculation.
  */
-export function MilestoneEntry({
-  experience,
-  onClick,
-  className,
-}: MilestoneEntryProps) {
-  return (
-    <div
-      className={cn(
-        'inline-flex items-center gap-1',
-        'group',
-        onClick ? 'cursor-pointer' : 'cursor-default',
-        className,
-      )}
-      onClick={onClick}
-    >
-      {/* Dot indicator - small success color */}
-      <div className="size-1 rounded-full shrink-0 bg-emerald-500" />
+export const MilestoneEntry = forwardRef<HTMLDivElement, MilestoneEntryProps>(
+  function MilestoneEntry({ experience, onClick, className }, ref) {
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          'inline-flex items-center gap-1',
+          'group',
+          onClick ? 'cursor-pointer' : 'cursor-default',
+          className,
+        )}
+        onClick={onClick}
+      >
+        {/* Dot indicator - small success color */}
+        <div className="size-1 rounded-full shrink-0 bg-emerald-500" />
 
-      {/* Role only - 8px, underline on hover */}
-      <span className="text-[8px] font-medium text-foreground leading-tight whitespace-nowrap group-hover:underline">
-        {experience.role}
-      </span>
-    </div>
-  )
-}
+        {/* Role only - 8px, underline on hover */}
+        <span className="text-[8px] font-medium text-foreground leading-tight whitespace-nowrap group-hover:underline">
+          {experience.role}
+        </span>
+      </div>
+    )
+  },
+)

@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 
 export function ProfileSection() {
   return (
-    <section className="flex w-full flex-col gap-4">
+    <section className="flex w-full flex-col gap-4 mt-4">
       {/* Profile Info - Horizontal layout */}
       <div className="flex items-center gap-4">
         {/* Profile Picture with postcard frame effect */}

@@ -10,14 +10,22 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { calculatePositioning } from './career-calendar.algorithm'
+import {
+  calculatePositioning,
+  getFixedWidthExperiences,
+} from './career-calendar.algorithm'
 import type { Experience } from '@/lib/experiences'
+import type { MeasuredWidths } from './career-calendar.types'
 
 // Helper to create test experiences
 function createExperience(
   id: string,
   startDate: string,
   endDate: string | null,
+  options?: {
+    isMilestone?: boolean
+    isDeprioritized?: boolean
+  },
 ): Experience {
   const startDateParsed = new Date(startDate)
   const endDateParsed = endDate ? new Date(endDate) : null
@@ -40,13 +48,30 @@ function createExperience(
     arrangement: 'full-time' as const,
     icon: 'briefcase',
     location: '',
-    isMilestone: false,
-    isDeprioritized: false,
+    isMilestone: options?.isMilestone ?? false,
+    isDeprioritized: options?.isDeprioritized ?? false,
     description: '',
     startDateParsed,
     endDateParsed,
     durationMonths,
   }
+}
+
+/**
+ * Helper to create mock measured widths for fixed-width cards.
+ * In tests, we simulate measured widths for deprioritized and milestone cards.
+ */
+function createMeasuredWidths(experiences: Array<Experience>): MeasuredWidths {
+  const widths = new Map<string, number>()
+  for (const exp of experiences) {
+    if (exp.isDeprioritized) {
+      widths.set(exp.id, 48) // Simulated measured width for deprioritized
+    }
+    if (exp.isMilestone) {
+      widths.set(exp.id, 56) // Simulated measured width for milestone
+    }
+  }
+  return widths
 }
 
 describe('Forward Packing Algorithm', () => {
@@ -60,8 +85,9 @@ describe('Forward Packing Algorithm', () => {
         createExperience('test7', '2020-01-01', '2021-01-01'),
         createExperience('test8', '2022-01-01', '2023-01-01'),
       ]
+      const measuredWidths = createMeasuredWidths(experiences)
 
-      const result = calculatePositioning(experiences, now)
+      const result = calculatePositioning(experiences, now, measuredWidths)
 
       const test7 = result.get('test7')!
       const test8 = result.get('test8')!
@@ -88,8 +114,9 @@ describe('Forward Packing Algorithm', () => {
         createExperience('test2', '2022-06-15', '2023-01-01'),
         createExperience('test4', '2022-07-01', '2023-01-01'),
       ]
+      const measuredWidths = createMeasuredWidths(experiences)
 
-      const result = calculatePositioning(experiences, now)
+      const result = calculatePositioning(experiences, now, measuredWidths)
 
       const test3 = result.get('test3')!
       const test2 = result.get('test2')!
@@ -122,8 +149,9 @@ describe('Forward Packing Algorithm', () => {
         createExperience('test0', '2020-01-01', '2024-06-01'),
         createExperience('test1', '2021-06-01', '2023-01-01'),
       ]
+      const measuredWidths = createMeasuredWidths(experiences)
 
-      const result = calculatePositioning(experiences, now)
+      const result = calculatePositioning(experiences, now, measuredWidths)
 
       const test0 = result.get('test0')!
       const test1 = result.get('test1')!
@@ -153,8 +181,9 @@ describe('Forward Packing Algorithm', () => {
         createExperience('test2', '2021-06-15', '2023-01-01'),
         createExperience('test4', '2021-07-01', '2023-01-01'),
       ]
+      const measuredWidths = createMeasuredWidths(experiences)
 
-      const result = calculatePositioning(experiences, now)
+      const result = calculatePositioning(experiences, now, measuredWidths)
 
       const test0 = result.get('test0')!
       const test1 = result.get('test1')!
@@ -194,8 +223,9 @@ describe('Forward Packing Algorithm', () => {
         createExperience('test8', '2022-01-01', '2023-06-01'),
         createExperience('test9', '2023-01-01', '2023-12-01'),
       ]
+      const measuredWidths = createMeasuredWidths(experiences)
 
-      const result = calculatePositioning(experiences, now)
+      const result = calculatePositioning(experiences, now, measuredWidths)
 
       const test8 = result.get('test8')!
       const test9 = result.get('test9')!
@@ -225,8 +255,9 @@ describe('Forward Packing Algorithm', () => {
         createExperience('B', '2020-06-01', '2022-01-01'),
         createExperience('C', '2023-01-01', '2024-01-01'),
       ]
+      const measuredWidths = createMeasuredWidths(experiences)
 
-      const result = calculatePositioning(experiences, now)
+      const result = calculatePositioning(experiences, now, measuredWidths)
 
       expect(result.get('A')!.column).toBe(0)
       expect(result.get('B')!.column).toBe(1)
@@ -242,8 +273,9 @@ describe('Forward Packing Algorithm', () => {
   describe('Edge cases', () => {
     it('should handle single event', () => {
       const experiences = [createExperience('solo', '2020-01-01', '2022-01-01')]
+      const measuredWidths = createMeasuredWidths(experiences)
 
-      const result = calculatePositioning(experiences, now)
+      const result = calculatePositioning(experiences, now, measuredWidths)
       const solo = result.get('solo')!
 
       expect(solo.column).toBe(0)
@@ -252,7 +284,7 @@ describe('Forward Packing Algorithm', () => {
     })
 
     it('should handle empty array', () => {
-      const result = calculatePositioning([], now)
+      const result = calculatePositioning([], now, new Map())
       expect(result.size).toBe(0)
     })
 
@@ -261,12 +293,120 @@ describe('Forward Packing Algorithm', () => {
         createExperience('past', '2020-01-01', '2022-01-01'),
         createExperience('ongoing', '2021-01-01', null),
       ]
+      const measuredWidths = createMeasuredWidths(experiences)
 
-      const result = calculatePositioning(experiences, now)
+      const result = calculatePositioning(experiences, now, measuredWidths)
 
       // They overlap (past: 2020-2022, ongoing: 2021-now)
       expect(result.get('past')!.widthPercent).toBe(50)
       expect(result.get('ongoing')!.widthPercent).toBe(50)
+    })
+  })
+
+  describe('Fixed-width cards (deprioritized and milestones)', () => {
+    it('should identify fixed-width experiences correctly', () => {
+      const experiences = [
+        createExperience('regular', '2020-01-01', '2021-01-01'),
+        createExperience('deprioritized', '2020-01-01', '2021-01-01', {
+          isDeprioritized: true,
+        }),
+        createExperience('milestone', '2020-06-01', '2020-06-01', {
+          isMilestone: true,
+        }),
+      ]
+
+      const fixedWidthExps = getFixedWidthExperiences(experiences, now)
+
+      // Should include deprioritized and milestone (with overlap)
+      expect(fixedWidthExps.length).toBe(2)
+      expect(
+        fixedWidthExps.some((e) => e.experience.id === 'deprioritized'),
+      ).toBe(true)
+      expect(fixedWidthExps.some((e) => e.experience.id === 'milestone')).toBe(
+        true,
+      )
+    })
+
+    it('should position deprioritized cards at rightmost edge', () => {
+      const experiences = [
+        createExperience('regular', '2020-01-01', '2021-01-01'),
+        createExperience('deprioritized', '2020-01-01', '2021-01-01', {
+          isDeprioritized: true,
+        }),
+      ]
+      const measuredWidths = new Map<string, number>()
+      measuredWidths.set('deprioritized', 48)
+
+      const result = calculatePositioning(experiences, now, measuredWidths)
+
+      const regular = result.get('regular')!
+      const deprioritized = result.get('deprioritized')!
+
+      // Deprioritized should be positioned from right
+      expect(deprioritized.cardType).toBe('deprioritized')
+      expect(deprioritized.cssLeft).toContain('calc(100%')
+
+      // Regular card should fill remaining space
+      expect(regular.cardType).toBe('regular')
+    })
+
+    it('should use measured widths for gap calculation', () => {
+      const experiences = [
+        createExperience('regular', '2020-01-01', '2021-01-01'),
+        createExperience('dep1', '2020-01-01', '2021-01-01', {
+          isDeprioritized: true,
+        }),
+        createExperience('dep2', '2020-01-01', '2021-01-01', {
+          isDeprioritized: true,
+        }),
+      ]
+      // Simulate different measured widths
+      const measuredWidths = new Map<string, number>()
+      measuredWidths.set('dep1', 60) // Wider card
+      measuredWidths.set('dep2', 40) // Narrower card
+
+      const result = calculatePositioning(experiences, now, measuredWidths)
+
+      const dep1 = result.get('dep1')!
+      const dep2 = result.get('dep2')!
+
+      // Both should be positioned from right
+      expect(dep1.cssWidth).toBe('60px')
+      expect(dep2.cssWidth).toBe('40px')
+    })
+
+    it('should handle milestone without overlap (positioned at left)', () => {
+      // Milestone that doesn't overlap with any other experience
+      const experiences = [
+        createExperience('milestone', '2020-06-01', '2020-06-01', {
+          isMilestone: true,
+        }),
+      ]
+      const measuredWidths = createMeasuredWidths(experiences)
+
+      const result = calculatePositioning(experiences, now, measuredWidths)
+      const milestone = result.get('milestone')!
+
+      expect(milestone.cardType).toBe('milestone-no-overlap')
+      expect(milestone.cssLeft).toBe('0px')
+    })
+
+    it('should handle milestone with overlap (positioned from right)', () => {
+      const experiences = [
+        createExperience('regular', '2020-01-01', '2021-01-01'),
+        createExperience('milestone', '2020-06-01', '2020-06-01', {
+          isMilestone: true,
+        }),
+      ]
+      const measuredWidths = new Map<string, number>()
+      measuredWidths.set('milestone', 56)
+
+      const result = calculatePositioning(experiences, now, measuredWidths)
+      const milestone = result.get('milestone')!
+
+      expect(milestone.cardType).toBe('milestone')
+      // Should be positioned from right (cssRight should be defined)
+      expect(milestone.cssRight).toBeDefined()
     })
   })
 })

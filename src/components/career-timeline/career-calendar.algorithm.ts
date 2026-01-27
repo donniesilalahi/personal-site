@@ -5,24 +5,25 @@
  *
  * Card Types:
  * 1. Regular cards: Flex to fill available space, sorted by start date (earliest = leftmost)
- * 2. Deprioritized cards: Fixed width, always positioned at rightmost edge
- * 3. Milestones with overlap: Fixed width, positioned to the left of deprioritized cards
+ * 2. Deprioritized cards: Content-hugging width, always positioned at rightmost edge
+ * 3. Milestones with overlap: Content-hugging width, positioned to the left of deprioritized cards
  * 4. Milestones without overlap: Ghost button style, positioned at left edge
  *
  * Key Principles:
  * - Earlier start date = leftmost column (for regular cards)
  * - Deprioritized cards are always rightmost
  * - All positioning is calculated here, renderer just applies values
+ * - Gap logic is consolidated in one place (calculateFixedSectionLayout)
  */
 
-import {
-  COLUMN_GAP_PX,
-  DEPRIORITIZED_CARD_WIDTH_PX,
-  MILESTONE_CARD_WIDTH_PX,
-} from './career-calendar.constants'
+import { COLUMN_GAP_PX } from './career-calendar.constants'
 import { intervalsOverlap } from './career-calendar.utils'
 import type { Experience } from '@/lib/experiences'
-import type { ExperiencePositioning } from './career-calendar.types'
+import type {
+  ExperiencePositioning,
+  MeasurableExperience,
+  MeasuredWidths,
+} from './career-calendar.types'
 
 interface OverlapGroup {
   experiences: Array<Experience>
@@ -192,11 +193,113 @@ function assignColumnsToRegularCards(
 }
 
 /**
- * Calculate final CSS positioning for all experiences
+ * SINGLE SOURCE OF TRUTH for fixed section layout calculation.
+ *
+ * Calculates the total width reserved for fixed-width cards (deprioritized + milestones)
+ * and the right offset positions for each card.
+ *
+ * Gap logic is consolidated here:
+ * - Gaps BETWEEN fixed cards: (n-1) * COLUMN_GAP_PX for n cards
+ * - Gap between fixed section and regular cards: 1 * COLUMN_GAP_PX (only if fixed cards exist)
+ *
+ * @returns Object containing:
+ *   - totalReservedWidth: Total width to reserve for fixed section (including gap to regular cards)
+ *   - cardPositions: Map of experience ID to { rightOffset, width } for positioning
+ */
+function calculateFixedSectionLayout(
+  sortedDeprioritized: Array<Experience>,
+  sortedMilestones: Array<Experience>,
+  measuredWidths: MeasuredWidths,
+  gap: number,
+): {
+  totalReservedWidth: number
+  cardPositions: Map<string, { rightOffset: number; width: number }>
+} {
+  const cardPositions = new Map<
+    string,
+    { rightOffset: number; width: number }
+  >()
+
+  // No fixed cards = no reserved space
+  if (sortedDeprioritized.length === 0 && sortedMilestones.length === 0) {
+    return { totalReservedWidth: 0, cardPositions }
+  }
+
+  // Build list of all fixed cards in order (rightmost first)
+  // Order: deprioritized (rightmost) → milestones (left of deprioritized)
+  const allFixedCards = [...sortedDeprioritized, ...sortedMilestones]
+
+  // Calculate positions from right edge
+  let currentRightOffset = 0
+
+  for (let i = 0; i < allFixedCards.length; i++) {
+    const exp = allFixedCards[i]
+    const width = measuredWidths.get(exp.id) ?? 0
+
+    // Position this card: right edge is at currentRightOffset
+    cardPositions.set(exp.id, {
+      rightOffset: currentRightOffset,
+      width,
+    })
+
+    // Move offset for next card: add this card's width
+    currentRightOffset += width
+
+    // Add gap after this card (except for the last one in the fixed section)
+    // The last card's gap will be added as the gap to regular cards
+    if (i < allFixedCards.length - 1) {
+      currentRightOffset += gap
+    }
+  }
+
+  // Total reserved = all card widths + gaps between them + gap to regular cards
+  // currentRightOffset already has all widths + (n-1) gaps
+  // Add one more gap for separation from regular cards
+  const totalReservedWidth = currentRightOffset + gap
+
+  return { totalReservedWidth, cardPositions }
+}
+
+/**
+ * Get all experiences that need width measurement before positioning.
+ * These are "fixed-width" cards that hug their content:
+ * - Deprioritized cards
+ * - Milestones that overlap with other experiences
+ */
+export function getFixedWidthExperiences(
+  experiences: Array<Experience>,
+  now: Date,
+): Array<MeasurableExperience> {
+  const result: Array<MeasurableExperience> = []
+  const groups = buildOverlapGroups(experiences, now)
+
+  for (const group of groups) {
+    // Deprioritized cards always need measurement
+    for (const exp of group.deprioritizedCards) {
+      result.push({ experience: exp, cardType: 'deprioritized' })
+    }
+
+    // Milestones with overlap need measurement
+    for (const exp of group.milestonesWithOverlap) {
+      result.push({ experience: exp, cardType: 'milestone' })
+    }
+  }
+
+  return result
+}
+
+/**
+ * Calculate final CSS positioning for all experiences.
+ *
+ * @param experiences - All experiences to position
+ * @param now - Current date for ongoing experiences
+ * @param measuredWidths - Map of experience ID to measured width in pixels
+ *                         (required for deprioritized and milestone cards)
  */
 export function calculatePositioning(
   experiences: Array<Experience>,
   now: Date,
+  measuredWidths: MeasuredWidths,
 ): Map<string, ExperiencePositioning> {
   const result = new Map<string, ExperiencePositioning>()
 
@@ -217,28 +320,27 @@ export function calculatePositioning(
       Math.max(0, ...Array.from(regularColumnMap.values())) +
       (regularCards.length > 0 ? 1 : 0)
 
-    // Calculate total fixed-width space on the right
-    // Order from right: deprioritized cards, then milestones with overlap
-    const totalDeprioritizedWidth =
-      deprioritizedCards.length * (DEPRIORITIZED_CARD_WIDTH_PX + COLUMN_GAP_PX)
-    const totalMilestoneWidth =
-      milestonesWithOverlap.length * (MILESTONE_CARD_WIDTH_PX + COLUMN_GAP_PX)
-    const totalFixedWidth = totalDeprioritizedWidth + totalMilestoneWidth
-
-    // Sort deprioritized by start date DESC (later = rightmost)
+    // Sort fixed cards by start date DESC (later = rightmost)
     const sortedDeprioritized = [...deprioritizedCards].sort(
       (a, b) => b.startDateParsed.getTime() - a.startDateParsed.getTime(),
     )
-
-    // Sort milestones by start date DESC (later = rightmost, but left of deprioritized)
     const sortedMilestones = [...milestonesWithOverlap].sort(
       (a, b) => b.startDateParsed.getTime() - a.startDateParsed.getTime(),
     )
 
+    // Calculate fixed section layout (SINGLE SOURCE OF TRUTH for gaps)
+    const { totalReservedWidth, cardPositions } = calculateFixedSectionLayout(
+      sortedDeprioritized,
+      sortedMilestones,
+      measuredWidths,
+      COLUMN_GAP_PX,
+    )
+
     // Position deprioritized cards (rightmost)
-    let rightOffset = 0
     for (const exp of sortedDeprioritized) {
-      rightOffset += DEPRIORITIZED_CARD_WIDTH_PX
+      const pos = cardPositions.get(exp.id)
+      const width = pos?.width ?? 0
+      const rightOffset = pos?.rightOffset ?? 0
 
       result.set(exp.id, {
         column:
@@ -249,20 +351,18 @@ export function calculatePositioning(
         widthPercent: 0,
         overlapAtStart: group.experiences.length,
         isOverlapped: false,
-        cssLeft: `calc(100% - ${rightOffset}px)`,
-        cssWidth: `${DEPRIORITIZED_CARD_WIDTH_PX}px`,
+        // Position from right: right edge at rightOffset, so left edge at rightOffset + width
+        cssLeft: `calc(100% - ${rightOffset + width}px)`,
+        cssWidth: `${width}px`,
         zIndex: 0,
         cardType: 'deprioritized',
       })
-
-      rightOffset += COLUMN_GAP_PX
     }
 
     // Position milestones with overlap (to the left of deprioritized)
-    // Milestones use right positioning with auto width to hug content
     for (const exp of sortedMilestones) {
-      // Position from right edge with gap
-      const milestoneRightOffset = rightOffset + COLUMN_GAP_PX
+      const pos = cardPositions.get(exp.id)
+      const rightOffset = pos?.rightOffset ?? 0
 
       result.set(exp.id, {
         column: numRegularColumns + sortedMilestones.indexOf(exp),
@@ -271,14 +371,12 @@ export function calculatePositioning(
         overlapAtStart: group.experiences.length,
         isOverlapped: false,
         cssLeft: 'auto',
-        cssRight: `${milestoneRightOffset}px`,
-        cssWidth: 'auto',
+        // Milestone's right edge is at rightOffset from container's right edge
+        cssRight: `${rightOffset}px`,
+        cssWidth: 'auto', // Keep auto for milestones to hug content
         zIndex: 1,
         cardType: 'milestone',
       })
-
-      // Add estimated space for this milestone (for regular card calculations)
-      rightOffset += MILESTONE_CARD_WIDTH_PX + COLUMN_GAP_PX
     }
 
     // Position regular cards (fill remaining space)
@@ -288,11 +386,9 @@ export function calculatePositioning(
       let cssLeft: string
       let cssWidth: string
 
-      if (totalFixedWidth > 0) {
-        // Space is shared: (100% - fixedWidth - gap) / numRegularColumns
-        // Extra COLUMN_GAP_PX creates gap between regular cards and fixed-width section
-        const totalReserved = totalFixedWidth + COLUMN_GAP_PX
-        const availableSpace = `(100% - ${totalReserved}px)`
+      if (totalReservedWidth > 0) {
+        // Space is shared: (100% - totalReservedWidth) / numRegularColumns
+        const availableSpace = `(100% - ${totalReservedWidth}px)`
         cssWidth =
           numRegularColumns > 0
             ? `calc(${availableSpace} / ${numRegularColumns})`
@@ -318,7 +414,7 @@ export function calculatePositioning(
         leftPercent: (column / Math.max(1, numRegularColumns)) * 100,
         widthPercent: 100 / Math.max(1, numRegularColumns),
         overlapAtStart: group.experiences.length,
-        isOverlapped: column < numRegularColumns - 1 || totalFixedWidth > 0,
+        isOverlapped: column < numRegularColumns - 1 || totalReservedWidth > 0,
         cssLeft,
         cssWidth,
         zIndex: column + 2,
