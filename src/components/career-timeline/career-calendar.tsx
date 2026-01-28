@@ -2,7 +2,6 @@ import { useMemo } from 'react'
 
 import { ExperienceEntryCard, MilestoneEntry } from './experience-entry-card'
 import { CareerCalendarSkeleton } from './career-calendar-skeleton'
-import { calculatePositioning } from './career-calendar.algorithm'
 import {
   COLUMN_GAP_PX,
   MIN_EXPERIENCE_HEIGHT_PX,
@@ -19,16 +18,6 @@ import type { Experience } from '@/lib/experiences'
 import { cn } from '@/lib/utils'
 
 // ============================================================================
-// Constants
-// ============================================================================
-
-/** Estimated width for deprioritized cards (vertical text) */
-const DEPRIORITIZED_WIDTH_PX = 48
-
-/** Estimated width for milestone cards */
-const MILESTONE_WIDTH_PX = 80
-
-// ============================================================================
 // Types
 // ============================================================================
 
@@ -36,17 +25,21 @@ interface PositionedCard {
   experience: Experience
   topPx: number
   heightPx: number
+  column: number
   cardType: 'regular' | 'deprioritized' | 'milestone'
-  /** For regular cards: column within regular region (0 = leftmost) */
-  regularColumn: number
-  /** For regular cards: total columns in regular region */
-  totalRegularColumns: number
-  /** For fixed cards: column within fixed region (0 = rightmost) */
-  fixedColumn: number
-  /** Total fixed columns in the group */
-  totalFixedColumns: number
-  /** Total width of fixed region in pixels (for regular cards to subtract) */
-  fixedRegionWidthPx: number
+}
+
+interface Column {
+  index: number
+  isRegular: boolean // true if contains any regular card, false if only fixed cards
+  cards: Array<PositionedCard>
+}
+
+interface OverlapGroup {
+  id: string
+  topPx: number
+  heightPx: number
+  columns: Array<Column>
 }
 
 // ============================================================================
@@ -120,164 +113,175 @@ function calculateVerticalPosition(
   return { topPx: Math.round(topPx), heightPx: Math.round(heightPx) }
 }
 
-/**
- * Assign columns within a set of experiences using greedy leftmost algorithm.
- * Returns a map from experience ID to column index.
- */
-function assignColumnsGreedy(
-  experiences: Array<Experience>,
-  now: Date,
-): Map<string, number> {
-  if (experiences.length === 0) return new Map()
-
-  // Sort by start date ASC
-  const sorted = [...experiences].sort(
-    (a, b) => a.startDateParsed.getTime() - b.startDateParsed.getTime(),
-  )
-
-  const assignments = new Map<string, number>()
-  const columns: Array<Array<Experience>> = []
-
-  for (const exp of sorted) {
-    const start = exp.startDateParsed
-    const end = exp.endDateParsed ?? now
-
-    // Find leftmost column without overlap
-    let assignedColumn = -1
-
-    for (let colIdx = 0; colIdx < columns.length; colIdx++) {
-      const hasOverlap = columns[colIdx].some((existing) => {
-        const existingStart = existing.startDateParsed
-        const existingEnd = existing.endDateParsed ?? now
-        return intervalsOverlap(start, end, existingStart, existingEnd)
-      })
-
-      if (!hasOverlap) {
-        assignedColumn = colIdx
-        break
-      }
-    }
-
-    if (assignedColumn === -1) {
-      assignedColumn = columns.length
-      columns.push([])
-    }
-
-    columns[assignedColumn].push(exp)
-    assignments.set(exp.id, assignedColumn)
-  }
-
-  return assignments
+function getCardType(exp: Experience): 'regular' | 'deprioritized' | 'milestone' {
+  if (exp.isDeprioritized) return 'deprioritized'
+  if (exp.isMilestone) return 'milestone'
+  return 'regular'
 }
 
 /**
- * Build positioned cards with proper column assignments.
+ * Build overlap groups with column assignments.
  *
- * Key principle:
- * - Regular cards are in the LEFT region (flex-grow)
- * - Fixed cards (deprioritized/milestone) are in the RIGHT region (content-width)
+ * Algorithm:
+ * 1. Find connected components (experiences that transitively overlap)
+ * 2. Within each group, assign columns using greedy leftmost (sorted by start date)
+ * 3. Determine column types: regular (flex-grow) if contains any regular card
  */
-function buildPositionedCards(
+function buildOverlapGroups(
   experiences: Array<Experience>,
   totalHeightPx: number,
   timelineStart: Date,
   timelineEnd: Date,
   now: Date,
-): Array<PositionedCard> {
-  const positioningResult = calculatePositioning(experiences, now)
-  const cards: Array<PositionedCard> = []
+): Array<OverlapGroup> {
+  if (experiences.length === 0) return []
 
-  for (const group of positioningResult.groups) {
-    // Separate regular and fixed cards
-    const regularExps = group.cards
-      .filter((c) => c.cardType === 'regular')
-      .map((c) => c.experience)
-    const fixedExps = group.cards
-      .filter((c) => c.cardType !== 'regular')
-      .map((c) => c.experience)
+  // Build connected components
+  const visited = new Set<string>()
+  const rawGroups: Array<Array<Experience>> = []
 
-    // Assign columns within each region
-    const regularColumns = assignColumnsGreedy(regularExps, now)
-    const fixedColumns = assignColumnsGreedy(fixedExps, now)
+  for (const exp of experiences) {
+    if (visited.has(exp.id)) continue
 
-    const totalRegularCols = Math.max(
-      1,
-      ...Array.from(regularColumns.values()).map((c) => c + 1),
-    )
-    const totalFixedCols =
-      fixedExps.length > 0
-        ? Math.max(...Array.from(fixedColumns.values()).map((c) => c + 1))
-        : 0
+    const group: Array<Experience> = []
+    const queue: Array<Experience> = [exp]
 
-    // Calculate fixed region width
-    let fixedRegionWidthPx = 0
-    if (totalFixedCols > 0) {
-      // Estimate based on card types
-      for (const exp of fixedExps) {
-        if (exp.isDeprioritized) {
-          fixedRegionWidthPx = Math.max(fixedRegionWidthPx, DEPRIORITIZED_WIDTH_PX)
-        } else if (exp.isMilestone) {
-          fixedRegionWidthPx = Math.max(fixedRegionWidthPx, MILESTONE_WIDTH_PX)
+    while (queue.length > 0) {
+      const current = queue.shift()!
+      if (visited.has(current.id)) continue
+
+      visited.add(current.id)
+      group.push(current)
+
+      for (const other of experiences) {
+        if (!visited.has(other.id)) {
+          const currentStart = current.startDateParsed
+          const currentEnd = current.endDateParsed ?? now
+          const otherStart = other.startDateParsed
+          const otherEnd = other.endDateParsed ?? now
+          if (intervalsOverlap(currentStart, currentEnd, otherStart, otherEnd)) {
+            queue.push(other)
+          }
         }
       }
-      // Add gaps if multiple fixed columns
-      if (totalFixedCols > 1) {
-        fixedRegionWidthPx += (totalFixedCols - 1) * COLUMN_GAP_PX
-      }
-      // Add gap between regular and fixed regions
-      fixedRegionWidthPx += COLUMN_GAP_PX
     }
 
-    // Create positioned cards
-    for (const groupCard of group.cards) {
-      const { topPx, heightPx } = calculateVerticalPosition(
-        groupCard.experience,
-        totalHeightPx,
-        timelineStart,
-        timelineEnd,
-        now,
-      )
-
-      const isFixed = groupCard.cardType !== 'regular'
-
-      cards.push({
-        experience: groupCard.experience,
-        topPx,
-        heightPx,
-        cardType: groupCard.cardType,
-        regularColumn: isFixed ? 0 : (regularColumns.get(groupCard.experience.id) ?? 0),
-        totalRegularColumns: regularExps.length > 0 ? totalRegularCols : 1,
-        fixedColumn: isFixed ? (fixedColumns.get(groupCard.experience.id) ?? 0) : 0,
-        totalFixedColumns: totalFixedCols,
-        fixedRegionWidthPx,
-      })
-    }
+    rawGroups.push(group)
   }
 
-  // Resolve vertical overlaps for cards in the same column
-  resolveVerticalOverlaps(cards, now)
+  // Process each group
+  const overlapGroups: Array<OverlapGroup> = []
 
-  return cards
+  for (let groupIdx = 0; groupIdx < rawGroups.length; groupIdx++) {
+    const groupExps = rawGroups[groupIdx]
+
+    // Sort by start date ASC (earlier = leftmost column)
+    const sorted = [...groupExps].sort(
+      (a, b) => a.startDateParsed.getTime() - b.startDateParsed.getTime(),
+    )
+
+    // Assign columns using greedy leftmost algorithm
+    const columnAssignments = new Map<string, number>()
+    const columnContents: Array<Array<Experience>> = []
+
+    for (const exp of sorted) {
+      const start = exp.startDateParsed
+      const end = exp.endDateParsed ?? now
+
+      // Find leftmost column without overlap
+      let assignedColumn = -1
+
+      for (let colIdx = 0; colIdx < columnContents.length; colIdx++) {
+        const hasOverlap = columnContents[colIdx].some((existing) => {
+          const existingStart = existing.startDateParsed
+          const existingEnd = existing.endDateParsed ?? now
+          return intervalsOverlap(start, end, existingStart, existingEnd)
+        })
+
+        if (!hasOverlap) {
+          assignedColumn = colIdx
+          break
+        }
+      }
+
+      if (assignedColumn === -1) {
+        assignedColumn = columnContents.length
+        columnContents.push([])
+      }
+
+      columnContents[assignedColumn].push(exp)
+      columnAssignments.set(exp.id, assignedColumn)
+    }
+
+    // Build positioned cards and columns
+    const columns: Array<Column> = []
+
+    for (let colIdx = 0; colIdx < columnContents.length; colIdx++) {
+      const colExps = columnContents[colIdx]
+      const cards: Array<PositionedCard> = []
+      let hasRegular = false
+
+      for (const exp of colExps) {
+        const { topPx, heightPx } = calculateVerticalPosition(
+          exp,
+          totalHeightPx,
+          timelineStart,
+          timelineEnd,
+          now,
+        )
+        const cardType = getCardType(exp)
+        if (cardType === 'regular') hasRegular = true
+
+        cards.push({
+          experience: exp,
+          topPx,
+          heightPx,
+          column: colIdx,
+          cardType,
+        })
+      }
+
+      // Sort cards by topPx for vertical overlap resolution
+      cards.sort((a, b) => a.topPx - b.topPx)
+
+      columns.push({
+        index: colIdx,
+        isRegular: hasRegular,
+        cards,
+      })
+    }
+
+    // Resolve vertical overlaps within each column
+    for (const column of columns) {
+      resolveVerticalOverlaps(column.cards, now)
+    }
+
+    // Calculate group bounds
+    let groupTop = Infinity
+    let groupBottom = 0
+    for (const column of columns) {
+      for (const card of column.cards) {
+        if (card.topPx < groupTop) groupTop = card.topPx
+        const bottom = card.topPx + card.heightPx
+        if (bottom > groupBottom) groupBottom = bottom
+      }
+    }
+
+    overlapGroups.push({
+      id: `group-${groupIdx}`,
+      topPx: groupTop,
+      heightPx: groupBottom - groupTop,
+      columns,
+    })
+  }
+
+  return overlapGroups
 }
 
 function resolveVerticalOverlaps(cards: Array<PositionedCard>, now: Date): void {
-  const sortedCards = [...cards].sort((a, b) => a.topPx - b.topPx)
-
-  for (let i = 0; i < sortedCards.length - 1; i++) {
-    const current = sortedCards[i]
-    const next = sortedCards[i + 1]
-
-    // Only adjust if they're in the same visual column
-    const currentIsFixed = current.cardType !== 'regular'
-    const nextIsFixed = next.cardType !== 'regular'
-
-    if (currentIsFixed !== nextIsFixed) continue
-
-    const sameColumn = currentIsFixed
-      ? current.fixedColumn === next.fixedColumn
-      : current.regularColumn === next.regularColumn
-
-    if (!sameColumn) continue
+  for (let i = 0; i < cards.length - 1; i++) {
+    const current = cards[i]
+    const next = cards[i + 1]
 
     const currentBottom = current.topPx + current.heightPx
     const gap = next.topPx - currentBottom
@@ -296,16 +300,8 @@ function resolveVerticalOverlaps(cards: Array<PositionedCard>, now: Date): void 
       } else {
         current.heightPx = MIN_EXPERIENCE_HEIGHT_PX
         const shift = current.topPx + MIN_EXPERIENCE_HEIGHT_PX + VERTICAL_GAP_PX - next.topPx
-        for (let j = i + 1; j < sortedCards.length; j++) {
-          const isFixedJ = sortedCards[j].cardType !== 'regular'
-          if (isFixedJ === currentIsFixed) {
-            const sameColJ = currentIsFixed
-              ? sortedCards[j].fixedColumn === current.fixedColumn
-              : sortedCards[j].regularColumn === current.regularColumn
-            if (sameColJ) {
-              sortedCards[j].topPx += shift
-            }
-          }
+        for (let j = i + 1; j < cards.length; j++) {
+          cards[j].topPx += shift
         }
       }
     }
@@ -313,75 +309,131 @@ function resolveVerticalOverlaps(cards: Array<PositionedCard>, now: Date): void 
 }
 
 // ============================================================================
-// Card Rendering
+// Rendering
 // ============================================================================
 
-interface CardProps {
+interface OverlapGroupRendererProps {
+  group: OverlapGroup
+  onExperienceClick?: (experience: Experience) => void
+}
+
+function OverlapGroupRenderer({ group, onExperienceClick }: OverlapGroupRendererProps) {
+  const { topPx, heightPx, columns } = group
+
+  // Single column - render without flex container
+  if (columns.length === 1) {
+    const column = columns[0]
+    return (
+      <>
+        {column.cards.map((card) => (
+          <CardRenderer
+            key={card.experience.id}
+            card={card}
+            onClick={
+              onExperienceClick
+                ? () => onExperienceClick(card.experience)
+                : undefined
+            }
+          />
+        ))}
+      </>
+    )
+  }
+
+  // Multiple columns - use flex container
+  return (
+    <div
+      className="absolute left-0 right-0 flex"
+      style={{ top: topPx, height: heightPx, gap: COLUMN_GAP_PX }}
+    >
+      {columns.map((column) => {
+        // Regular columns: flex-grow, Fixed columns: content-width
+        const flexClass = column.isRegular
+          ? 'flex-1 min-w-0 relative'
+          : 'flex-none relative'
+
+        return (
+          <div key={column.index} className={flexClass}>
+            {column.cards.map((card) => {
+              const relativeTop = card.topPx - topPx
+              const isVeryShortDuration = card.experience.durationMonths <= 6
+
+              if (card.cardType === 'milestone') {
+                return (
+                  <div
+                    key={card.experience.id}
+                    className="absolute left-0"
+                    style={{ top: relativeTop }}
+                    onClick={
+                      onExperienceClick
+                        ? () => onExperienceClick(card.experience)
+                        : undefined
+                    }
+                  >
+                    <MilestoneEntry experience={card.experience} />
+                  </div>
+                )
+              }
+
+              return (
+                <div
+                  key={card.experience.id}
+                  className="absolute left-0 right-0"
+                  style={{ top: relativeTop, height: card.heightPx }}
+                  onClick={
+                    onExperienceClick
+                      ? () => onExperienceClick(card.experience)
+                      : undefined
+                  }
+                >
+                  <ExperienceEntryCard
+                    experience={card.experience}
+                    isVeryShortDuration={isVeryShortDuration}
+                    className="h-full w-full"
+                  />
+                </div>
+              )
+            })}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+interface CardRendererProps {
   card: PositionedCard
   onClick?: () => void
 }
 
-function Card({ card, onClick }: CardProps) {
-  const {
-    experience,
-    topPx,
-    heightPx,
-    cardType,
-    regularColumn,
-    totalRegularColumns,
-    fixedColumn,
-    fixedRegionWidthPx,
-  } = card
+function CardRenderer({ card, onClick }: CardRendererProps) {
+  const { experience, topPx, heightPx, cardType } = card
   const isVeryShortDuration = experience.durationMonths <= 6
-  const isFixed = cardType !== 'regular'
-
-  // Calculate position based on card type
-  let style: React.CSSProperties
-
-  if (isFixed) {
-    // Fixed cards: positioned from right, content-width
-    const rightOffset = fixedColumn * (DEPRIORITIZED_WIDTH_PX + COLUMN_GAP_PX)
-
-    style = {
-      position: 'absolute',
-      top: topPx,
-      height: cardType === 'milestone' ? 'auto' : heightPx,
-      right: rightOffset,
-      width: 'auto',
-    }
-  } else {
-    // Regular cards: positioned from left, fill remaining space
-    const totalGapPx = totalRegularColumns > 1 ? (totalRegularColumns - 1) * COLUMN_GAP_PX : 0
-    const availableWidth = `calc(100% - ${fixedRegionWidthPx}px)`
-    const columnWidth = `calc((${availableWidth} - ${totalGapPx}px) / ${totalRegularColumns})`
-    const leftOffset =
-      regularColumn === 0
-        ? '0px'
-        : `calc(${regularColumn} * (${availableWidth} - ${totalGapPx}px) / ${totalRegularColumns} + ${regularColumn * COLUMN_GAP_PX}px)`
-
-    style = {
-      position: 'absolute',
-      top: topPx,
-      height: heightPx,
-      left: leftOffset,
-      width: columnWidth,
-    }
-  }
 
   if (cardType === 'milestone') {
     return (
-      <div style={style}>
-        <MilestoneEntry experience={experience} onClick={onClick} />
+      <div
+        className="absolute left-0"
+        style={{ top: topPx }}
+        onClick={onClick}
+      >
+        <MilestoneEntry experience={experience} />
       </div>
     )
   }
 
+  // For solo cards (deprioritized or regular), use full width or auto
+  const widthClass = cardType === 'deprioritized' ? '' : 'right-0'
+
   return (
-    <div style={style}>
+    <div
+      className={`absolute left-0 ${widthClass}`}
+      style={{ top: topPx, height: heightPx }}
+      onClick={onClick}
+    >
       <ExperienceEntryCard
         experience={experience}
         isVeryShortDuration={isVeryShortDuration}
-        onClick={onClick}
         className="h-full w-full"
       />
     </div>
@@ -406,8 +458,8 @@ export function CareerCalendar({
 
   const totalHeightPx = years.length * YEAR_HEIGHT_PX
 
-  const positionedCards = useMemo(
-    () => buildPositionedCards(experiences, totalHeightPx, timelineStart, timelineEnd, now),
+  const overlapGroups = useMemo(
+    () => buildOverlapGroups(experiences, totalHeightPx, timelineStart, timelineEnd, now),
     [experiences, totalHeightPx, timelineStart, timelineEnd, now],
   )
 
@@ -478,15 +530,11 @@ export function CareerCalendar({
 
           {/* Experience cards */}
           <div className="absolute top-0 bottom-0 left-4 max-sm:left-2 right-0">
-            {positionedCards.map((card) => (
-              <Card
-                key={card.experience.id}
-                card={card}
-                onClick={
-                  onExperienceClick
-                    ? () => onExperienceClick(card.experience)
-                    : undefined
-                }
+            {overlapGroups.map((group) => (
+              <OverlapGroupRenderer
+                key={group.id}
+                group={group}
+                onExperienceClick={onExperienceClick}
               />
             ))}
           </div>
