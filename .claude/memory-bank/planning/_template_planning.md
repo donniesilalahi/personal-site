@@ -3,7 +3,7 @@
 **Context**: [1-2 sentences: what problem/feature/goal this plan addresses]
 **Status**: planning | active | completed
 **Created**: YYYY-MM-DD-HHmm
-**Prompted by Analysis**: [YYYY-MM-DD-HHmm_analysis-name.md](../analysis/YYYY-MM-DD-hhmm_analysis-name.md) _(optional: if plan is revision in response to analysis)_
+**Prompted by Analysis**: [YYYY-MM-DD-HHmm_analysis-name.md](../analysis/YYYY-MM-DD-HHmm_analysis-name.md) _(optional: if plan is revision in response to analysis)_
 
 ## Goals
 

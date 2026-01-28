@@ -7,6 +7,7 @@ import {
   getFixedWidthExperiences,
 } from './career-calendar.algorithm'
 import {
+  COLUMN_GAP_PX,
   MIN_EXPERIENCE_HEIGHT_PX,
   VERTICAL_GAP_PX,
   YEAR_HEIGHT_PX,
@@ -253,8 +254,8 @@ export function CareerCalendar({
 
   // Phase 1: Identify which cards need measurement
   const fixedWidthExperiences = useMemo(
-    () => getFixedWidthExperiences(experiences, now),
-    [experiences, now],
+    () => getFixedWidthExperiences(experiences),
+    [experiences],
   )
 
   // Measurement phase state
@@ -472,16 +473,54 @@ export function CareerCalendar({
               const exp = entry.experience
               const { cssLeft, cssRight, cssWidth, zIndex, cardType } = entry
               const isVeryShortDuration = exp.durationMonths <= 6
+              const positioningData = positioningMap?.get(exp.id)
+              const numFixedToRight = positioningData?.numFixedToRight ?? 0
 
-              // Milestone without overlap: link-like, positioned at left
-              if (cardType === 'milestone-no-overlap') {
+              // Calculate actual width for regular cards that need to flex
+              // Sum up measured widths of fixed cards that directly overlap to the right
+              let actualWidth = cssWidth
+              if (cssWidth === 'flex' && numFixedToRight > 0) {
+                // Find directly overlapping fixed cards and sum their measured widths
+                let fixedWidthSum = 0
+                for (const otherEntry of positionedExperiences) {
+                  if (
+                    otherEntry.experience.id !== exp.id &&
+                    (otherEntry.cardType === 'deprioritized' ||
+                      otherEntry.cardType === 'milestone') &&
+                    otherEntry.column > entry.column
+                  ) {
+                    // Check if they directly overlap in time
+                    const expStart = exp.startDateParsed
+                    const expEnd = exp.endDateParsed ?? now
+                    const otherStart = otherEntry.experience.startDateParsed
+                    const otherEnd = otherEntry.experience.endDateParsed ?? now
+                    const overlaps =
+                      expStart < otherEnd && expEnd > otherStart
+                    if (overlaps) {
+                      const measured = measuredWidths.get(
+                        otherEntry.experience.id,
+                      )
+                      if (measured) {
+                        fixedWidthSum += measured
+                      }
+                    }
+                  }
+                }
+                const gapsForFixed = numFixedToRight * COLUMN_GAP_PX
+                actualWidth = `calc(100% - ${fixedWidthSum}px - ${gapsForFixed}px)`
+              }
+
+              // Milestone cards (with or without overlap): link-like style, position from right
+              if (cardType === 'milestone-no-overlap' || cardType === 'milestone') {
                 return (
                   <div
                     key={exp.id}
                     className="absolute"
                     style={{
                       top: entry.finalTopPx,
-                      left: cssLeft,
+                      ...(cssRight !== undefined
+                        ? { right: cssRight, left: 'auto' }
+                        : { left: cssLeft }),
                       zIndex,
                     }}
                     onClick={() => onExperienceClick?.(exp)}
@@ -491,25 +530,32 @@ export function CareerCalendar({
                 )
               }
 
-              // Milestone with overlap: link-like, positioned from right with auto width
-              if (cardType === 'milestone') {
+              // Deprioritized cards: position from right with auto width
+              if (cardType === 'deprioritized') {
                 return (
                   <div
                     key={exp.id}
                     className="absolute"
                     style={{
                       top: entry.finalTopPx,
-                      right: cssRight,
+                      height: entry.finalHeightPx,
+                      ...(cssRight !== undefined
+                        ? { right: cssRight, left: 'auto', width: 'auto' }
+                        : { left: cssLeft, width: actualWidth }),
                       zIndex,
                     }}
                     onClick={() => onExperienceClick?.(exp)}
                   >
-                    <MilestoneEntry experience={exp} />
+                    <ExperienceEntryCard
+                      experience={exp}
+                      isVeryShortDuration={isVeryShortDuration}
+                      className="h-full"
+                    />
                   </div>
                 )
               }
 
-              // Deprioritized and regular cards: full height
+              // Regular cards: full height, flex to fill remaining space
               return (
                 <div
                   key={exp.id}
@@ -518,7 +564,7 @@ export function CareerCalendar({
                     top: entry.finalTopPx,
                     height: entry.finalHeightPx,
                     left: cssLeft,
-                    width: cssWidth,
+                    width: actualWidth,
                     zIndex,
                   }}
                   onClick={() => onExperienceClick?.(exp)}

@@ -1,6 +1,6 @@
 ---
 company: 'Brick'
-role: 'Head of Growth and Ops'
+role: 'Head of Growth and Operations'
 startDate: '2023-07-01'
 endDate: '2025-06-30'
 companyWebsite: 'https://onebrick.io'

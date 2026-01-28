@@ -1,5 +1,5 @@
 # Implementation Specs
 
-| Spec                                                                            | Status | Priority | Date       |
-| ------------------------------------------------------------------------------- | ------ | -------- | ---------- |
-| [postcard-effects-components](./2025-01-23-1830_postcard-effects-components.md) | ✅     | P1       | 2025-01-23 |
+| Spec | Status | Priority | Date |
+|------|--------|----------|------|
+| [career-calendar-flex-positioning](./2025-01-28-2340_career-calendar-flex-positioning.md) | ❌ broken | P1 | 2025-01-28 |

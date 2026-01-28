@@ -17,6 +17,33 @@ export interface MeasurableExperience {
 }
 
 // ============================================================================
+// Card Type (Visual Only)
+// ============================================================================
+
+/**
+ * Card type for RENDERING only - does not affect positioning.
+ * Derived from experience properties at render time.
+ */
+export type CardType =
+  | 'regular'
+  | 'deprioritized'
+  | 'milestone'
+  | 'milestone-no-overlap'
+
+/**
+ * Derive card type from experience properties.
+ * This is the single source of truth for visual variant selection.
+ */
+export function deriveCardType(
+  exp: Experience,
+  hasOverlap: boolean,
+): CardType {
+  if (exp.isDeprioritized) return 'deprioritized'
+  if (exp.isMilestone) return hasOverlap ? 'milestone' : 'milestone-no-overlap'
+  return 'regular'
+}
+
+// ============================================================================
 // Component Props
 // ============================================================================
 
@@ -102,4 +129,10 @@ export interface ExperiencePositioning {
   zIndex: number
   /** Card type for rendering decisions */
   cardType: 'regular' | 'deprioritized' | 'milestone' | 'milestone-no-overlap'
+  /** Number of fixed-width cards (deprioritized/milestone) directly overlapping to the right */
+  numFixedToRight?: number
+  /** Number of fixed-width cards (deprioritized/milestone) directly overlapping to the left */
+  numFixedToLeft?: number
+  /** Total number of experiences directly overlapping with this one */
+  directOverlapCount?: number
 }

@@ -3,6 +3,9 @@
 **Phase**: [Phase number]  
 **Pattern**: [Name of reusable pattern]  
 **When**: When you need to [concise problem statement]
+**Context**: [1-2 sentences: what problem/feature/goal this plan addresses]
+**Created**: YYYY-MM-DD-HHmm
+**Prompted by Analysis**: [YYYY-MM-DD-HHmm_lessons-name.md](../lessons-learned/YYYY-MM-DD-HHmm_lessons-name.md)
 
 ## The Problem
 

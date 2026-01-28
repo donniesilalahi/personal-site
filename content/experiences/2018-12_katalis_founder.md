@@ -1,6 +1,6 @@
 ---
 company: 'Katalis'
-role: 'Founder'
+role: 'Maker'
 startDate: '2018-10-01'
 endDate: '2019-01-31'
 companyWebsite: 'https://www.instagram.com/ysiseasia/'

@@ -1,6 +1,6 @@
 ---
 company: 'Katalis'
-role: 'Founder'
+role: 'Maker'
 startDate: '2019-06-01'
 endDate: '2020-08-31'
 companyWebsite: 'https://www.instagram.com/katalistkarir/'
