@@ -190,31 +190,50 @@ function buildRenderedGroups(
 // Card Rendering
 // ============================================================================
 
-interface CardRendererProps {
+interface FlexCardProps {
   card: PositionedCard
   groupTopPx: number
   onClick?: () => void
 }
 
-function CardRenderer({ card, groupTopPx, onClick }: CardRendererProps) {
-  const { experience, topPx, heightPx, cardType } = card
+/**
+ * Render a card inside a flex item.
+ *
+ * For 'grow' cards (regular): Use absolute positioning within the flex item
+ * For 'content' cards (deprioritized/milestone): Render directly to establish width
+ */
+function FlexCard({ card, groupTopPx, onClick }: FlexCardProps) {
+  const { experience, topPx, heightPx, cardType, flexBehavior } = card
   const isVeryShortDuration = experience.durationMonths <= 6
-
-  // Position relative to the group top
   const relativeTop = topPx - groupTopPx
 
-  if (cardType === 'milestone') {
+  // Content-width cards (deprioritized/milestone) - render directly, no absolute positioning
+  // The card itself establishes the flex item width
+  if (flexBehavior === 'content') {
+    if (cardType === 'milestone') {
+      return (
+        <div
+          className="h-full flex items-start"
+          style={{ paddingTop: relativeTop }}
+          onClick={onClick}
+        >
+          <MilestoneEntry experience={experience} />
+        </div>
+      )
+    }
+
+    // Deprioritized card - renders full height of flex item
     return (
-      <div
-        className="absolute left-0 right-0"
-        style={{ top: relativeTop }}
+      <ExperienceEntryCard
+        experience={experience}
+        isVeryShortDuration={isVeryShortDuration}
         onClick={onClick}
-      >
-        <MilestoneEntry experience={experience} />
-      </div>
+        className="h-full"
+      />
     )
   }
 
+  // Growing cards (regular) - use absolute positioning within flex item
   return (
     <div
       className="absolute left-0 right-0"
@@ -245,22 +264,41 @@ function OverlapGroupRenderer({
 }: OverlapGroupRendererProps) {
   const { cards, topPx, heightPx } = group
 
-  // Single card - render directly without flex container
+  // Single card - render with absolute positioning
   if (cards.length === 1) {
     const card = cards[0]
-    return (
-      <div
-        className="absolute left-0 right-0"
-        style={{ top: topPx, height: heightPx }}
-      >
-        <CardRenderer
-          card={card}
-          groupTopPx={topPx}
+    const isVeryShortDuration = card.experience.durationMonths <= 6
+
+    if (card.cardType === 'milestone') {
+      return (
+        <div
+          className="absolute left-0"
+          style={{ top: card.topPx }}
           onClick={
             onExperienceClick
               ? () => onExperienceClick(card.experience)
               : undefined
           }
+        >
+          <MilestoneEntry experience={card.experience} />
+        </div>
+      )
+    }
+
+    return (
+      <div
+        className="absolute left-0 right-0"
+        style={{ top: card.topPx, height: card.heightPx }}
+        onClick={
+          onExperienceClick
+            ? () => onExperienceClick(card.experience)
+            : undefined
+        }
+      >
+        <ExperienceEntryCard
+          experience={card.experience}
+          isVeryShortDuration={isVeryShortDuration}
+          className="h-full w-full"
         />
       </div>
     )
@@ -274,15 +312,15 @@ function OverlapGroupRenderer({
       style={{ top: topPx, height: heightPx, gap: COLUMN_GAP_PX }}
     >
       {cards.map((card) => {
-        // Flex item: grow for regular, content for fixed-width
-        const flexStyle =
+        // Flex item styling based on card type
+        const flexClass =
           card.flexBehavior === 'grow'
-            ? { flex: '1 1 0', minWidth: 0 }
-            : { flex: '0 0 auto' }
+            ? 'relative flex-1 min-w-0'
+            : 'flex-none'
 
         return (
-          <div key={card.experience.id} className="relative" style={flexStyle}>
-            <CardRenderer
+          <div key={card.experience.id} className={flexClass}>
+            <FlexCard
               card={card}
               groupTopPx={topPx}
               onClick={
