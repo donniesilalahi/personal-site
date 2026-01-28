@@ -41,7 +41,7 @@ export function PostcardStamp({
     <div
       className={cn('relative aspect-[4/5]', className)}
       style={{
-        filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15))',
+        filter: 'drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.15))',
       }}
     >
       {/* Perforated white border - semi-circular cutouts along all edges */}
