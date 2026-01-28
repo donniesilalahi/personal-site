@@ -14,7 +14,7 @@ export function ProfileSection() {
         {/* Profile Picture with postcard frame effect */}
         <div
           className={cn(
-            'group relative size-[60px] shrink-0 overflow-hidden rounded-sm border border-border bg-card p-1',
+            'group relative size-[64px] shrink-0 overflow-hidden rounded-sm border border-border bg-card p-1',
           )}
         >
           {/* Content container with inner rounded corners */}
