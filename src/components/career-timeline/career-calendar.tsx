@@ -285,7 +285,7 @@ function resolveVerticalOverlaps(cards: Array<ProcessedCard>, now: Date): void {
 }
 
 // ============================================================================
-// Group Renderer - Uses CSS Grid for proper flex-grow + content-width
+// Group Renderer
 // ============================================================================
 
 interface GroupRendererProps {
@@ -296,13 +296,13 @@ interface GroupRendererProps {
 function GroupRenderer({ group, onExperienceClick }: GroupRendererProps) {
   const { topPx, heightPx, columns } = group
 
-  // Single column - no grid needed
+  // Single column - render cards directly
   if (columns.length === 1) {
     const column = columns[0]
     return (
       <>
         {column.cards.map((card) => (
-          <SingleCardRenderer
+          <SingleCard
             key={card.experience.id}
             card={card}
             isFullWidth={column.isRegular}
@@ -314,7 +314,6 @@ function GroupRenderer({ group, onExperienceClick }: GroupRendererProps) {
   }
 
   // Multiple columns - use CSS Grid
-  // Grid template: 1fr for regular columns, auto for fixed columns
   const gridCols = columns.map((col) => (col.isRegular ? '1fr' : 'auto')).join(' ')
 
   return (
@@ -328,46 +327,132 @@ function GroupRenderer({ group, onExperienceClick }: GroupRendererProps) {
       }}
     >
       {columns.map((column) => (
-        <div key={column.index} className="relative min-w-0">
-          {column.cards.map((card) => {
-            const relativeTop = card.topPx - topPx
-            return (
-              <CardInColumn
-                key={card.experience.id}
-                card={card}
-                relativeTop={relativeTop}
-                isRegularColumn={column.isRegular}
-                onClick={onExperienceClick ? () => onExperienceClick(card.experience) : undefined}
-              />
-            )
-          })}
-        </div>
+        <GridColumn
+          key={column.index}
+          column={column}
+          groupTopPx={topPx}
+          onExperienceClick={onExperienceClick}
+        />
       ))}
     </div>
   )
 }
 
 // ============================================================================
-// Card Renderers
+// Grid Column - handles both regular and fixed columns
 // ============================================================================
 
-interface SingleCardRendererProps {
+interface GridColumnProps {
+  column: ProcessedColumn
+  groupTopPx: number
+  onExperienceClick?: (experience: Experience) => void
+}
+
+function GridColumn({ column, groupTopPx, onExperienceClick }: GridColumnProps) {
+  const { isRegular, cards } = column
+
+  if (isRegular) {
+    // Regular column: cards stretch to fill width, positioned absolutely
+    return (
+      <div className="relative min-w-0">
+        {cards.map((card) => {
+          const relativeTop = card.topPx - groupTopPx
+          const isVeryShortDuration = card.experience.durationMonths <= 6
+
+          return (
+            <div
+              key={card.experience.id}
+              className="absolute left-0 right-0"
+              style={{ top: relativeTop, height: card.heightPx }}
+              onClick={onExperienceClick ? () => onExperienceClick(card.experience) : undefined}
+            >
+              <ExperienceEntryCard
+                experience={card.experience}
+                isVeryShortDuration={isVeryShortDuration}
+                className="h-full w-full"
+              />
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
+  // Fixed column: content determines width
+  // We need a sizer element to establish the grid cell width
+  // Find the card that would be widest (for deprioritized, any card works since they're similar)
+  const sizerCard = cards[0]
+
+  return (
+    <div className="relative">
+      {/* Sizer: establishes column width, takes no vertical space */}
+      <div className="h-0 overflow-visible" aria-hidden="true">
+        <div className="opacity-0 pointer-events-none">
+          {sizerCard.cardType === 'milestone' ? (
+            <MilestoneEntry experience={sizerCard.experience} />
+          ) : (
+            <ExperienceEntryCard
+              experience={sizerCard.experience}
+              isVeryShortDuration={sizerCard.experience.durationMonths <= 6}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Actual cards - positioned absolutely */}
+      {cards.map((card) => {
+        const relativeTop = card.topPx - groupTopPx
+        const isVeryShortDuration = card.experience.durationMonths <= 6
+
+        if (card.cardType === 'milestone') {
+          return (
+            <div
+              key={card.experience.id}
+              className="absolute left-0"
+              style={{ top: relativeTop }}
+              onClick={onExperienceClick ? () => onExperienceClick(card.experience) : undefined}
+            >
+              <MilestoneEntry experience={card.experience} />
+            </div>
+          )
+        }
+
+        return (
+          <div
+            key={card.experience.id}
+            className="absolute left-0 right-0"
+            style={{ top: relativeTop, height: card.heightPx }}
+            onClick={onExperienceClick ? () => onExperienceClick(card.experience) : undefined}
+          >
+            <ExperienceEntryCard
+              experience={card.experience}
+              isVeryShortDuration={isVeryShortDuration}
+              className="h-full"
+            />
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ============================================================================
+// Single Card (for single-column groups)
+// ============================================================================
+
+interface SingleCardProps {
   card: ProcessedCard
   isFullWidth: boolean
   onClick?: () => void
 }
 
-function SingleCardRenderer({ card, isFullWidth, onClick }: SingleCardRendererProps) {
+function SingleCard({ card, isFullWidth, onClick }: SingleCardProps) {
   const { experience, topPx, heightPx, cardType } = card
   const isVeryShortDuration = experience.durationMonths <= 6
 
   if (cardType === 'milestone') {
     return (
-      <div
-        className="absolute"
-        style={{ top: topPx, left: 0 }}
-        onClick={onClick}
-      >
+      <div className="absolute" style={{ top: topPx, left: 0 }} onClick={onClick}>
         <MilestoneEntry experience={experience} />
       </div>
     )
@@ -381,7 +466,6 @@ function SingleCardRenderer({ card, isFullWidth, onClick }: SingleCardRendererPr
         height: heightPx,
         left: 0,
         right: isFullWidth ? 0 : undefined,
-        width: isFullWidth ? undefined : 'auto',
       }}
       onClick={onClick}
     >
@@ -389,52 +473,6 @@ function SingleCardRenderer({ card, isFullWidth, onClick }: SingleCardRendererPr
         experience={experience}
         isVeryShortDuration={isVeryShortDuration}
         className={cn('h-full', isFullWidth && 'w-full')}
-      />
-    </div>
-  )
-}
-
-interface CardInColumnProps {
-  card: ProcessedCard
-  relativeTop: number
-  isRegularColumn: boolean
-  onClick?: () => void
-}
-
-function CardInColumn({ card, relativeTop, isRegularColumn, onClick }: CardInColumnProps) {
-  const { experience, heightPx, cardType } = card
-  const isVeryShortDuration = experience.durationMonths <= 6
-
-  if (cardType === 'milestone') {
-    // Milestone: just position at top, don't stretch
-    return (
-      <div
-        className="absolute left-0"
-        style={{ top: relativeTop }}
-        onClick={onClick}
-      >
-        <MilestoneEntry experience={experience} />
-      </div>
-    )
-  }
-
-  // Regular column: stretch to fill width
-  // Fixed column: let content determine width
-  return (
-    <div
-      className={cn('absolute', isRegularColumn && 'left-0 right-0')}
-      style={{
-        top: relativeTop,
-        height: heightPx,
-        left: isRegularColumn ? 0 : undefined,
-        right: isRegularColumn ? 0 : undefined,
-      }}
-      onClick={onClick}
-    >
-      <ExperienceEntryCard
-        experience={experience}
-        isVeryShortDuration={isVeryShortDuration}
-        className={cn('h-full', isRegularColumn && 'w-full')}
       />
     </div>
   )
