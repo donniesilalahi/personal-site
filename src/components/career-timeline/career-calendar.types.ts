@@ -1,49 +1,6 @@
 import type { Experience } from '@/lib/experiences'
 
 // ============================================================================
-// Measurement Phase Types
-// ============================================================================
-
-/** Map of experience ID to measured width in pixels */
-export type MeasuredWidths = Map<string, number>
-
-/** Card types that need width measurement (content-hugging) */
-export type FixedWidthCardType = 'deprioritized' | 'milestone'
-
-/** Experiences that need measurement before positioning */
-export interface MeasurableExperience {
-  experience: Experience
-  cardType: FixedWidthCardType
-}
-
-// ============================================================================
-// Card Type (Visual Only)
-// ============================================================================
-
-/**
- * Card type for RENDERING only - does not affect positioning.
- * Derived from experience properties at render time.
- */
-export type CardType =
-  | 'regular'
-  | 'deprioritized'
-  | 'milestone'
-  | 'milestone-no-overlap'
-
-/**
- * Derive card type from experience properties.
- * This is the single source of truth for visual variant selection.
- */
-export function deriveCardType(
-  exp: Experience,
-  hasOverlap: boolean,
-): CardType {
-  if (exp.isDeprioritized) return 'deprioritized'
-  if (exp.isMilestone) return hasOverlap ? 'milestone' : 'milestone-no-overlap'
-  return 'regular'
-}
-
-// ============================================================================
 // Component Props
 // ============================================================================
 
@@ -53,53 +10,9 @@ export interface CareerCalendarProps {
   onExperienceClick?: (experience: Experience) => void
 }
 
-export interface PositionedExperience {
-  experience: Experience
-  /** Column index (0 = leftmost) */
-  column: number
-  /** Left position as percentage (0-100) - from forward packing algorithm */
-  leftPercent: number
-  /** Width as percentage (0-100) - from forward packing algorithm */
-  widthPercent: number
-  /** Maximum columns in this overlap group (for backward compatibility) */
-  maxColumnsInGroup: number
-  /** Top position as percentage of total timeline height */
-  topPercent: number
-  /** Height as percentage of total timeline height */
-  heightPercent: number
-  /** Top position in pixels (original, based on date) */
-  topPx: number
-  /** Height in pixels */
-  heightPx: number
-  /** Final top position in pixels (after gap adjustment) */
-  finalTopPx: number
-  /** Final height in pixels (after gap adjustment) */
-  finalHeightPx: number
-  /** Whether this card is overlapped by another card from right */
-  isOverlapped: boolean
-  /** Whether this positioned item is a milestone */
-  isMilestone: boolean
-  /** Ready-to-use CSS left value */
-  cssLeft: string
-  /** Ready-to-use CSS right value for right-positioned cards */
-  cssRight?: string
-  /** Ready-to-use CSS width value */
-  cssWidth: string
-  /** Z-index for stacking */
-  zIndex: number
-  /** Card type for rendering */
-  cardType: 'regular' | 'deprioritized' | 'milestone' | 'milestone-no-overlap'
-}
-
-export interface PositionedMilestone {
-  experience: Experience
-  topPercent: number
-  topPx: number
-  /** Whether this milestone overlaps with regular experiences */
-  hasOverlapWithRegular: boolean
-  /** Number of overlapping regular experiences at this point */
-  overlappingRegularCount: number
-}
+// ============================================================================
+// Timeline Bounds
+// ============================================================================
 
 export interface TimelineBounds {
   years: Array<number>
@@ -108,31 +21,37 @@ export interface TimelineBounds {
   timelineEnd: Date
 }
 
-export interface ExperiencePositioning {
-  /** Which column (0 = leftmost) */
-  column: number
-  /** Left position as percentage (0-100) - for non-special cards */
-  leftPercent: number
-  /** Width as percentage (0-100) - for non-special cards */
-  widthPercent: number
-  /** Number of events overlapping at this event's start time (for debugging) */
-  overlapAtStart: number
-  /** Whether this card has another card overlapping it from the right */
-  isOverlapped: boolean
-  /** Ready-to-use CSS left value (e.g., "0%", "calc(100% - 48px)") */
-  cssLeft: string
-  /** Ready-to-use CSS right value for right-positioned cards (e.g., "0px", "50px") */
-  cssRight?: string
-  /** Ready-to-use CSS width value (e.g., "100%", "48px", "auto") */
-  cssWidth: string
-  /** Z-index for stacking order */
-  zIndex: number
-  /** Card type for rendering decisions */
-  cardType: 'regular' | 'deprioritized' | 'milestone' | 'milestone-no-overlap'
-  /** Number of fixed-width cards (deprioritized/milestone) directly overlapping to the right */
-  numFixedToRight?: number
-  /** Number of fixed-width cards (deprioritized/milestone) directly overlapping to the left */
-  numFixedToLeft?: number
-  /** Total number of experiences directly overlapping with this one */
-  directOverlapCount?: number
+// ============================================================================
+// Positioned Card (for vertical positioning)
+// ============================================================================
+
+/** Card with calculated vertical position */
+export interface PositionedCard {
+  experience: Experience
+  /** Top position in pixels from timeline top */
+  topPx: number
+  /** Height in pixels */
+  heightPx: number
+  /** Flex behavior: 'grow' for regular, 'content' for deprioritized/milestone */
+  flexBehavior: 'grow' | 'content'
+  /** Card type for rendering */
+  cardType: 'regular' | 'deprioritized' | 'milestone'
+  /** Whether this card is in an overlap group with others */
+  hasOverlap: boolean
+}
+
+// ============================================================================
+// Overlap Group (for horizontal layout via flexbox)
+// ============================================================================
+
+/** A group of cards that overlap in time */
+export interface RenderedOverlapGroup {
+  /** Unique ID for this group */
+  id: string
+  /** Top of the group (earliest end date = highest on timeline) */
+  topPx: number
+  /** Height of the group (from earliest start to latest end) */
+  heightPx: number
+  /** Cards in this group, sorted by start date (leftmost first) */
+  cards: Array<PositionedCard>
 }

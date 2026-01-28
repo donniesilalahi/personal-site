@@ -1,7 +1,7 @@
 # Career Calendar Positioning Refactor
 
 **Context**: Current algorithm has inconsistent sorting (ASC for regular cards, DESC for fixed-width cards), violating the principle that earlier start date = leftmost column. Card type categories are mixed with positioning logic instead of being purely visual.  
-**Status**: completed  
+**Status**: superseded by flexbox refactor  
 **Created**: 2025-01-28
 
 ## Goals

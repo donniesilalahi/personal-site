@@ -1,11 +1,9 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useMemo } from 'react'
 
 import { ExperienceEntryCard, MilestoneEntry } from './experience-entry-card'
 import { CareerCalendarSkeleton } from './career-calendar-skeleton'
-import {
-  calculatePositioning,
-  getFixedWidthExperiences,
-} from './career-calendar.algorithm'
+import { calculatePositioning } from './career-calendar.algorithm'
+import type { OverlapGroup } from './career-calendar.algorithm'
 import {
   COLUMN_GAP_PX,
   MIN_EXPERIENCE_HEIGHT_PX,
@@ -15,25 +13,26 @@ import {
 import { areConsecutive, dateToPercent } from './career-calendar.utils'
 import type {
   CareerCalendarProps,
-  ExperiencePositioning,
-  MeasuredWidths,
-  PositionedExperience,
+  PositionedCard,
+  RenderedOverlapGroup,
   TimelineBounds,
 } from './career-calendar.types'
 
 import type { Experience } from '@/lib/experiences'
 import { cn } from '@/lib/utils'
 
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
 /**
  * Calculate timeline bounds from experiences
  */
 function calculateTimelineBounds(
-  regularExperiences: Array<Experience>,
-  milestones: Array<Experience>,
+  experiences: Array<Experience>,
   now: Date,
 ): TimelineBounds {
-  const allExperiences = [...regularExperiences, ...milestones]
-  if (allExperiences.length === 0) {
+  if (experiences.length === 0) {
     const currentYear = now.getFullYear()
     return {
       years: [currentYear],
@@ -43,10 +42,10 @@ function calculateTimelineBounds(
     }
   }
 
-  let minDate = new Date(allExperiences[0].startDateParsed)
-  let maxDate = allExperiences[0].endDateParsed ?? now
+  let minDate = new Date(experiences[0].startDateParsed)
+  let maxDate = experiences[0].endDateParsed ?? now
 
-  for (const exp of allExperiences) {
+  for (const exp of experiences) {
     if (exp.startDateParsed < minDate) {
       minDate = new Date(exp.startDateParsed)
     }
@@ -56,181 +55,252 @@ function calculateTimelineBounds(
     }
   }
 
-  // Round to year boundaries
   const startYear = minDate.getFullYear()
   const endYear = maxDate.getFullYear()
-
-  // Ceiling year = endYear + 1 (just label + line at top, no full lane)
   const ceiling = endYear + 1
 
   // Build years array (descending - newest at top)
-  // These are the actual year lanes (endYear down to startYear)
   const yearsList: Array<number> = []
   for (let y = endYear; y >= startYear; y--) {
     yearsList.push(y)
   }
 
-  // Timeline spans from start of startYear to start of ceiling year
-  const timelineStartDate = new Date(startYear, 0, 1)
-  const timelineEndDate = new Date(ceiling, 0, 1)
-
   return {
     years: yearsList,
     ceilingYear: ceiling,
-    timelineStart: timelineStartDate,
-    timelineEnd: timelineEndDate,
+    timelineStart: new Date(startYear, 0, 1),
+    timelineEnd: new Date(ceiling, 0, 1),
   }
 }
 
 /**
- * Position experiences with gap adjustments for consecutive items
+ * Calculate vertical position for a single card
  */
-function positionExperiences(
-  items: Array<Experience>,
-  positioningMap: Map<string, ExperiencePositioning>,
+function calculateCardPosition(
+  exp: Experience,
   totalHeightPx: number,
   timelineStart: Date,
   timelineEnd: Date,
   now: Date,
-): Array<PositionedExperience> {
-  // First pass: calculate positions based on dates
-  const basePositions = items.map((exp) => {
-    const start = exp.startDateParsed
-    const end = exp.endDateParsed ?? now
+): { topPx: number; heightPx: number } {
+  const start = exp.startDateParsed
+  const end = exp.endDateParsed ?? now
 
-    // Top = where experience ends (newest point) - DATE BASED, NEVER CHANGES
-    const topPercent = dateToPercent(end, timelineStart, timelineEnd)
-    const topPx = (topPercent / 100) * totalHeightPx
+  // Top = where experience ends (newest point)
+  const topPercent = dateToPercent(end, timelineStart, timelineEnd)
+  const topPx = (topPercent / 100) * totalHeightPx
 
-    // Height calculated from EXACT dates (same scale as position)
-    const startPercent = dateToPercent(start, timelineStart, timelineEnd)
-    let heightPx = ((startPercent - topPercent) / 100) * totalHeightPx
+  // Height = duration
+  const startPercent = dateToPercent(start, timelineStart, timelineEnd)
+  let heightPx = ((startPercent - topPercent) / 100) * totalHeightPx
 
-    // Enforce minimum height
-    if (heightPx < MIN_EXPERIENCE_HEIGHT_PX) {
-      heightPx = MIN_EXPERIENCE_HEIGHT_PX
-    }
-
-    const heightPercent = (heightPx / totalHeightPx) * 100
-
-    const positioningData = positioningMap.get(exp.id)
-    const positioning: ExperiencePositioning = positioningData ?? {
-      column: 0,
-      leftPercent: 0,
-      widthPercent: 100,
-      overlapAtStart: 1,
-      isOverlapped: false,
-      cssLeft: '0%',
-      cssWidth: '100%',
-      zIndex: 1,
-      cardType: 'regular',
-    }
-
-    return {
-      experience: exp,
-      column: positioning.column,
-      leftPercent: positioning.leftPercent,
-      widthPercent: positioning.widthPercent,
-      maxColumnsInGroup: positioning.overlapAtStart,
-      topPercent,
-      heightPercent,
-      topPx: Math.round(topPx),
-      heightPx: Math.round(heightPx),
-      finalTopPx: Math.round(topPx),
-      finalHeightPx: Math.round(heightPx),
-      isOverlapped: positioning.isOverlapped,
-      isMilestone: exp.isMilestone || false,
-      cssLeft: positioning.cssLeft,
-      cssRight: positioning.cssRight,
-      cssWidth: positioning.cssWidth,
-      zIndex: positioning.zIndex,
-      cardType: positioning.cardType,
-    }
-  })
-
-  // Group cards by column for efficient processing
-  const byColumn = new Map<number, Array<PositionedExperience>>()
-  for (const entry of basePositions) {
-    const list = byColumn.get(entry.column) ?? []
-    list.push(entry)
-    byColumn.set(entry.column, list)
+  // Enforce minimum height
+  if (heightPx < MIN_EXPERIENCE_HEIGHT_PX) {
+    heightPx = MIN_EXPERIENCE_HEIGHT_PX
   }
 
-  // Second pass: resolve overlaps and ensure consistent gaps within each column
-  // Key insight: For CONSECUTIVE experiences (no time gap), enforce uniform visual gap
-  // For NON-consecutive experiences (real time gap), preserve the time-proportional gap
-  for (const [, colCards] of byColumn) {
+  return { topPx: Math.round(topPx), heightPx: Math.round(heightPx) }
+}
+
+/**
+ * Convert algorithm groups to rendered groups with vertical positions
+ */
+function buildRenderedGroups(
+  groups: Array<OverlapGroup>,
+  totalHeightPx: number,
+  timelineStart: Date,
+  timelineEnd: Date,
+  now: Date,
+): Array<RenderedOverlapGroup> {
+  return groups.map((group) => {
+    // Calculate position for each card in the group
+    const cards: Array<PositionedCard> = group.cards.map((card) => {
+      const { topPx, heightPx } = calculateCardPosition(
+        card.experience,
+        totalHeightPx,
+        timelineStart,
+        timelineEnd,
+        now,
+      )
+
+      return {
+        experience: card.experience,
+        topPx,
+        heightPx,
+        flexBehavior: card.flexBehavior,
+        cardType: card.cardType,
+        hasOverlap: !group.isSolo,
+      }
+    })
+
+    // Resolve vertical overlaps within the group
     // Sort by topPx (newest/higher cards first)
-    colCards.sort((a, b) => a.finalTopPx - b.finalTopPx)
+    const sortedCards = [...cards].sort((a, b) => a.topPx - b.topPx)
 
-    for (let i = 0; i < colCards.length - 1; i++) {
-      const current = colCards[i]
-      const next = colCards[i + 1]
+    for (let i = 0; i < sortedCards.length - 1; i++) {
+      const current = sortedCards[i]
+      const next = sortedCards[i + 1]
 
-      const currentBottom = current.finalTopPx + current.finalHeightPx
-      const gap = next.finalTopPx - currentBottom
+      const currentBottom = current.topPx + current.heightPx
+      const gap = next.topPx - currentBottom
 
-      // Check if these experiences are consecutive (no real time gap)
-      // Note: "current" is above (ends later), "next" is below (starts earlier)
-      // So we check if current's START is consecutive to next's END
+      // Check if these experiences are consecutive
       const isConsecutive = areConsecutive(
         next.experience.endDateParsed,
         current.experience.startDateParsed,
         now,
       )
 
-      // For consecutive experiences: enforce exactly VERTICAL_GAP_PX
-      // For non-consecutive: only act if gap < VERTICAL_GAP_PX (overlap)
-      if (isConsecutive) {
-        // Always normalize consecutive cards to have exactly VERTICAL_GAP_PX
-        // Directly set the height so bottom aligns with expected gap
-        const newHeight = next.finalTopPx - current.finalTopPx - VERTICAL_GAP_PX
-
-        if (newHeight >= MIN_EXPERIENCE_HEIGHT_PX) {
-          current.finalHeightPx = newHeight
-        } else {
-          // Can't shrink enough - enforce min height and push next card down
-          current.finalHeightPx = MIN_EXPERIENCE_HEIGHT_PX
-          const newNextTop =
-            current.finalTopPx + MIN_EXPERIENCE_HEIGHT_PX + VERTICAL_GAP_PX
-          const shift = newNextTop - next.finalTopPx
-
-          for (let j = i + 1; j < colCards.length; j++) {
-            colCards[j].finalTopPx += shift
-          }
-        }
-      } else if (gap < VERTICAL_GAP_PX) {
-        // Non-consecutive but overlapping/too close - ensure minimum gap
-        const desiredHeight =
-          next.finalTopPx - current.finalTopPx - VERTICAL_GAP_PX
+      if (isConsecutive || gap < VERTICAL_GAP_PX) {
+        // Ensure minimum gap
+        const desiredHeight = next.topPx - current.topPx - VERTICAL_GAP_PX
 
         if (desiredHeight >= MIN_EXPERIENCE_HEIGHT_PX) {
-          current.finalHeightPx = desiredHeight
+          current.heightPx = desiredHeight
         } else {
-          current.finalHeightPx = MIN_EXPERIENCE_HEIGHT_PX
-          const newNextTop =
-            current.finalTopPx + MIN_EXPERIENCE_HEIGHT_PX + VERTICAL_GAP_PX
-          const shift = newNextTop - next.finalTopPx
-
-          for (let j = i + 1; j < colCards.length; j++) {
-            colCards[j].finalTopPx += shift
+          current.heightPx = MIN_EXPERIENCE_HEIGHT_PX
+          const shift =
+            current.topPx + MIN_EXPERIENCE_HEIGHT_PX + VERTICAL_GAP_PX - next.topPx
+          for (let j = i + 1; j < sortedCards.length; j++) {
+            sortedCards[j].topPx += shift
           }
         }
       }
     }
-  }
 
-  return basePositions
+    // Calculate group bounds
+    let groupTop = Infinity
+    let groupBottom = 0
+    for (const card of cards) {
+      if (card.topPx < groupTop) groupTop = card.topPx
+      const bottom = card.topPx + card.heightPx
+      if (bottom > groupBottom) groupBottom = bottom
+    }
+
+    return {
+      id: group.id,
+      topPx: groupTop,
+      heightPx: groupBottom - groupTop,
+      cards,
+    }
+  })
 }
 
 // ============================================================================
-// Career Calendar Component
+// Card Rendering
 // ============================================================================
 
-/**
- * Measurement phase states
- */
-type MeasurementPhase = 'mounting' | 'measuring' | 'ready'
+interface CardRendererProps {
+  card: PositionedCard
+  groupTopPx: number
+  onClick?: () => void
+}
+
+function CardRenderer({ card, groupTopPx, onClick }: CardRendererProps) {
+  const { experience, topPx, heightPx, cardType } = card
+  const isVeryShortDuration = experience.durationMonths <= 6
+
+  // Position relative to the group top
+  const relativeTop = topPx - groupTopPx
+
+  if (cardType === 'milestone') {
+    return (
+      <div
+        className="absolute left-0 right-0"
+        style={{ top: relativeTop }}
+        onClick={onClick}
+      >
+        <MilestoneEntry experience={experience} />
+      </div>
+    )
+  }
+
+  return (
+    <div
+      className="absolute left-0 right-0"
+      style={{ top: relativeTop, height: heightPx }}
+      onClick={onClick}
+    >
+      <ExperienceEntryCard
+        experience={experience}
+        isVeryShortDuration={isVeryShortDuration}
+        className="h-full w-full"
+      />
+    </div>
+  )
+}
+
+// ============================================================================
+// Overlap Group Rendering
+// ============================================================================
+
+interface OverlapGroupRendererProps {
+  group: RenderedOverlapGroup
+  onExperienceClick?: (experience: Experience) => void
+}
+
+function OverlapGroupRenderer({
+  group,
+  onExperienceClick,
+}: OverlapGroupRendererProps) {
+  const { cards, topPx, heightPx } = group
+
+  // Single card - render directly without flex container
+  if (cards.length === 1) {
+    const card = cards[0]
+    return (
+      <div
+        className="absolute left-0 right-0"
+        style={{ top: topPx, height: heightPx }}
+      >
+        <CardRenderer
+          card={card}
+          groupTopPx={topPx}
+          onClick={
+            onExperienceClick
+              ? () => onExperienceClick(card.experience)
+              : undefined
+          }
+        />
+      </div>
+    )
+  }
+
+  // Multiple cards - use flex container for horizontal layout
+  // Cards are already sorted by start date (leftmost first)
+  return (
+    <div
+      className="absolute left-0 right-0 flex"
+      style={{ top: topPx, height: heightPx, gap: COLUMN_GAP_PX }}
+    >
+      {cards.map((card) => {
+        // Flex item: grow for regular, content for fixed-width
+        const flexStyle =
+          card.flexBehavior === 'grow'
+            ? { flex: '1 1 0', minWidth: 0 }
+            : { flex: '0 0 auto' }
+
+        return (
+          <div key={card.experience.id} className="relative" style={flexStyle}>
+            <CardRenderer
+              card={card}
+              groupTopPx={topPx}
+              onClick={
+                onExperienceClick
+                  ? () => onExperienceClick(card.experience)
+                  : undefined
+              }
+            />
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ============================================================================
+// Main Component
+// ============================================================================
 
 export function CareerCalendar({
   experiences,
@@ -239,152 +309,38 @@ export function CareerCalendar({
 }: CareerCalendarProps) {
   const now = useMemo(() => new Date(), [])
 
-  // Calculate timeline bounds using all experiences
+  // Calculate timeline bounds
   const { years, ceilingYear, timelineStart, timelineEnd } = useMemo(
-    () => calculateTimelineBounds(experiences, [], now),
+    () => calculateTimelineBounds(experiences, now),
     [experiences, now],
   )
 
-  // Total timeline height in pixels
+  // Total timeline height
   const totalHeightPx = years.length * YEAR_HEIGHT_PX
 
-  // ============================================================================
-  // Two-Phase Rendering: Measure fixed-width cards first, then calculate positions
-  // ============================================================================
-
-  // Phase 1: Identify which cards need measurement
-  const fixedWidthExperiences = useMemo(
-    () => getFixedWidthExperiences(experiences),
-    [experiences],
+  // Calculate positioning (overlap groups)
+  const positioningResult = useMemo(
+    () => calculatePositioning(experiences, now),
+    [experiences, now],
   )
 
-  // Measurement phase state
-  const [phase, setPhase] = useState<MeasurementPhase>('mounting')
-  const [measuredWidths, setMeasuredWidths] = useState<MeasuredWidths>(
-    new Map(),
+  // Build rendered groups with vertical positions
+  const renderedGroups = useMemo(
+    () =>
+      buildRenderedGroups(
+        positioningResult.groups,
+        totalHeightPx,
+        timelineStart,
+        timelineEnd,
+        now,
+      ),
+    [positioningResult.groups, totalHeightPx, timelineStart, timelineEnd, now],
   )
 
-  // Refs for measuring fixed-width cards
-  const measureContainerRef = useRef<HTMLDivElement>(null)
-  const measureRefs = useRef<Map<string, HTMLDivElement | null>>(new Map())
-
-  // Effect to transition from mounting to measuring after first render
-  useEffect(() => {
-    if (phase === 'mounting') {
-      // Use requestAnimationFrame to ensure DOM is fully rendered
-      requestAnimationFrame(() => {
-        setPhase('measuring')
-      })
-    }
-  }, [phase])
-
-  // Measurement effect - runs after DOM is rendered
-  useLayoutEffect(() => {
-    if (phase !== 'measuring') return
-
-    // If no fixed-width cards, skip to ready
-    if (fixedWidthExperiences.length === 0) {
-      setMeasuredWidths(new Map())
-      setPhase('ready')
-      return
-    }
-
-    // Measure all fixed-width cards
-    const widths = new Map<string, number>()
-    let allMeasured = true
-
-    for (const { experience } of fixedWidthExperiences) {
-      const el = measureRefs.current.get(experience.id)
-      if (el) {
-        const width = el.offsetWidth
-        if (width > 0) {
-          widths.set(experience.id, width)
-        } else {
-          allMeasured = false
-        }
-      } else {
-        allMeasured = false
-      }
-    }
-
-    if (allMeasured && widths.size === fixedWidthExperiences.length) {
-      setMeasuredWidths(widths)
-      setPhase('ready')
-    } else {
-      // Retry measurement on next frame
-      requestAnimationFrame(() => {
-        setPhase('measuring')
-      })
-    }
-  }, [phase, fixedWidthExperiences])
-
-  // Phase 2: Calculate positioning with measured widths
-  const positioningMap = useMemo(() => {
-    if (phase !== 'ready') return null
-    return calculatePositioning(experiences, now, measuredWidths)
-  }, [experiences, now, measuredWidths, phase])
-
-  // Position all items using the unified positioning logic
-  const positionedExperiences = useMemo(() => {
-    if (!positioningMap) return null
-    return positionExperiences(
-      experiences,
-      positioningMap,
-      totalHeightPx,
-      timelineStart,
-      timelineEnd,
-      now,
-    )
-  }, [
-    experiences,
-    positioningMap,
-    totalHeightPx,
-    timelineStart,
-    timelineEnd,
-    now,
-  ])
-
-  // ============================================================================
-  // Render
-  // ============================================================================
-
-  // During mounting/measuring phase, show measurement layer + skeleton
-  if (phase !== 'ready' || !positionedExperiences) {
+  // Show skeleton if no experiences
+  if (experiences.length === 0) {
     return (
-      <>
-        {/* Measurement layer - positioned off-screen but rendered for measurement */}
-        <div
-          ref={measureContainerRef}
-          className="fixed left-0 top-0 opacity-0 pointer-events-none"
-          style={{ zIndex: -1000 }}
-          aria-hidden="true"
-        >
-          {fixedWidthExperiences.map(({ experience, cardType }) => (
-            <div
-              key={experience.id}
-              ref={(el) => {
-                measureRefs.current.set(experience.id, el)
-              }}
-              className="inline-block"
-              // For deprioritized cards with vertical text, we need a height context
-              // to properly measure width. Use a reasonable height (100px).
-              style={cardType === 'deprioritized' ? { height: 100 } : undefined}
-            >
-              {cardType === 'milestone' ? (
-                <MilestoneEntry experience={experience} />
-              ) : (
-                <ExperienceEntryCard experience={experience} />
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Skeleton loading state */}
-        <CareerCalendarSkeleton
-          yearCount={years.length}
-          className={className}
-        />
-      </>
+      <CareerCalendarSkeleton yearCount={years.length} className={className} />
     )
   }
 
@@ -396,36 +352,29 @@ export function CareerCalendar({
       )}
     >
       <div className="flex">
-        {/* Year labels column - fixed width for year text */}
+        {/* Year labels column */}
         <div
           className="shrink-0 w-10 relative"
           style={{ height: totalHeightPx }}
         >
-          {/* Ceiling year label at top (e.g., 2027) */}
+          {/* Ceiling year label at top */}
           <div
             className="absolute left-0 right-0 flex items-center"
-            style={{
-              top: 0,
-              transform: 'translateY(-50%)',
-            }}
+            style={{ top: 0, transform: 'translateY(-50%)' }}
           >
             <span className="text-[10px] font-medium text-muted-foreground leading-none">
               {ceilingYear}
             </span>
           </div>
 
-          {/* Year labels at the BOTTOM of each year lane (start of that year) */}
+          {/* Year labels at the bottom of each year lane */}
           {years.map((year, index) => {
             const yearBottomPx = (index + 1) * YEAR_HEIGHT_PX
-
             return (
               <div
                 key={year}
                 className="absolute left-0 right-0 flex items-center"
-                style={{
-                  top: yearBottomPx,
-                  transform: 'translateY(-50%)',
-                }}
+                style={{ top: yearBottomPx, transform: 'translateY(-50%)' }}
               >
                 <span className="text-[10px] font-medium text-muted-foreground leading-none">
                   {year}
@@ -435,148 +384,38 @@ export function CareerCalendar({
           })}
         </div>
 
-        {/* Timeline container with horizontal lines */}
+        {/* Timeline container */}
         <div
           className="flex-1 relative pl-4 max-sm:pl-2"
           style={{ height: totalHeightPx }}
         >
-          {/* Ceiling year indicator line at top */}
+          {/* Ceiling year line */}
           <div
             className="absolute h-px bg-border"
-            style={{
-              top: 0,
-              left: 0,
-              right: 0,
-            }}
+            style={{ top: 0, left: 0, right: 0 }}
           />
 
-          {/* Horizontal indicator lines - at the BOTTOM of each year lane (start of year) */}
+          {/* Year boundary lines */}
           {years.map((year, index) => {
             const lineTopPx = (index + 1) * YEAR_HEIGHT_PX
-
             return (
               <div
                 key={`line-${year}`}
                 className="absolute h-px bg-border"
-                style={{
-                  top: lineTopPx,
-                  left: 0,
-                  right: 0,
-                }}
+                style={{ top: lineTopPx, left: 0, right: 0 }}
               />
             )
           })}
 
-          {/* Experience cards container - offset by 16px (desktop) / 8px (mobile) for indicator line visibility */}
+          {/* Experience cards container */}
           <div className="absolute top-0 bottom-0 left-4 max-sm:left-2 right-0">
-            {positionedExperiences.map((entry) => {
-              const exp = entry.experience
-              const { cssLeft, cssRight, cssWidth, zIndex, cardType } = entry
-              const isVeryShortDuration = exp.durationMonths <= 6
-              const positioningData = positioningMap?.get(exp.id)
-              const numFixedToRight = positioningData?.numFixedToRight ?? 0
-
-              // Calculate actual width for regular cards that need to flex
-              // Sum up measured widths of fixed cards that directly overlap to the right
-              let actualWidth = cssWidth
-              if (cssWidth === 'flex' && numFixedToRight > 0) {
-                // Find directly overlapping fixed cards and sum their measured widths
-                let fixedWidthSum = 0
-                for (const otherEntry of positionedExperiences) {
-                  if (
-                    otherEntry.experience.id !== exp.id &&
-                    (otherEntry.cardType === 'deprioritized' ||
-                      otherEntry.cardType === 'milestone') &&
-                    otherEntry.column > entry.column
-                  ) {
-                    // Check if they directly overlap in time
-                    const expStart = exp.startDateParsed
-                    const expEnd = exp.endDateParsed ?? now
-                    const otherStart = otherEntry.experience.startDateParsed
-                    const otherEnd = otherEntry.experience.endDateParsed ?? now
-                    const overlaps =
-                      expStart < otherEnd && expEnd > otherStart
-                    if (overlaps) {
-                      const measured = measuredWidths.get(
-                        otherEntry.experience.id,
-                      )
-                      if (measured) {
-                        fixedWidthSum += measured
-                      }
-                    }
-                  }
-                }
-                const gapsForFixed = numFixedToRight * COLUMN_GAP_PX
-                actualWidth = `calc(100% - ${fixedWidthSum}px - ${gapsForFixed}px)`
-              }
-
-              // Milestone cards (with or without overlap): link-like style, position from right
-              if (cardType === 'milestone-no-overlap' || cardType === 'milestone') {
-                return (
-                  <div
-                    key={exp.id}
-                    className="absolute"
-                    style={{
-                      top: entry.finalTopPx,
-                      ...(cssRight !== undefined
-                        ? { right: cssRight, left: 'auto' }
-                        : { left: cssLeft }),
-                      zIndex,
-                    }}
-                    onClick={() => onExperienceClick?.(exp)}
-                  >
-                    <MilestoneEntry experience={exp} />
-                  </div>
-                )
-              }
-
-              // Deprioritized cards: position from right with auto width
-              if (cardType === 'deprioritized') {
-                return (
-                  <div
-                    key={exp.id}
-                    className="absolute"
-                    style={{
-                      top: entry.finalTopPx,
-                      height: entry.finalHeightPx,
-                      ...(cssRight !== undefined
-                        ? { right: cssRight, left: 'auto', width: 'auto' }
-                        : { left: cssLeft, width: actualWidth }),
-                      zIndex,
-                    }}
-                    onClick={() => onExperienceClick?.(exp)}
-                  >
-                    <ExperienceEntryCard
-                      experience={exp}
-                      isVeryShortDuration={isVeryShortDuration}
-                      className="h-full"
-                    />
-                  </div>
-                )
-              }
-
-              // Regular cards: full height, flex to fill remaining space
-              return (
-                <div
-                  key={exp.id}
-                  className="absolute"
-                  style={{
-                    top: entry.finalTopPx,
-                    height: entry.finalHeightPx,
-                    left: cssLeft,
-                    width: actualWidth,
-                    zIndex,
-                  }}
-                  onClick={() => onExperienceClick?.(exp)}
-                >
-                  <ExperienceEntryCard
-                    experience={exp}
-                    isVeryShortDuration={isVeryShortDuration}
-                    className="h-full w-full"
-                  />
-                </div>
-              )
-            })}
+            {renderedGroups.map((group) => (
+              <OverlapGroupRenderer
+                key={group.id}
+                group={group}
+                onExperienceClick={onExperienceClick}
+              />
+            ))}
           </div>
         </div>
       </div>

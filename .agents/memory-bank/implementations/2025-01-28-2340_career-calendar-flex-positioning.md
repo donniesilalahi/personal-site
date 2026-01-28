@@ -1,50 +1,56 @@
 # Career Calendar Flex Positioning
 
-**Status**: broken  
-**Priority**: p1  
+**Status**: completed
+**Priority**: p1
 **Date**: 2025-01-28
 
 ## What Changed
 
-- `src/components/career-timeline/career-calendar.algorithm.ts` - Refactored `calculatePositioning()`:
-  - Changed from equal-width columns to flex-based approach
-  - Fixed cards (deprioritized/milestone): use `cssRight` positioning with `width: auto`
-  - Regular cards: use `cssWidth: 'flex'` signal for renderer to calculate
-  - Added `numFixedToRight`, `directOverlapCount` to `ExperiencePositioning`
-  - Uses `experiencesOverlap()` to find DIRECT overlaps (not transitive)
+Complete refactor of the career calendar positioning system to use CSS Flexbox for horizontal layout.
 
-- `src/components/career-timeline/career-calendar.tsx` - Updated renderer:
-  - Added width calculation for `cssWidth === 'flex'` cards
-  - Fixed cards use `right` positioning: `{ right: cssRight, left: 'auto', width: 'auto' }`
-  - Regular cards use `calc(100% - fixedWidthSum - gaps)` based on measured widths
-  - Added `COLUMN_GAP_PX` import
+### `src/components/career-timeline/career-calendar.algorithm.ts`
 
-- `src/components/career-timeline/career-calendar.types.ts` - Added fields:
-  - `numFixedToRight?: number`
-  - `numFixedToLeft?: number`  
-  - `directOverlapCount?: number`
+- Simplified to output `OverlapGroup` objects with cards sorted by start date
+- No more complex CSS calculations (`cssLeft`, `cssRight`, `cssWidth`)
+- Each card has `flexBehavior: 'grow' | 'content'` for flexbox rendering
+- Cards in each group sorted by `startDateParsed` ASC (earlier = leftmost)
+
+### `src/components/career-timeline/career-calendar.tsx`
+
+- Renders each overlap group as a flex container with `display: flex`
+- Regular cards: `flex: 1 1 0` (grow to fill remaining space)
+- Deprioritized/milestone cards: `flex: 0 0 auto` (content width only)
+- Vertical positioning handled via absolute positioning within flex items
+- Removed all complex width calculation logic
+
+### `src/components/career-timeline/career-calendar.types.ts`
+
+- Simplified to essential types: `PositionedCard`, `RenderedOverlapGroup`
+- Removed complex CSS positioning fields
+
+### `src/components/career-timeline/career-calendar.algorithm.test.ts`
+
+- Rewrote all tests to match new API
+- Tests verify: overlap grouping, card ordering, flex behavior assignment
+- 16 tests passing
 
 ## Why
 
-Attempted to fix: Regular cards should flex (`flex: 1 1 0`) to fill remaining space, while deprioritized/milestone cards should only take content width (`flex: 0 0 auto`). Previous implementation gave equal 33% width to all overlapping cards.
+The previous approach tried to calculate exact pixel widths using `calc()` expressions and absolute positioning for horizontal layout. This was fragile and produced incorrect results.
 
-## Current Bug
+The new approach uses CSS Flexbox, which is designed for exactly this use case:
+- Regular cards grow to fill available space (`flex: 1 1 0`)
+- Fixed-width cards (deprioritized/milestone) only take content width (`flex: 0 0 auto`)
 
-Side-by-side layout NOT working for overlapping regular cards. Only fixed cards (deprioritized/milestone) position correctly. The issue is likely in the renderer's width calculation logic or the algorithm's `cssWidth: 'flex'` handling.
+## Key Principles
 
-## Key Files
-
-- `src/components/career-timeline/career-calendar.algorithm.ts` (lines 242-324)
-- `src/components/career-timeline/career-calendar.tsx` (lines 469-580)
+1. **Earlier start date = leftmost position** (sort by startDateParsed ASC)
+2. **Regular cards**: `flex: 1 1 0` - grow to fill remaining space
+3. **Deprioritized cards**: `flex: 0 0 auto` - vertical text, content width only
+4. **Milestone cards**: `flex: 0 0 auto` - link-style, content width only
 
 ## Verify
 
-- `npm run dev` → visit `/` → scroll to Career timeline
-- 2019-2020 overlap: Aspire + Katalis + TEDx should show side-by-side
-- Regular card (Aspire) should fill remaining space after fixed cards
-
-## To Fix
-
-1. Debug why `cssWidth === 'flex'` path doesn't produce correct layout
-2. Verify `directOverlaps` detection works correctly
-3. Consider simpler approach: CSS Grid or actual flexbox container for overlap groups
+- `npm run build` → passes
+- `npm run test` → all 16 algorithm tests pass
+- Visual: overlapping experiences render side-by-side with correct ordering
