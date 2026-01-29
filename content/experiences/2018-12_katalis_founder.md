@@ -1,8 +1,8 @@
 ---
 company: 'Katalis'
 role: 'Maker'
-startDate: '2018-10-01'
-endDate: '2019-01-31'
+startDate: '2018-09-01'
+endDate: '2019-01-15'
 companyWebsite: 'https://www.instagram.com/ysiseasia/'
 category: 'primary'
 subcategory: 'entrepreneurship'

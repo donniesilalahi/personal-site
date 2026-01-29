@@ -69,15 +69,15 @@ export function ExperienceDialogDrawer({
 
   const HeaderContent = (
     <div className="flex flex-col gap-2">
-      {experience.icon && (
-        <div className="flex items-center gap-1.5">
+      <div className="size-8">
+        {experience.icon?.trim() && (
           <img
             src={experience.icon}
             alt={experience.company}
             className={cn('size-8 object-contain rounded-sm', colors.text)}
           />
-        </div>
-      )}
+        )}
+      </div>
       <div className="flex items-center gap-1.5">
         <span className="text-base">{experience.role}</span>
         <span className="text-[10px] font-bricolage text-muted-foreground">

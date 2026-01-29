@@ -187,14 +187,18 @@ export const ExperienceEntryCard = forwardRef<
           </div>
 
           {/* Icon - bottom, NOT rotated, stays upright */}
-          <img
-            src={experience.icon}
-            alt={experience.company}
-            className={cn(
-              'size-3 flex-shrink-0 object-contain rounded-[1.5px]',
-              colors.text,
+          <div className="size-3 flex-shrink-0">
+            {experience.icon?.trim() && (
+              <img
+                src={experience.icon}
+                alt={experience.company}
+                className={cn(
+                  'size-3 object-contain rounded-[1.5px]',
+                  colors.text,
+                )}
+              />
             )}
-          />
+          </div>
         </div>
 
         {/* Role @ Company - vertical text, bottom-to-top, constrained to card height */}
@@ -223,14 +227,18 @@ export const ExperienceEntryCard = forwardRef<
         )}
         onClick={onClick}
       >
-        <img
-          src={experience.icon}
-          alt={experience.company}
-          className={cn(
-            'size-3 shrink-0 object-contain rounded-[1.5px]',
-            colors.text,
+        <div className="size-3 shrink-0">
+          {experience.icon?.trim() && (
+            <img
+              src={experience.icon}
+              alt={experience.company}
+              className={cn(
+                'size-3 object-contain rounded-[1.5px]',
+                colors.text,
+              )}
+            />
           )}
-        />
+        </div>
         <span className="inline-flex items-center gap-x-1 truncate min-w-0">
           <span className="text-[10px] font-normal text-muted-foreground">
             {experience.role}
@@ -264,14 +272,18 @@ export const ExperienceEntryCard = forwardRef<
     >
       {/* Line 1: Icon (left) + Date (right on mobile) */}
       <div className="flex items-center justify-between">
-        <img
-          src={experience.icon}
-          alt={experience.company}
-          className={cn(
-            'size-3 shrink-0 object-contain rounded-[1.5px]',
-            colors.text,
+        <div className="size-3 shrink-0">
+          {experience.icon?.trim() && (
+            <img
+              src={experience.icon}
+              alt={experience.company}
+              className={cn(
+                'size-3 object-contain rounded-[1.5px]',
+                colors.text,
+              )}
+            />
           )}
-        />
+        </div>
         <span className="max-sm:block hidden text-[8px] text-muted-foreground">
           {dateDisplay}
         </span>

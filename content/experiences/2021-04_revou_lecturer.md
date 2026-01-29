@@ -1,8 +1,8 @@
 ---
 company: 'RevoU'
 role: 'Lecturer'
-startDate: '2021-04'
-endDate: '2022-02'
+startDate: '2021-04-01'
+endDate: '2022-02-15'
 companyWebsite: 'https://revou.co'
 category: 'secondary'
 subcategory: 'teaching'

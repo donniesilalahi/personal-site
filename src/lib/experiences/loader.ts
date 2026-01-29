@@ -159,7 +159,7 @@ function validateFrontmatter(
     category,
     subcategory,
     arrangement,
-    icon: (frontmatter.icon as string) || 'briefcase',
+    icon: (frontmatter.icon as string) || '',
     location: (frontmatter.location as string) || undefined,
     isMilestone: frontmatter.isMilestone as boolean,
     isDeprioritized: (frontmatter.isDeprioritized as boolean) || false,

@@ -1,8 +1,8 @@
 ---
 company: 'YSI SEA'
 role: 'Impact Fellows'
-startDate: '2018-05'
-endDate: '2018-08'
+startDate: '2018-05-01'
+endDate: '2018-08-31'
 companyWebsite: 'https://www.instagram.com/ysiseasia/'
 category: 'secondary'
 subcategory: 'volunteer'

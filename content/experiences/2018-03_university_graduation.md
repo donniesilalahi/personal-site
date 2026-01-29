@@ -1,8 +1,8 @@
 ---
 company: 'Industrial Engineering - Diponegoro University'
 role: 'Graduated'
-startDate: '2018-05-01'
-endDate: '2018-05-01'
+startDate: '2018-03-01'
+endDate: '2018-03-01'
 companyWebsite: ''
 category: 'primary'
 subcategory: 'study'
