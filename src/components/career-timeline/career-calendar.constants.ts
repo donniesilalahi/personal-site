@@ -2,7 +2,7 @@
 export const YEAR_HEIGHT_PX = 80
 
 /** Minimum height for very short experiences (in pixels) */
-export const MIN_EXPERIENCE_HEIGHT_PX = 24
+export const MIN_EXPERIENCE_HEIGHT_PX = 20
 
 /** Gap between side-by-side columns (in pixels) */
 export const COLUMN_GAP_PX = 2
