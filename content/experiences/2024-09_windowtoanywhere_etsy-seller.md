@@ -1,14 +1,15 @@
 ---
 company: 'WTA'
 role: 'Maker'
-startDate: '2024-09'
-endDate: 'Present'
+startDate: '2024-09-01'
+endDate: '2025-01-31'
 companyWebsite: 'https://www.etsy.com/shop/windowtoanywhere'
 category: 'secondary'
 subcategory: 'side project'
 arrangement: 'part-time'
 icon: '/images/companies/windowtoanywhere.webp'
 location: 'Remote'
+isMilestone: FALSE
 isDeprioritized: TRUE
 ---
 

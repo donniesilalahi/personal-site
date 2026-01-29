@@ -1,4 +1,4 @@
-import { forwardRef } from 'react'
+import { forwardRef, useRef, useEffect, useState } from 'react'
 
 import type { Experience, SubcategoryColorScheme } from '@/lib/experiences'
 import { cn } from '@/lib/utils'
@@ -9,6 +9,90 @@ interface ExperienceEntryCardProps {
   isVeryShortDuration?: boolean // Less than or equal to 6 months
   onClick?: () => void
   className?: string
+}
+
+/**
+ * Vertical text with manual ellipsis truncation
+ * (text-overflow: ellipsis doesn't work with writing-mode + transform)
+ *
+ * With writing-mode: vertical-rl + rotate(180deg), text reads bottom-to-top.
+ * The visual "bottom" shows the START of the string, visual "top" shows the END.
+ * We truncate from END and add ".." so it appears at visual top.
+ */
+function VerticalTruncatedText({
+  text,
+  className,
+  alignEnd = true,
+}: {
+  text: string
+  className?: string
+  alignEnd?: boolean
+}) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const textRef = useRef<HTMLSpanElement>(null)
+  const [displayText, setDisplayText] = useState(text)
+
+  useEffect(() => {
+    const container = containerRef.current
+    const textElement = textRef.current
+    if (!container || !textElement) return
+
+    const measure = () => {
+      // For vertical-rl text, scrollHeight is the visual "length" of the text line
+      const availableHeight = container.offsetHeight
+
+      if (availableHeight === 0) {
+        // Container not ready yet, retry
+        requestAnimationFrame(measure)
+        return
+      }
+
+      // Reset to full text and measure
+      textElement.textContent = text
+      const textHeight = textElement.scrollHeight
+
+      if (textHeight <= availableHeight) {
+        setDisplayText(text)
+        return
+      }
+
+      // Text overflows - need to truncate
+      // Simple linear search from full text down (more reliable than binary search)
+      for (let i = text.length - 1; i >= 0; i--) {
+        const testText = text.slice(0, i) + '..'
+        textElement.textContent = testText
+        if (textElement.scrollHeight <= availableHeight) {
+          setDisplayText(testText)
+          return
+        }
+      }
+
+      // Nothing fits
+      setDisplayText('..')
+    }
+
+    // Wait for layout to settle
+    requestAnimationFrame(measure)
+  }, [text])
+
+  return (
+    <div
+      ref={containerRef}
+      className={cn('h-full overflow-hidden flex', alignEnd ? 'items-end' : 'items-start')}
+    >
+      <span
+        ref={textRef}
+        className={cn('block', className)}
+        style={{
+          writingMode: 'vertical-rl',
+          transform: 'rotate(180deg)',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {displayText}
+      </span>
+    </div>
+  )
 }
 
 /**
@@ -72,18 +156,16 @@ export const ExperienceEntryCard = forwardRef<
   const dateDisplay = formatStartOnly(experience.startDateParsed)
 
   // Deprioritized variant: vertical text, compact width, bottom-to-top reading
-  // Layout: [icon] [role @ company (vertical)] [dates (vertical)]
+  // Layout: [icon (bottom-left) + start date (top-right)] [role @ company (vertical)]
   if (experience.isDeprioritized) {
-    const deprioritizedDateDisplay = formatDuration(
-      experience.startDateParsed,
-      experience.endDateParsed,
-    )
+    const startDateDisplay = formatStartOnly(experience.startDateParsed)
+    const roleCompanyText = `${experience.role} @ ${experience.company}`
 
     return (
       <div
         ref={ref}
         className={cn(
-          'flex items-end gap-0.5 h-full px-2 py-1.5 rounded-sm border',
+          'flex items-end gap-1.5 h-full px-2 py-1.5 rounded-sm border',
           colors.bg,
           colors.border,
           colors.bgHover,
@@ -93,41 +175,34 @@ export const ExperienceEntryCard = forwardRef<
         )}
         onClick={onClick}
       >
-        {/* Icon - NOT rotated, stays upright, aligned to bottom-left */}
-        <img
-          src={experience.icon}
-          alt={experience.company}
-          className={cn(
-            'size-3 shrink-0 object-contain rounded-[1.5px]',
-            colors.text,
-          )}
+        {/* Icon + Start Date container - single column, vertically stacked */}
+        <div className="flex flex-col items-center h-full flex-shrink-0 gap-1.5">
+          {/* Start Date - top, vertical text, bottom-to-top, constrained by icon + gap */}
+          <div className="flex-1 min-h-0 w-full">
+            <VerticalTruncatedText
+              text={startDateDisplay}
+              className="text-[8px] leading-tight text-muted-foreground"
+              alignEnd={false}
+            />
+          </div>
+
+          {/* Icon - bottom, NOT rotated, stays upright */}
+          <img
+            src={experience.icon}
+            alt={experience.company}
+            className={cn(
+              'size-3 flex-shrink-0 object-contain rounded-[1.5px]',
+              colors.text,
+            )}
+          />
+        </div>
+
+        {/* Role @ Company - vertical text, bottom-to-top, constrained to card height */}
+        <VerticalTruncatedText
+          text={roleCompanyText}
+          className="text-[10px] leading-tight font-normal text-muted-foreground"
+          alignEnd={true}
         />
-
-        {/* Role @ Company - single vertical text line, bottom-to-top */}
-        <span
-          className="text-[10px] leading-tight font-normal text-muted-foreground whitespace-nowrap overflow-hidden"
-          style={{
-            writingMode: 'vertical-rl',
-            transform: 'rotate(180deg)',
-            textOverflow: 'ellipsis',
-            maxWidth: '100%',
-          }}
-        >
-          {experience.role} @ {experience.company}
-        </span>
-
-        {/* Dates - single vertical text line, bottom-to-top */}
-        <span
-          className="text-[8px] leading-tight text-muted-foreground whitespace-nowrap overflow-hidden"
-          style={{
-            writingMode: 'vertical-rl',
-            transform: 'rotate(180deg)',
-            textOverflow: 'ellipsis',
-            maxWidth: '100%',
-          }}
-        >
-          {deprioritizedDateDisplay}
-        </span>
       </div>
     )
   }

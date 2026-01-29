@@ -4,7 +4,8 @@ Minimal, searchable record of features built. Each spec uses product/feature-foc
 
 | Spec | Status | Priority | Date |
 |------|--------|----------|------|
-
+| [deprioritized-card-layout](./2026-01-29-0000_deprioritized-card-layout.md) | ✅ | P2 | 2026-01-29 |
+| [career-calendar-refactor](./2026-01-29-0000_career-calendar-refactor.md) | ✅ | P2 | 2026-01-29 |
 
 ---
 
