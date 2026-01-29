@@ -23,6 +23,7 @@ npm run check            # prettier --write + eslint --fix
 **Framework**: TanStack Start (React 19 + Vite) deployed to Cloudflare Workers via GitHub Actions
 
 **Key directories**:
+
 - `src/routes/` — File-based routing (TanStack Router)
 - `src/components/` — React components (Shadcn UI in `ui/`)
 - `src/lib/` — Utilities, hooks, data loaders
@@ -40,14 +41,15 @@ The career timeline uses a custom positioning algorithm:
 4. **Rendering**: `CareerCalendar` → `GroupRenderer` → `ExperienceEntryCard`
 
 Experience files use this frontmatter format:
+
 ```yaml
-company: "Company Name"
-role: "Job Title"
-startDate: "2023-01"
-endDate: "2023-12"
-category: "primary"        # primary | secondary | tertiary
-subcategory: "work"        # work | entrepreneurship | teaching | etc.
-arrangement: "full-time"   # full-time | part-time | contract | etc.
+company: 'Company Name'
+role: 'Job Title'
+startDate: '2023-01'
+endDate: '2023-12'
+category: 'primary' # primary | secondary | tertiary
+subcategory: 'work' # work | entrepreneurship | teaching | etc.
+arrangement: 'full-time' # full-time | part-time | contract | etc.
 ```
 
 ## Code Style
@@ -65,6 +67,7 @@ Never use `npm run deploy` or `wrangler deploy` directly.
 ## Memory Bank
 
 Check `.claude/memory-bank/` for project context:
+
 - `analysis/` — Root cause investigations
 - `planning/` — Task plans
 - `implementations/` — Implementation specs (written after features)
@@ -73,6 +76,7 @@ Check `.claude/memory-bank/` for project context:
 ## MCP Tools
 
 Available MCPs for documentation and tooling:
+
 - **TanStack MCP**: Router, Start, Query docs
 - **Shadcn MCP**: Component examples
 - **Context7 MCP**: Search any tech docs

@@ -45,6 +45,7 @@
 ## Notes
 
 ### Current Bug
+
 - Aspire (2019-05) should be leftmost
 - Katalis (2019-06) should be second
 - TEDxUNDIP (2019-11) should be rightmost
@@ -67,6 +68,7 @@ Renderer (career-calendar.tsx)
 ```
 
 ### Files to Modify
+
 - `src/components/career-timeline/career-calendar.algorithm.ts` (main changes)
 - `src/components/career-timeline/career-calendar.tsx` (simplify render)
 - `src/components/career-timeline/career-calendar.types.ts` (simplify types)

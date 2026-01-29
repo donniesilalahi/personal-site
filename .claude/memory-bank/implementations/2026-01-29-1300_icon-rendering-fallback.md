@@ -2,7 +2,7 @@
 
 **Status**: completed
 **Priority**: p2
-**Date**: 2026-01-29*1300
+**Date**: 2026-01-29\*1300
 
 ## What Changed
 

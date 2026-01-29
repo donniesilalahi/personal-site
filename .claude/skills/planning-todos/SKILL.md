@@ -8,6 +8,7 @@ description: Create lightweight GitHub-issue-style plans with nested markdown to
 ## What I Do
 
 After analyzing work or a problem, I create a concise plan (50-100 lines) that:
+
 - Describes what needs to happen (goals, not rationale)
 - Lists tasks as markdown checkboxes with subtasks
 - Includes optional notes (decisions, gotchas, dependencies)
@@ -28,17 +29,17 @@ This creates a survivable, thread-persistent record using GitHub issue style.
 
 ```typescript
 // At start of thread: Load plan into todos
-todo_read()  // Check existing todos
+todo_read() // Check existing todos
 todo_write([
-  { id: "task-1.1", content: "Task 1: Description", status: "todo" },
-  { id: "task-1.2", content: "Subtask 1.1: Detail", status: "todo" },
-  { id: "task-2.1", content: "Task 2: Description", status: "todo" },
+  { id: 'task-1.1', content: 'Task 1: Description', status: 'todo' },
+  { id: 'task-1.2', content: 'Subtask 1.1: Detail', status: 'todo' },
+  { id: 'task-2.1', content: 'Task 2: Description', status: 'todo' },
 ])
 
 // As you work: Update todo status
 todo_write([
-  { id: "task-1.1", content: "Task 1: Description", status: "completed" },
-  { id: "task-1.2", content: "Subtask 1.1: Detail", status: "in-progress" },
+  { id: 'task-1.1', content: 'Task 1: Description', status: 'completed' },
+  { id: 'task-1.2', content: 'Subtask 1.1: Detail', status: 'in-progress' },
 ])
 
 // Before finishing: Sync back to plan file
@@ -46,6 +47,7 @@ todo_write([
 ```
 
 **Why this matters**:
+
 - Plan survives in markdown file (repo-persistent)
 - Todos show up in Amp UI for thread visibility
 - Both stay in sync as you work
@@ -145,9 +147,9 @@ Maintain `.claude/memory-bank/planning/_index_plans.md`:
 ```markdown
 # Plans
 
-| Plan | Status | Created |
-|------|--------|---------|
-| [activity-timeline-api](./2025-12-30-1430_activity-timeline-api.md) | 🔄 active | 2025-12-30 |
+| Plan                                                                  | Status      | Created    |
+| --------------------------------------------------------------------- | ----------- | ---------- |
+| [activity-timeline-api](./2025-12-30-1430_activity-timeline-api.md)   | 🔄 active   | 2025-12-30 |
 | [dashboard-api-refactor](./2025-12-30-1530_dashboard-api-refactor.md) | ⬜ planning | 2025-12-30 |
 ```
 

@@ -41,6 +41,8 @@ export interface ExperienceFrontmatter {
   isMilestone: boolean
   /** Mark as deprioritized for compact vertical display when overlapping more important experiences */
   isDeprioritized: boolean
+  /** Mark as career break period (diagonal yellow-50 striped background, yellow-500 dot icon) */
+  isCareerBreak: boolean
 }
 
 /** Parsed experience with computed fields */

@@ -1,6 +1,6 @@
+import { MIN_EXPERIENCE_HEIGHT_PX } from './career-calendar.constants'
 import type { Experience } from '@/lib/experiences'
 import type { CardType, TimelineBounds } from './career-calendar.types'
-import { MIN_EXPERIENCE_HEIGHT_PX } from './career-calendar.constants'
 
 /**
  * Check if two time intervals overlap.

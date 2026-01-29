@@ -11,6 +11,7 @@ icon: ''
 location: 'Remote'
 isMilestone: FALSE
 isDeprioritized: TRUE
+isCareerBreak: TRUE
 ---
 
 Aspire is leading financial OS for businesses in Southeast Asia.

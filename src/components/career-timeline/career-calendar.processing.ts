@@ -1,12 +1,19 @@
-import type { Experience } from '@/lib/experiences'
-import type { ProcessedCard, ProcessedColumn, ProcessedGroup } from './career-calendar.types'
-import { VERTICAL_GAP_PX, MIN_EXPERIENCE_HEIGHT_PX } from './career-calendar.constants'
 import {
-  intervalsOverlap,
+  MIN_EXPERIENCE_HEIGHT_PX,
+  VERTICAL_GAP_PX,
+} from './career-calendar.constants'
+import {
   areConsecutive,
   calculateVerticalPosition,
   getCardType,
+  intervalsOverlap,
 } from './career-calendar.utils'
+import type { Experience } from '@/lib/experiences'
+import type {
+  ProcessedCard,
+  ProcessedColumn,
+  ProcessedGroup,
+} from './career-calendar.types'
 
 /**
  * Resolve vertical overlaps between cards in a column
@@ -32,7 +39,11 @@ function resolveVerticalOverlaps(cards: Array<ProcessedCard>, now: Date): void {
         current.heightPx = desiredHeight
       } else {
         current.heightPx = MIN_EXPERIENCE_HEIGHT_PX
-        const shift = current.topPx + MIN_EXPERIENCE_HEIGHT_PX + VERTICAL_GAP_PX - next.topPx
+        const shift =
+          current.topPx +
+          MIN_EXPERIENCE_HEIGHT_PX +
+          VERTICAL_GAP_PX -
+          next.topPx
         for (let j = i + 1; j < cards.length; j++) {
           cards[j].topPx += shift
         }
@@ -152,7 +163,11 @@ export function processExperiences(
 
       const cards: Array<ProcessedCard> = colExps.map((exp) => {
         const { topPx, heightPx } = calculateVerticalPosition(
-          exp, totalHeightPx, timelineStart, timelineEnd, now,
+          exp,
+          totalHeightPx,
+          timelineStart,
+          timelineEnd,
+          now,
         )
         return {
           experience: exp,

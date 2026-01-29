@@ -18,5 +18,5 @@ Brick is real-time payments and inclusive open finance infrastructure leader in 
 
 ## Impact
 
-- Rebuilt marketing from zero across performance, brand, product, and design
+- Led biggest project in the company transition to payments business that involve temporary 3rd party license usage, marketing positioning, sales alignment, and actual transition back to direct license with Brick.
 - Standardized organization-wide OKRs and performance measurement

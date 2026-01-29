@@ -39,6 +39,7 @@ Complete refactor of the career calendar positioning system to use CSS Flexbox f
 The previous approach tried to calculate exact pixel widths using `calc()` expressions and absolute positioning for horizontal layout. This was fragile and produced incorrect results.
 
 The new approach uses CSS Flexbox, which is designed for exactly this use case:
+
 - Regular cards grow to fill available space (`flex: 1 1 0`)
 - Fixed-width cards (deprioritized/milestone) only take content width (`flex: 0 0 auto`)
 

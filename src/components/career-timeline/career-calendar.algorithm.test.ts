@@ -153,7 +153,9 @@ describe('Career Calendar Positioning Algorithm', () => {
 
   describe('Flex Behavior', () => {
     it('should assign grow behavior to regular cards', () => {
-      const experiences = [createExperience('regular', '2020-01-01', '2021-01-01')]
+      const experiences = [
+        createExperience('regular', '2020-01-01', '2021-01-01'),
+      ]
 
       const result = calculatePositioning(experiences, now)
 

@@ -12,27 +12,27 @@ location: 'Remote, Singapore'
 isMilestone: FALSE
 ---
 
-#### About
+##### About
 
-One of the 20+ fellows selected for the Southeast Asia program.
+Selected as one of 20+ fellows for the Young Sustainable Impact Southeast Asia (YSI SEA) program — a regional innovation initiative supporting young changemakers developing sustainable solutions.
 
-#### Contribution logs
+##### Contributions
 
-My team of 4 was exploring ways to help migrant workers intra-ASEAN to achieve financial independence faster
+Worked in a team of four exploring ways to help intra-ASEAN migrant workers achieve financial independence faster.
 
-- Researched root causes on why most migrant workers continue to do this kind of work despite earning higher income compared to living cost in their hometown
-- Discovered that (1) most remittances sent back home by the migrant workers were not put into good use by their trustees
-- Explored the idea of `earmarked` remittance — where instead of pure cash — it's a mix of money, food packages, children school fees, utility bill payments, saving products, etc
-- Interviewed few migrant workers in their day-off around the Paya Lebar square
-- Designed and developed the high-fidelity prototypes using Adobe XD
-- Plan the pitching outline and design the deck
+- Researched why many Indonesian blue-collar foreign migrant workers continue renewing their overseas contracts — even after a decade of work and steady savings — yet remain far from financial freedom.  
+- Discovered that most remittances sent back home were often misused or poorly managed by trustees, limiting their long-term impact.  
+- Explored the concept of **earmarked remittances** — blending monetary transfers with in-kind value such as food packages, school fees, utility bill payments, and savings products.  
+- Conducted field interviews with migrant workers during their day off at Paya Lebar Square, Singapore.  
+- Designed and developed high-fidelity app prototypes using **Adobe XD**.  
+- Planned the pitch storyline and created presentation materials for the demo session.  
 
-#### Other works contributed by my teammates
+##### Collaborations (by teammates)
 
-- Engaged with one of the leading PPOB startup in Indonesia with retail networks across tier 2 and tier 3 cities
-- Engaged with respectable migrant working recruitment agency that champion ethical practice
+- Partnered with a leading **PPOB** (Payment Point Online Bank) startup in Indonesia with retail networks across tier 2 and 3 cities.  
+- Connected with a reputable **migrant worker recruitment agency** recognized for its ethical employment practices.  
 
-#### Impact
+##### Impact
 
-- My team got invited to present our idea in other regional program
-- My team praised for most well-defined solution
+- Our team was invited to present the idea in another regional innovation program.  
+- Recognized as having one of the *most well-defined and practical solutions* among all teams.

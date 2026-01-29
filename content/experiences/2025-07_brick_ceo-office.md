@@ -12,11 +12,11 @@ location: 'Remote'
 isMilestone: FALSE
 ---
 
-## About
+##### About
 
-Brick is real-time payments and inclusive open finance infrastructure leader in Indonesia.
+Brick is Indonesia’s leading open finance and real‑time payments infrastructure company, advancing financial inclusion across the region.
 
-## Contribution logs
+##### Contributions
 
-- Hired and onboarded key roles (Finance, Legal, Partnerships, Business Intelligence) post-major org restructure
-- Prepared data room ready for future corporate actions
+- Hired and onboarded critical team members across Finance, Legal, Partnerships, and Business Intelligence following a major organizational restructure.  
+- Prepared a comprehensive data room to ensure readiness for future corporate actions and strategic fundraising.  

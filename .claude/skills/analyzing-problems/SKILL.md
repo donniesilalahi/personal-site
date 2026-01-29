@@ -8,6 +8,7 @@ description: Root cause analysis when plans fail or bugs surface. Documents why 
 ## What I Do
 
 When a plan fails or a bug surfaces, I create a concise analysis (50-100 lines) that:
+
 - Describes the problem and expected vs actual behavior
 - Identifies root cause (not just symptoms)
 - Recommends revised approach or fixes
@@ -28,23 +29,40 @@ This breaks the cycle of repeated failures by understanding why something didn't
 
 ```typescript
 // At start of thread: Load analysis investigation todos
-todo_read()  // Check existing todos
+todo_read() // Check existing todos
 todo_write([
-  { id: "analysis-1", content: "Investigate root cause", status: "in-progress" },
-  { id: "analysis-2", content: "Verify hypothesis with testing", status: "todo" },
-  { id: "followup-1", content: "Create revised plan based on findings", status: "todo" },
+  {
+    id: 'analysis-1',
+    content: 'Investigate root cause',
+    status: 'in-progress',
+  },
+  {
+    id: 'analysis-2',
+    content: 'Verify hypothesis with testing',
+    status: 'todo',
+  },
+  {
+    id: 'followup-1',
+    content: 'Create revised plan based on findings',
+    status: 'todo',
+  },
 ])
 
 // As you investigate: Update status
 todo_write([
-  { id: "analysis-1", content: "Investigate root cause", status: "completed" },
-  { id: "analysis-2", content: "Verify hypothesis with testing", status: "in-progress" },
+  { id: 'analysis-1', content: 'Investigate root cause', status: 'completed' },
+  {
+    id: 'analysis-2',
+    content: 'Verify hypothesis with testing',
+    status: 'in-progress',
+  },
 ])
 
 // After analysis: Update .agents/memory-bank/analysis/YYYY-MM-DD-XXXX_{problem}.md
 ```
 
 **Why this matters**:
+
 - Analysis files survive in markdown (repo-persistent)
 - Todos show investigation progress in Amp UI
 - Cross-references connect to failed plan and revised plan
@@ -67,7 +85,7 @@ todo_write([
 **Status**: investigating | resolved | blocked  
 **Severity**: p1 | p2 | p3  
 **Date**: YYYY-MM-DD  
-**Related Plan**: [YYYY-MM-DD-XXXX_plan-name.md](../planning/YYYY-MM-DD-XXXX_plan-name.md) *(if plan failed)*
+**Related Plan**: [YYYY-MM-DD-XXXX_plan-name.md](../planning/YYYY-MM-DD-XXXX_plan-name.md) _(if plan failed)_
 
 ## Problem Statement
 
@@ -161,13 +179,16 @@ Implementation (fixes it)
 ```
 
 **File linking in analysis**:
+
 - `**Related Plan**: [2025-12-30-1430_plan-name.md](../planning/2025-12-30-1430_plan-name.md)` ← What failed
 - `**Revised Plan**: [2025-12-31-1430_revised-plan.md](../planning/2025-12-31-1430_revised-plan.md)` ← What to do instead
 
 **File linking in revised plan**:
+
 - `**Prompted by Analysis**: [2025-12-31-1430_analysis.md](../analysis/2025-12-31-1430_analysis.md)` ← Why we changed direction
 
 **File linking in implementation**:
+
 - `**Resolves Analysis**: [2025-12-31-1430_analysis.md](../analysis/2025-12-31-1430_analysis.md)` ← What issue we fixed
 
 ## Workflow

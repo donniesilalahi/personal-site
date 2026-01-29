@@ -1,4 +1,4 @@
-import { forwardRef, useRef, useEffect, useState } from 'react'
+import { forwardRef, useEffect, useRef, useState } from 'react'
 
 import type { Experience, SubcategoryColorScheme } from '@/lib/experiences'
 import { cn } from '@/lib/utils'
@@ -78,7 +78,10 @@ function VerticalTruncatedText({
   return (
     <div
       ref={containerRef}
-      className={cn('h-full overflow-hidden flex', alignEnd ? 'items-end' : 'items-start')}
+      className={cn(
+        'h-full overflow-hidden flex',
+        alignEnd ? 'items-end' : 'items-start',
+      )}
     >
       <span
         ref={textRef}
@@ -102,15 +105,6 @@ function formatDate(date: Date): string {
   return date
     .toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
     .toUpperCase()
-}
-
-/**
- * Format duration string (e.g., "JAN 24 - DEC 24" or "JAN 24 - PRESENT")
- */
-function formatDuration(startDate: Date, endDate: Date | null): string {
-  const start = formatDate(startDate)
-  const end = endDate ? formatDate(endDate) : 'PRESENT'
-  return `${start} - ${end}`
 }
 
 /**
@@ -155,6 +149,55 @@ export const ExperienceEntryCard = forwardRef<
   // Always show only start date
   const dateDisplay = formatStartOnly(experience.startDateParsed)
 
+  // Career break variant: diagonal yellow-100 striped background, yellow-500 dot
+  if (experience.isCareerBreak) {
+    const startDateDisplay = formatStartOnly(experience.startDateParsed)
+    const roleCompanyText = `${experience.role} @ ${experience.company}`
+
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          'flex items-end gap-1.5 h-full px-2 py-1.5 rounded-sm border',
+          'bg-white',
+          'border-neutral-100',
+          'hover:bg-neutral-50',
+          'transition-colors',
+          onClick ? 'cursor-pointer' : 'cursor-default',
+          className,
+          // Diagonal yellow-100 stripes, 1px line width
+          '[background-image:repeating-linear-gradient(45deg,transparent_0px,transparent_6px,#fef9c3_6px,#fef9c3_7px)]',
+        )}
+        onClick={onClick}
+      >
+        {/* Start Date + Dot container - single column, vertically stacked */}
+        <div className="flex flex-col items-center h-full flex-shrink-0 gap-1.5">
+          {/* Start Date - top, vertical text, bottom-to-top */}
+          <div className="flex-1 min-h-0 w-full">
+            <VerticalTruncatedText
+              text={startDateDisplay}
+              className="text-[8px] leading-tight text-muted-foreground"
+              alignEnd={false}
+            />
+          </div>
+
+          {/* Dot - bottom, 4px x 4px solid circle */}
+          <div
+            className="rounded-full shrink-0 bg-yellow-500"
+            style={{ width: '4px', height: '4px' }}
+          />
+        </div>
+
+        {/* Role @ Company - vertical text, bottom-to-top, constrained to card height */}
+        <VerticalTruncatedText
+          text={roleCompanyText}
+          className="text-[10px] leading-tight font-normal text-muted-foreground"
+          alignEnd={true}
+        />
+      </div>
+    )
+  }
+
   // Deprioritized variant: vertical text, compact width, bottom-to-top reading
   // Layout: [icon (bottom-left) + start date (top-right)] [role @ company (vertical)]
   if (experience.isDeprioritized) {
@@ -175,9 +218,9 @@ export const ExperienceEntryCard = forwardRef<
         )}
         onClick={onClick}
       >
-        {/* Icon + Start Date container - single column, vertically stacked */}
+        {/* Start Date + Icon/Dot container - single column, vertically stacked */}
         <div className="flex flex-col items-center h-full flex-shrink-0 gap-1.5">
-          {/* Start Date - top, vertical text, bottom-to-top, constrained by icon + gap */}
+          {/* Start Date - top, vertical text, bottom-to-top */}
           <div className="flex-1 min-h-0 w-full">
             <VerticalTruncatedText
               text={startDateDisplay}
@@ -186,19 +229,22 @@ export const ExperienceEntryCard = forwardRef<
             />
           </div>
 
-          {/* Icon - bottom, NOT rotated, stays upright */}
-          <div className="size-3 flex-shrink-0">
-            {experience.icon?.trim() && (
-              <img
-                src={experience.icon}
-                alt={experience.company}
-                className={cn(
-                  'size-3 object-contain rounded-[1.5px]',
-                  colors.text,
-                )}
-              />
-            )}
-          </div>
+          {/* Icon or Dot - bottom */}
+          {experience.icon.trim() ? (
+            <img
+              src={experience.icon}
+              alt={experience.company}
+              className={cn(
+                'size-3 object-contain rounded-[1.5px] shrink-0',
+                colors.text,
+              )}
+            />
+          ) : (
+            <div
+              className="rounded-full shrink-0 bg-neutral-500"
+              style={{ width: '4px', height: '4px' }}
+            />
+          )}
         </div>
 
         {/* Role @ Company - vertical text, bottom-to-top, constrained to card height */}
@@ -227,18 +273,21 @@ export const ExperienceEntryCard = forwardRef<
         )}
         onClick={onClick}
       >
-        <div className="size-3 shrink-0">
-          {experience.icon?.trim() && (
-            <img
-              src={experience.icon}
-              alt={experience.company}
-              className={cn(
-                'size-3 object-contain rounded-[1.5px]',
-                colors.text,
-              )}
-            />
-          )}
-        </div>
+        {experience.icon.trim() ? (
+          <img
+            src={experience.icon}
+            alt={experience.company}
+            className={cn(
+              'size-3 object-contain rounded-[1.5px] shrink-0',
+              colors.text,
+            )}
+          />
+        ) : (
+          <div
+            className="rounded-full shrink-0 bg-neutral-500"
+            style={{ width: '4px', height: '4px' }}
+          />
+        )}
         <span className="inline-flex items-center gap-x-1 truncate min-w-0">
           <span className="text-[10px] font-normal text-muted-foreground">
             {experience.role}
@@ -270,20 +319,23 @@ export const ExperienceEntryCard = forwardRef<
       )}
       onClick={onClick}
     >
-      {/* Line 1: Icon (left) + Date (right on mobile) */}
+      {/* Line 1: Icon/Dot (left) + Date (right on mobile) */}
       <div className="flex items-center justify-between">
-        <div className="size-3 shrink-0">
-          {experience.icon?.trim() && (
-            <img
-              src={experience.icon}
-              alt={experience.company}
-              className={cn(
-                'size-3 object-contain rounded-[1.5px]',
-                colors.text,
-              )}
-            />
-          )}
-        </div>
+        {experience.icon.trim() ? (
+          <img
+            src={experience.icon}
+            alt={experience.company}
+            className={cn(
+              'size-3 object-contain rounded-[1.5px] shrink-0',
+              colors.text,
+            )}
+          />
+        ) : (
+          <div
+            className="rounded-full shrink-0 bg-neutral-500"
+            style={{ width: '4px', height: '4px' }}
+          />
+        )}
         <span className="max-sm:block hidden text-[8px] text-muted-foreground">
           {dateDisplay}
         </span>
@@ -334,8 +386,11 @@ export const MilestoneEntry = forwardRef<HTMLDivElement, MilestoneEntryProps>(
         )}
         onClick={onClick}
       >
-        {/* Dot indicator - small success color */}
-        <div className="size-1 rounded-full shrink-0 bg-emerald-500" />
+        {/* Dot indicator - 4px x 4px emerald-500 */}
+        <div
+          className="rounded-full shrink-0 bg-emerald-500"
+          style={{ width: '4px', height: '4px' }}
+        />
 
         {/* Role only - 8px, underline on hover */}
         <span className="text-[8px] font-medium text-foreground leading-tight whitespace-nowrap group-hover:underline">

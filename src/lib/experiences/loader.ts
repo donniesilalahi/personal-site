@@ -144,6 +144,14 @@ function validateFrontmatter(
     errors.push('isDeprioritized must be TRUE or FALSE')
   }
 
+  // Validate isCareerBreak (optional, defaults to false)
+  if (
+    frontmatter.isCareerBreak !== undefined &&
+    typeof frontmatter.isCareerBreak !== 'boolean'
+  ) {
+    errors.push('isCareerBreak must be TRUE or FALSE')
+  }
+
   if (errors.length > 0) {
     throw new Error(
       `Invalid frontmatter in ${filename}:\n  - ${errors.join('\n  - ')}`,
@@ -163,6 +171,7 @@ function validateFrontmatter(
     location: (frontmatter.location as string) || undefined,
     isMilestone: frontmatter.isMilestone as boolean,
     isDeprioritized: (frontmatter.isDeprioritized as boolean) || false,
+    isCareerBreak: (frontmatter.isCareerBreak as boolean) || false,
   }
 }
 

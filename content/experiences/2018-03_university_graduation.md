@@ -12,27 +12,27 @@ location: 'Indonesia'
 isMilestone: TRUE
 ---
 
-#### Thesis
+##### Thesis
 
 Social Return on Investment (SROI) Analysis
 
-#### Specialization interests
+##### Specialization Interests
 
-System modelling, performance measurement, change management, and supply chain.
+System modelling, performance measurement, change management, and supply chain management.
 
 #### Organizations
 
-- AIESEC (local chapter president, and previously vice president of marketing)
-- Student association (head of multiple leadership development events)
-- Student senate (2013 class representative)
+- AIESEC: Served as Local Chapter President after previously leading the Marketing Department as Vice President.
+- Student Association: Led multiple leadership and personal development events for peers.
+- Student Senate: Elected as 2013 class representative.
 
-#### Other activity
+##### Other Activities
 
-- Interfaith Youth Forum (delegate)
-- Young on Top (department head)
+- Delegate, Interfaith Youth Forum
+- Department Head, Young on Top
 
-#### Scholarship and fellowship
+##### Scholarship and Fellowships
 
-- 2015 XL Future Leader Awardee by AXIATA group
-- 2015 Roberto Rocca Education Program Awardee by Tenaris
-- 2018 YSI Young Sustainable Impact Fellow by YSI SEA
+- XL Future Leader Awardee (2015) — AXIATA Group
+- Roberto Rocca Education Program Awardee (2015) — Tenaris
+- Young Sustainable Impact (YSI) Fellow (2018) — YSI SEA

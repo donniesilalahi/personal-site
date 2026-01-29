@@ -4,8 +4,8 @@ import { GroupRenderer } from './career-calendar-group'
 import { CareerCalendarSkeleton } from './career-calendar-skeleton'
 import { YEAR_HEIGHT_PX } from './career-calendar.constants'
 import { processExperiences } from './career-calendar.processing'
-import type { CareerCalendarProps } from './career-calendar.types'
 import { calculateTimelineBounds } from './career-calendar.utils'
+import type { CareerCalendarProps } from './career-calendar.types'
 
 import { cn } from '@/lib/utils'
 
@@ -24,12 +24,21 @@ export function CareerCalendar({
   const totalHeightPx = years.length * YEAR_HEIGHT_PX
 
   const processedGroups = useMemo(
-    () => processExperiences(experiences, totalHeightPx, timelineStart, timelineEnd, now),
+    () =>
+      processExperiences(
+        experiences,
+        totalHeightPx,
+        timelineStart,
+        timelineEnd,
+        now,
+      ),
     [experiences, totalHeightPx, timelineStart, timelineEnd, now],
   )
 
   if (experiences.length === 0) {
-    return <CareerCalendarSkeleton yearCount={years.length} className={className} />
+    return (
+      <CareerCalendarSkeleton yearCount={years.length} className={className} />
+    )
   }
 
   return (
@@ -40,7 +49,11 @@ export function CareerCalendar({
       )}
     >
       <div className="flex">
-        <YearLabels years={years} ceilingYear={ceilingYear} totalHeightPx={totalHeightPx} />
+        <YearLabels
+          years={years}
+          ceilingYear={ceilingYear}
+          totalHeightPx={totalHeightPx}
+        />
         <Timeline
           years={years}
           totalHeightPx={totalHeightPx}
@@ -63,7 +76,11 @@ function YearLabels({ years, ceilingYear, totalHeightPx }: YearLabelsProps) {
     <div className="shrink-0 w-10 relative" style={{ height: totalHeightPx }}>
       <YearLabel year={ceilingYear} topPx={0} />
       {years.map((year, index) => (
-        <YearLabel key={year} year={year} topPx={(index + 1) * YEAR_HEIGHT_PX} />
+        <YearLabel
+          key={year}
+          year={year}
+          topPx={(index + 1) * YEAR_HEIGHT_PX}
+        />
       ))}
     </div>
   )
@@ -89,9 +106,17 @@ interface TimelineProps {
   onExperienceClick?: CareerCalendarProps['onExperienceClick']
 }
 
-function Timeline({ years, totalHeightPx, processedGroups, onExperienceClick }: TimelineProps) {
+function Timeline({
+  years,
+  totalHeightPx,
+  processedGroups,
+  onExperienceClick,
+}: TimelineProps) {
   return (
-    <div className="flex-1 relative pl-4 max-sm:pl-2" style={{ height: totalHeightPx }}>
+    <div
+      className="flex-1 relative pl-4 max-sm:pl-2"
+      style={{ height: totalHeightPx }}
+    >
       <YearLines years={years} />
       <div className="absolute top-0 bottom-0 left-4 max-sm:left-2 right-0">
         {processedGroups.map((group) => (
@@ -109,7 +134,10 @@ function Timeline({ years, totalHeightPx, processedGroups, onExperienceClick }: 
 function YearLines({ years }: { years: Array<number> }) {
   return (
     <>
-      <div className="absolute h-px bg-border" style={{ top: 0, left: 0, right: 0 }} />
+      <div
+        className="absolute h-px bg-border"
+        style={{ top: 0, left: 0, right: 0 }}
+      />
       {years.map((year, index) => (
         <div
           key={`line-${year}`}

@@ -55,6 +55,11 @@ isMilestone: FALSE
 #   - TRUE → Compact vertical text (bottom-to-top rotation), hugs content width
 #   - Use for side projects/hustles that overlap with more important primary work
 isDeprioritized: FALSE
+
+# isCareerBreak: Mark period of career where you do no primary full-time work.
+#   - FALSE (default) → Regular experience entry with duration
+#   - TRUE → Change background card to diagonal shades patterns of yellow-50 lines and <icon> with small yellow-500 dot
+isCareerBreak: FALSE
 ---
 
 Brief description of the role and key accomplishments.

@@ -8,6 +8,7 @@ description: Create minimal implementation specifications after coding features.
 ## What I Do
 
 After implementing a feature, I create a concise spec (50-120 lines) that:
+
 - Describes what was built (files changed, key logic)
 - Links to the problem it solves (priority, feature goal)
 - Provides verification steps (how to test it works)
@@ -111,10 +112,10 @@ Maintain `.agents/memory-bank/implementations/_index_implementations.md`:
 ```markdown
 # Implementation Specs
 
-| Spec | Status | Priority | Date |
-|------|--------|----------|------|
-| [campaign-crud](./2025-12-27-1430_campaign-crud.md) | ✅ | P1 | 2025-12-27 |
-| [form-validation](./2025-12-26-1200_form-validation.md) | ✅ | P2 | 2025-12-26 |
+| Spec                                                    | Status | Priority | Date       |
+| ------------------------------------------------------- | ------ | -------- | ---------- |
+| [campaign-crud](./2025-12-27-1430_campaign-crud.md)     | ✅     | P1       | 2025-12-27 |
+| [form-validation](./2025-12-26-1200_form-validation.md) | ✅     | P2       | 2025-12-26 |
 ```
 
 ## Integration

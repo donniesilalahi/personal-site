@@ -69,19 +69,42 @@ export function ExperienceDialogDrawer({
 
   const HeaderContent = (
     <div className="flex flex-col gap-2">
-      <div className="size-8">
-        {experience.icon?.trim() && (
+      <div
+        className={cn(
+          'size-8 flex items-center justify-center rounded-full',
+          !experience.icon.trim() &&
+            (experience.isCareerBreak
+              ? 'bg-yellow-200'
+              : experience.isMilestone
+                ? 'bg-emerald-200'
+                : 'bg-neutral-200'),
+        )}
+      >
+        {experience.icon.trim() ? (
           <img
             src={experience.icon}
             alt={experience.company}
             className={cn('size-8 object-contain rounded-sm', colors.text)}
+          />
+        ) : (
+          <div
+            className={cn(
+              'rounded-full shrink-0',
+              experience.isCareerBreak
+                ? 'bg-yellow-500'
+                : experience.isMilestone
+                  ? 'bg-emerald-500'
+                  : 'bg-neutral-500',
+            )}
+            style={{ width: '12px', height: '12px' }}
           />
         )}
       </div>
       <div className="text-base">
         <span>{experience.role}</span>
         <span className="text-[10px] font-bricolage text-muted-foreground align-middle">
-          {' '}@{' '}
+          {' '}
+          @{' '}
         </span>
         {experience.companyWebsite ? (
           <a
@@ -245,7 +268,7 @@ export function ExperienceDialogDrawer({
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="max-h-[85vh] flex flex-col">
-        <DrawerHeader className="p-4">
+        <DrawerHeader className="p-4 text-left">
           <DrawerTitle className="sr-only">
             {experience.role} at {experience.company}
           </DrawerTitle>

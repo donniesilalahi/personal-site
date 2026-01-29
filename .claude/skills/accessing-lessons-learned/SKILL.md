@@ -14,19 +14,25 @@ description: Access and apply proven patterns from previous work. Search lessons
 **Before implementation**, check if your task matches a known pattern:
 
 ### 1. Examples of lesson learn
+
 **Pattern**: [Lorem isupm](file_location)
+
 - Detail #1
 - Detail #2
 - Detail #3
 
 ### 2. Examples of lesson learn
+
 **Pattern**: [Lorem isupm](file_location)
+
 - Detail #1
 - Detail #2
 - Detail #3
 
 ### 3. Examples of lesson learn
+
 **Pattern**: [Lorem isupm](file_location)
+
 - Detail #1
 - Detail #2
 - Detail #3

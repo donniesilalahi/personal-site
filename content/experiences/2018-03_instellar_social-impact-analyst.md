@@ -12,18 +12,20 @@ location: 'Remote'
 isMilestone: FALSE
 ---
 
-#### About
+##### About
+Instellar is one of Indonesia’s leading social enterprise incubators, supporting hundreds of impact-driven ventures. 
+I joined as the first hire in a new division exploring fresh revenue streams through impact consulting — a strategic shift from the company’s previous reliance on short-term management fees from sponsor-funded incubator programs. The goal was to build a more sustainable growth model for the organization.
 
-Instellar is the top social enterprise incubators in Indonesia with hundreds of impact-driven ventures under their portfolio.
+##### Impact
+Helped secure Instellar’s first two impact consulting projects, establishing a new line of business for the company.
 
-#### Impact
+##### Contributions
+- Led two Social Return on Investment (SROI) studies.
+- Initiated groundwork for the company’s B Corp Certification, conducting a baseline assessment to identify gaps, required documentation, and improvement areas.
+- Designed the Social Lean Canvas, an adaptation of the Lean Canvas tailored for impact-driven ventures.
+- Facilitated and co-designed Human-Centered Design (HCD) workshops for MSME beneficiaries, including curriculum and research templates.
+- Produced creative assets for multiple incubation programs, supporting branding and participant engagement.
+- Supported applicant screening for an incubation program, reviewing and shortlisting over 100+ ventures.
 
-- **2x'd top-funnel pipeline** with high-quality leads and efficient acquisition channels
-- **70% shorter sales cycles** via automation and standardization
-- **3x cross-sell rates** through deep client use-case understanding
-- **Slashed costs + processing failures** with tech orchestration, multi-rail partnerships, and proactive ops
-- **Reduced churn** by triaging customer issues directly to product roadmap
-
-#### Contribution logs
-
-- **Led 9 divisions: Marketing, RevOps, BI, Credit, Partnerships, Onboarding, Payments, Support**
+##### Reflections
+This role shaped my understanding of how social impact and business viability intersect. 

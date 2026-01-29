@@ -4,12 +4,12 @@ This directory contains reusable workflows and guidelines for common development
 
 ## Available Skills
 
-| Skill Name | Description | When to Use |
-|-------------|-------------|---------------|
-| **[accessing-lessons-learned](./accessing-lessons-learned/)** | Access patterns from past work | When you need a reusable pattern or solution |
-| **[analyzing-problems](./analyzing-problems/)** | Root cause analysis | When debugging complex issues |
-| **[planning-todos](./planning-todos/)** | Lightweight planning with nested checklists | Starting feature, break down tasks |
-| **[reverse-write-specifications](./reverse-write-spec/)** | Post-implementation specs | Feature complete, fix tracked |
+| Skill Name                                                    | Description                                 | When to Use                                  |
+| ------------------------------------------------------------- | ------------------------------------------- | -------------------------------------------- |
+| **[accessing-lessons-learned](./accessing-lessons-learned/)** | Access patterns from past work              | When you need a reusable pattern or solution |
+| **[analyzing-problems](./analyzing-problems/)**               | Root cause analysis                         | When debugging complex issues                |
+| **[planning-todos](./planning-todos/)**                       | Lightweight planning with nested checklists | Starting feature, break down tasks           |
+| **[reverse-write-specifications](./reverse-write-spec/)**     | Post-implementation specs                   | Feature complete, fix tracked                |
 
 ## Related Documentation
 

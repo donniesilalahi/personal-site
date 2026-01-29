@@ -1,7 +1,11 @@
-import type { Experience } from '@/lib/experiences'
-import type { ProcessedCard, ProcessedColumn, ProcessedGroup } from './career-calendar.types'
 import { ExperienceEntryCard, MilestoneEntry } from './experience-entry-card'
 import { COLUMN_GAP_PX } from './career-calendar.constants'
+import type { Experience } from '@/lib/experiences'
+import type {
+  ProcessedCard,
+  ProcessedColumn,
+  ProcessedGroup,
+} from './career-calendar.types'
 import { cn } from '@/lib/utils'
 
 interface GroupRendererProps {
@@ -9,7 +13,10 @@ interface GroupRendererProps {
   onExperienceClick?: (experience: Experience) => void
 }
 
-export function GroupRenderer({ group, onExperienceClick }: GroupRendererProps) {
+export function GroupRenderer({
+  group,
+  onExperienceClick,
+}: GroupRendererProps) {
   const { topPx, heightPx, columns } = group
 
   if (columns.length === 1) {
@@ -20,19 +27,30 @@ export function GroupRenderer({ group, onExperienceClick }: GroupRendererProps) 
             key={card.experience.id}
             card={card}
             isFullWidth={columns[0].isRegular}
-            onClick={onExperienceClick ? () => onExperienceClick(card.experience) : undefined}
+            onClick={
+              onExperienceClick
+                ? () => onExperienceClick(card.experience)
+                : undefined
+            }
           />
         ))}
       </>
     )
   }
 
-  const gridCols = columns.map((col) => (col.isRegular ? '1fr' : 'auto')).join(' ')
+  const gridCols = columns
+    .map((col) => (col.isRegular ? '1fr' : 'auto'))
+    .join(' ')
 
   return (
     <div
       className="absolute left-0 right-0 grid"
-      style={{ top: topPx, height: heightPx, gridTemplateColumns: gridCols, gap: COLUMN_GAP_PX }}
+      style={{
+        top: topPx,
+        height: heightPx,
+        gridTemplateColumns: gridCols,
+        gap: COLUMN_GAP_PX,
+      }}
     >
       {columns.map((column) => (
         <GridColumn
@@ -52,7 +70,11 @@ interface GridColumnProps {
   onExperienceClick?: (experience: Experience) => void
 }
 
-function GridColumn({ column, groupTopPx, onExperienceClick }: GridColumnProps) {
+function GridColumn({
+  column,
+  groupTopPx,
+  onExperienceClick,
+}: GridColumnProps) {
   const { isRegular, cards } = column
 
   if (isRegular) {
@@ -64,7 +86,11 @@ function GridColumn({ column, groupTopPx, onExperienceClick }: GridColumnProps) 
             card={card}
             relativeTop={card.topPx - groupTopPx}
             isFullWidth
-            onClick={onExperienceClick ? () => onExperienceClick(card.experience) : undefined}
+            onClick={
+              onExperienceClick
+                ? () => onExperienceClick(card.experience)
+                : undefined
+            }
           />
         ))}
       </div>
@@ -93,7 +119,11 @@ function GridColumn({ column, groupTopPx, onExperienceClick }: GridColumnProps) 
           card={card}
           relativeTop={card.topPx - groupTopPx}
           isFullWidth={false}
-          onClick={onExperienceClick ? () => onExperienceClick(card.experience) : undefined}
+          onClick={
+            onExperienceClick
+              ? () => onExperienceClick(card.experience)
+              : undefined
+          }
         />
       ))}
     </div>
@@ -107,13 +137,22 @@ interface CardWrapperProps {
   onClick?: () => void
 }
 
-function CardWrapper({ card, relativeTop, isFullWidth, onClick }: CardWrapperProps) {
+function CardWrapper({
+  card,
+  relativeTop,
+  isFullWidth,
+  onClick,
+}: CardWrapperProps) {
   const { experience, heightPx, cardType } = card
   const isVeryShortDuration = experience.durationMonths <= 6
 
   if (cardType === 'milestone') {
     return (
-      <div className="absolute left-0" style={{ top: relativeTop }} onClick={onClick}>
+      <div
+        className="absolute left-0"
+        style={{ top: relativeTop }}
+        onClick={onClick}
+      >
         <MilestoneEntry experience={experience} />
       </div>
     )
@@ -146,7 +185,11 @@ function SingleCard({ card, isFullWidth, onClick }: SingleCardProps) {
 
   if (cardType === 'milestone') {
     return (
-      <div className="absolute" style={{ top: topPx, left: 0 }} onClick={onClick}>
+      <div
+        className="absolute"
+        style={{ top: topPx, left: 0 }}
+        onClick={onClick}
+      >
         <MilestoneEntry experience={experience} />
       </div>
     )
@@ -155,7 +198,12 @@ function SingleCard({ card, isFullWidth, onClick }: SingleCardProps) {
   return (
     <div
       className="absolute"
-      style={{ top: topPx, height: heightPx, left: 0, right: isFullWidth ? 0 : undefined }}
+      style={{
+        top: topPx,
+        height: heightPx,
+        left: 0,
+        right: isFullWidth ? 0 : undefined,
+      }}
       onClick={onClick}
     >
       <ExperienceEntryCard

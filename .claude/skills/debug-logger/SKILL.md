@@ -8,6 +8,7 @@ description: Structured debug logging utility for troubleshooting auth-gated pag
 ## What I Do
 
 I provide a portable debug logging utility that captures structured diagnostic information for auth-gated pages. The logger:
+
 - Captures auth state, session data, and route context
 - Uses structured JSON format with timestamps
 - Supports multiple log levels (debug, info, warn, error)
@@ -30,31 +31,32 @@ Add this logger utility to your project:
 ```typescript
 // src/lib/debug-logger.ts
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
 interface LogContext {
-  timestamp: string;
-  level: LogLevel;
-  namespace: string;
-  message: string;
-  userId?: string;
-  sessionId?: string;
-  route?: string;
-  authState?: string;
-  metadata?: Record<string, unknown>;
+  timestamp: string
+  level: LogLevel
+  namespace: string
+  message: string
+  userId?: string
+  sessionId?: string
+  route?: string
+  authState?: string
+  metadata?: Record<string, unknown>
 }
 
-const DEBUG_ENABLED = process.env.DEBUG === 'true' || process.env.NODE_ENV === 'development';
+const DEBUG_ENABLED =
+  process.env.DEBUG === 'true' || process.env.NODE_ENV === 'development'
 
 function formatTimestamp(): string {
-  return new Date().toISOString();
+  return new Date().toISOString()
 }
 
 function createLogEntry(
   level: LogLevel,
   namespace: string,
   message: string,
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>,
 ): LogContext {
   return {
     timestamp: formatTimestamp(),
@@ -62,89 +64,123 @@ function createLogEntry(
     namespace,
     message,
     metadata,
-  };
+  }
 }
 
 export const debugLogger = {
-  debug: (namespace: string, message: string, metadata?: Record<string, unknown>) => {
-    if (!DEBUG_ENABLED) return;
-    const entry = createLogEntry('debug', namespace, message, metadata);
-    console.debug(JSON.stringify(entry, null, 2));
-    return entry;
+  debug: (
+    namespace: string,
+    message: string,
+    metadata?: Record<string, unknown>,
+  ) => {
+    if (!DEBUG_ENABLED) return
+    const entry = createLogEntry('debug', namespace, message, metadata)
+    console.debug(JSON.stringify(entry, null, 2))
+    return entry
   },
 
-  info: (namespace: string, message: string, metadata?: Record<string, unknown>) => {
-    const entry = createLogEntry('info', namespace, message, metadata);
-    console.info(JSON.stringify(entry, null, 2));
-    return entry;
+  info: (
+    namespace: string,
+    message: string,
+    metadata?: Record<string, unknown>,
+  ) => {
+    const entry = createLogEntry('info', namespace, message, metadata)
+    console.info(JSON.stringify(entry, null, 2))
+    return entry
   },
 
-  warn: (namespace: string, message: string, metadata?: Record<string, unknown>) => {
-    const entry = createLogEntry('warn', namespace, message, metadata);
-    console.warn(JSON.stringify(entry, null, 2));
-    return entry;
+  warn: (
+    namespace: string,
+    message: string,
+    metadata?: Record<string, unknown>,
+  ) => {
+    const entry = createLogEntry('warn', namespace, message, metadata)
+    console.warn(JSON.stringify(entry, null, 2))
+    return entry
   },
 
-  error: (namespace: string, message: string, error?: Error, metadata?: Record<string, unknown>) => {
-    const errorMeta = error ? { errorMessage: error.message, stack: error.stack } : {};
-    const entry = createLogEntry('error', namespace, message, { ...metadata, ...errorMeta });
-    console.error(JSON.stringify(entry, null, 2));
-    return entry;
+  error: (
+    namespace: string,
+    message: string,
+    error?: Error,
+    metadata?: Record<string, unknown>,
+  ) => {
+    const errorMeta = error
+      ? { errorMessage: error.message, stack: error.stack }
+      : {}
+    const entry = createLogEntry('error', namespace, message, {
+      ...metadata,
+      ...errorMeta,
+    })
+    console.error(JSON.stringify(entry, null, 2))
+    return entry
   },
 
-  auth: (message: string, authState: {
-    userId?: string;
-    sessionId?: string;
-    isAuthenticated?: boolean;
-    tokenExpiry?: string;
-  }) => {
+  auth: (
+    message: string,
+    authState: {
+      userId?: string
+      sessionId?: string
+      isAuthenticated?: boolean
+      tokenExpiry?: string
+    },
+  ) => {
     const entry = createLogEntry('debug', 'auth', message, {
       authState,
       isAuthenticated: authState.isAuthenticated ?? false,
-    });
-    console.debug(JSON.stringify(entry, null, 2));
-    return entry;
+    })
+    console.debug(JSON.stringify(entry, null, 2))
+    return entry
   },
 
-  route: (message: string, routeContext: {
-    path?: string;
-    params?: Record<string, string>;
-    query?: Record<string, string>;
-  }) => {
-    const entry = createLogEntry('debug', 'route', message, { routeContext });
-    console.debug(JSON.stringify(entry, null, 2));
-    return entry;
+  route: (
+    message: string,
+    routeContext: {
+      path?: string
+      params?: Record<string, string>
+      query?: Record<string, string>
+    },
+  ) => {
+    const entry = createLogEntry('debug', 'route', message, { routeContext })
+    console.debug(JSON.stringify(entry, null, 2))
+    return entry
   },
 
-  session: (message: string, sessionData: {
-    sessionId?: string;
-    userId?: string;
-    createdAt?: string;
-    expiresAt?: string;
-  }) => {
-    const entry = createLogEntry('debug', 'session', message, { sessionData });
-    console.debug(JSON.stringify(entry, null, 2));
-    return entry;
+  session: (
+    message: string,
+    sessionData: {
+      sessionId?: string
+      userId?: string
+      createdAt?: string
+      expiresAt?: string
+    },
+  ) => {
+    const entry = createLogEntry('debug', 'session', message, { sessionData })
+    console.debug(JSON.stringify(entry, null, 2))
+    return entry
   },
 
-  database: (message: string, dbContext: {
-    table?: string;
-    operation?: 'select' | 'insert' | 'update' | 'delete';
-    recordId?: string;
-    success?: boolean;
-    duration?: number;
-  }) => {
-    const entry = createLogEntry('debug', 'database', message, { dbContext });
-    console.debug(JSON.stringify(entry, null, 2));
-    return entry;
+  database: (
+    message: string,
+    dbContext: {
+      table?: string
+      operation?: 'select' | 'insert' | 'update' | 'delete'
+      recordId?: string
+      success?: boolean
+      duration?: number
+    },
+  ) => {
+    const entry = createLogEntry('debug', 'database', message, { dbContext })
+    console.debug(JSON.stringify(entry, null, 2))
+    return entry
   },
 
   captureAll: (): string => {
-    return `[DEBUG-LOG-CAPTURE-${Date.now()}]\nCheck browser console for full log output.\nNamespace: auth, route, session, database\nLog levels: debug, info, warn, error`;
+    return `[DEBUG-LOG-CAPTURE-${Date.now()}]\nCheck browser console for full log output.\nNamespace: auth, route, session, database\nLog levels: debug, info, warn, error`
   },
-};
+}
 
-export default debugLogger;
+export default debugLogger
 ```
 
 ## Usage in Auth-Gated Pages
@@ -152,34 +188,34 @@ export default debugLogger;
 ### Basic Debug Logging
 
 ```typescript
-import { debugLogger } from '@/lib/debug-logger';
+import { debugLogger } from '@/lib/debug-logger'
 
 // Debug auth state
 debugLogger.auth('Checking authentication', {
   userId: user?.id,
   sessionId: session?.id,
   isAuthenticated: !!user,
-});
+})
 
 // Debug route access
 debugLogger.route('Accessing protected route', {
   path: window.location.pathname,
   params: { id: '123' },
-});
+})
 
 // Debug session data
 debugLogger.session('Session validation', {
   sessionId: session?.id,
   userId: user?.id,
   expiresAt: session?.expires_at,
-});
+})
 
 // Debug database operations
 debugLogger.database('Fetching protected data', {
   table: 'user_profiles',
   operation: 'select',
   recordId: user?.id,
-});
+})
 ```
 
 ### Conditional Debug with Expensive Operations
@@ -187,8 +223,8 @@ debugLogger.database('Fetching protected data', {
 ```typescript
 // Only compute expensive debug info when debug is enabled
 if (DEBUG_ENABLED) {
-  const expensiveData = computeDetailedAuthState();
-  debugLogger.debug('auth', 'Detailed auth state', { ...expensiveData });
+  const expensiveData = computeDetailedAuthState()
+  debugLogger.debug('auth', 'Detailed auth state', { ...expensiveData })
 }
 ```
 
@@ -196,12 +232,12 @@ if (DEBUG_ENABLED) {
 
 ```typescript
 try {
-  await protectedOperation();
+  await protectedOperation()
 } catch (error) {
   debugLogger.error('auth', 'Protected operation failed', error as Error, {
     userId: user?.id,
     route: currentRoute,
-  });
+  })
 }
 ```
 
@@ -226,12 +262,12 @@ try {
 
 ## Log Levels
 
-| Level | Console Method | Use Case |
-|-------|---------------|----------|
+| Level   | Console Method  | Use Case                             |
+| ------- | --------------- | ------------------------------------ |
 | `debug` | `console.debug` | Detailed debugging info, only in dev |
-| `info` | `console.info` | General information, always visible |
-| `warn` | `console.warn` | Warnings, non-critical issues |
-| `error` | `console.error` | Errors with stack traces |
+| `info`  | `console.info`  | General information, always visible  |
+| `warn`  | `console.warn`  | Warnings, non-critical issues        |
+| `error` | `console.error` | Errors with stack traces             |
 
 ## Capturing Logs for Sharing
 
@@ -239,37 +275,39 @@ try {
 
 ```typescript
 // Add this to capture all logs to a variable
-let capturedLogs: LogContext[] = [];
+let capturedLogs: LogContext[] = []
 
-const originalDebug = console.debug;
-const originalInfo = console.info;
-const originalWarn = console.warn;
-const originalError = console.error;
+const originalDebug = console.debug
+const originalInfo = console.info
+const originalWarn = console.warn
+const originalError = console.error
 
 console.debug = (...args) => {
-  capturedLogs.push(createLogEntry('debug', 'console', args.join(' ')));
-  originalDebug.apply(console, args);
-};
+  capturedLogs.push(createLogEntry('debug', 'console', args.join(' ')))
+  originalDebug.apply(console, args)
+}
 
 console.info = (...args) => {
-  capturedLogs.push(createLogEntry('info', 'console', args.join(' ')));
-  originalInfo.apply(console, args);
-};
+  capturedLogs.push(createLogEntry('info', 'console', args.join(' ')))
+  originalInfo.apply(console, args)
+}
 
 // ... repeat for warn and error
 
-export const getCapturedLogs = () => capturedLogs;
-export const clearCapturedLogs = () => { capturedLogs = []; };
-export const exportLogs = () => JSON.stringify(capturedLogs, null, 2);
+export const getCapturedLogs = () => capturedLogs
+export const clearCapturedLogs = () => {
+  capturedLogs = []
+}
+export const exportLogs = () => JSON.stringify(capturedLogs, null, 2)
 ```
 
 ### Quick Copy Function
 
 ```typescript
 function copyDebugLogs() {
-  const logs = exportLogs();
-  navigator.clipboard.writeText(logs);
-  console.log('Logs copied to clipboard!');
+  const logs = exportLogs()
+  navigator.clipboard.writeText(logs)
+  console.log('Logs copied to clipboard!')
 }
 ```
 
@@ -306,13 +344,13 @@ function copyDebugLogs() {
 
 ## Integration Points
 
-| Area | Logger Method | Key Data |
-|------|--------------|----------|
-| Auth Context | `debugLogger.auth()` | userId, sessionId, isAuthenticated |
-| Route Guard | `debugLogger.route()` | path, params, query |
-| Session Provider | `debugLogger.session()` | sessionId, createdAt, expiresAt |
-| Database Queries | `debugLogger.database()` | table, operation, recordId |
-| API Calls | `debugLogger.debug('api')` | endpoint, method, response |
+| Area             | Logger Method              | Key Data                           |
+| ---------------- | -------------------------- | ---------------------------------- |
+| Auth Context     | `debugLogger.auth()`       | userId, sessionId, isAuthenticated |
+| Route Guard      | `debugLogger.route()`      | path, params, query                |
+| Session Provider | `debugLogger.session()`    | sessionId, createdAt, expiresAt    |
+| Database Queries | `debugLogger.database()`   | table, operation, recordId         |
+| API Calls        | `debugLogger.debug('api')` | endpoint, method, response         |
 
 ## Related Skills
 
