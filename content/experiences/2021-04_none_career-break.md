@@ -1,5 +1,5 @@
 ---
-company: 'Time'
+company: 'Anywhere'
 role: 'Career Break'
 startDate: '2021-02-01'
 endDate: '2022-02-15'
