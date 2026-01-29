@@ -37,7 +37,8 @@ export function CareerTimelineSection({
   return (
     <section className={cn('flex flex-col gap-6', className)}>
       <TimelineSectionHeading
-        label="Career timeline"
+        label="Career journey"
+        description="Throughout my career, I maintain a playground for experiments — my mind gym. It sharpens my craft and powers my day job. I've done 0→1 and 1→10 amid uncertainty, with care, curiosity, and courage. What's next?"
         totalExperience={totalExperience}
       />
       <CareerCalendar
