@@ -1,7 +1,7 @@
 ---
 company: 'Katalis'
 role: 'Maker'
-startDate: '2019-06-01'
+startDate: '2019-11-20'
 endDate: '2020-08-31'
 companyWebsite: 'https://www.instagram.com/katalistkarir/'
 category: 'secondary'

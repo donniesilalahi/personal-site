@@ -9,7 +9,7 @@ subcategory: 'side project'
 arrangement: 'part-time'
 icon: '/images/companies/windowtoanywhere.webp'
 location: 'Remote'
-isMilestone: FALSE
+isDeprioritized: TRUE
 ---
 
 Aspire is leading financial OS for businesses in Southeast Asia.

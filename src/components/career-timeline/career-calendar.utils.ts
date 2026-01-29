@@ -1,3 +1,7 @@
+import type { Experience } from '@/lib/experiences'
+import type { CardType, TimelineBounds } from './career-calendar.types'
+import { MIN_EXPERIENCE_HEIGHT_PX } from './career-calendar.constants'
+
 /**
  * Check if two time intervals overlap.
  * Intervals are [startA, endA] and [startB, endB].
@@ -59,4 +63,82 @@ export function dateToPercent(
   if (totalMs === 0) return 0
   // Invert: newest (timelineEnd) = 0%, oldest (timelineStart) = 100%
   return ((timelineEnd.getTime() - date.getTime()) / totalMs) * 100
+}
+
+/**
+ * Calculate timeline bounds from experiences
+ */
+export function calculateTimelineBounds(
+  experiences: Array<Experience>,
+  now: Date,
+): TimelineBounds {
+  if (experiences.length === 0) {
+    const currentYear = now.getFullYear()
+    return {
+      years: [currentYear],
+      ceilingYear: currentYear + 1,
+      timelineStart: new Date(currentYear, 0, 1),
+      timelineEnd: new Date(currentYear + 1, 0, 1),
+    }
+  }
+
+  let minDate = new Date(experiences[0].startDateParsed)
+  let maxDate = experiences[0].endDateParsed ?? now
+
+  for (const exp of experiences) {
+    if (exp.startDateParsed < minDate) minDate = new Date(exp.startDateParsed)
+    const endDate = exp.endDateParsed ?? now
+    if (endDate > maxDate) maxDate = endDate
+  }
+
+  const startYear = minDate.getFullYear()
+  const endYear = maxDate.getFullYear()
+  const ceiling = endYear + 1
+
+  const yearsList: Array<number> = []
+  for (let y = endYear; y >= startYear; y--) {
+    yearsList.push(y)
+  }
+
+  return {
+    years: yearsList,
+    ceilingYear: ceiling,
+    timelineStart: new Date(startYear, 0, 1),
+    timelineEnd: new Date(ceiling, 0, 1),
+  }
+}
+
+/**
+ * Calculate vertical position for an experience card
+ */
+export function calculateVerticalPosition(
+  exp: Experience,
+  totalHeightPx: number,
+  timelineStart: Date,
+  timelineEnd: Date,
+  now: Date,
+): { topPx: number; heightPx: number } {
+  const start = exp.startDateParsed
+  const end = exp.endDateParsed ?? now
+
+  const topPercent = dateToPercent(end, timelineStart, timelineEnd)
+  const topPx = (topPercent / 100) * totalHeightPx
+
+  const startPercent = dateToPercent(start, timelineStart, timelineEnd)
+  let heightPx = ((startPercent - topPercent) / 100) * totalHeightPx
+
+  if (heightPx < MIN_EXPERIENCE_HEIGHT_PX) {
+    heightPx = MIN_EXPERIENCE_HEIGHT_PX
+  }
+
+  return { topPx: Math.round(topPx), heightPx: Math.round(heightPx) }
+}
+
+/**
+ * Get card type from experience
+ */
+export function getCardType(exp: Experience): CardType {
+  if (exp.isDeprioritized) return 'deprioritized'
+  if (exp.isMilestone) return 'milestone'
+  return 'regular'
 }

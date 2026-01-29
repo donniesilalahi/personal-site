@@ -1,13 +1,13 @@
 ---
 company: 'Industrial Engineering - Diponegoro University'
 role: 'Graduated'
-startDate: '2018-03-01'
-endDate: '2018-03-01'
+startDate: '2018-05-01'
+endDate: '2018-05-01'
 companyWebsite: ''
 category: 'primary'
 subcategory: 'study'
 arrangement: 'full-time'
-icon: 'graduation-cap'
+icon: ''
 location: 'Indonesia'
 isMilestone: TRUE
 ---

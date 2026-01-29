@@ -22,36 +22,28 @@ export interface TimelineBounds {
 }
 
 // ============================================================================
-// Positioned Card (for vertical positioning)
+// Card Types
 // ============================================================================
 
-/** Card with calculated vertical position */
-export interface PositionedCard {
+export type CardType = 'regular' | 'deprioritized' | 'milestone'
+
+export interface ProcessedCard {
   experience: Experience
-  /** Top position in pixels from timeline top */
   topPx: number
-  /** Height in pixels */
   heightPx: number
-  /** Flex behavior: 'grow' for regular, 'content' for deprioritized/milestone */
-  flexBehavior: 'grow' | 'content'
-  /** Card type for rendering */
-  cardType: 'regular' | 'deprioritized' | 'milestone'
-  /** Whether this card is in an overlap group with others */
-  hasOverlap: boolean
+  column: number
+  cardType: CardType
 }
 
-// ============================================================================
-// Overlap Group (for horizontal layout via flexbox)
-// ============================================================================
+export interface ProcessedColumn {
+  index: number
+  isRegular: boolean
+  cards: Array<ProcessedCard>
+}
 
-/** A group of cards that overlap in time */
-export interface RenderedOverlapGroup {
-  /** Unique ID for this group */
+export interface ProcessedGroup {
   id: string
-  /** Top of the group (earliest end date = highest on timeline) */
   topPx: number
-  /** Height of the group (from earliest start to latest end) */
   heightPx: number
-  /** Cards in this group, sorted by start date (leftmost first) */
-  cards: Array<PositionedCard>
+  columns: Array<ProcessedColumn>
 }
