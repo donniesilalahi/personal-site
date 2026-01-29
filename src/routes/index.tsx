@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { ProfileSection } from '@/components/profile-section'
 import { PostcardSection } from '@/components/postcard/postcard-section'
 import { CareerTimelineSection } from '@/components/career-timeline'
+import { WritingSection } from '@/components/writing'
 import { formatLocation, useGeolocation } from '@/lib/use-geolocation'
 
 export const Route = createFileRoute('/')({ component: Home })
@@ -19,6 +20,7 @@ function Home() {
         <ProfileSection />
         <PostcardSection receiverLocation={receiverLocation} />
         <CareerTimelineSection />
+        <WritingSection />
       </div>
     </main>
   )
