@@ -8,13 +8,13 @@ import { cn } from '@/lib/utils'
 
 export function ProfileSection() {
   return (
-    <section className="flex w-full flex-col gap-4">
+    <section className="flex w-full flex-col gap-4 mt-4">
       {/* Profile Info - Horizontal layout */}
       <div className="flex items-center gap-4">
         {/* Profile Picture with postcard frame effect */}
         <div
           className={cn(
-            'group relative size-[60px] shrink-0 overflow-hidden rounded-sm border border-border bg-card p-1',
+            'group relative size-[64px] shrink-0 overflow-hidden rounded-sm border border-border bg-card p-1',
           )}
         >
           {/* Content container with inner rounded corners */}

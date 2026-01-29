@@ -47,6 +47,7 @@ export function PostcardSection({
       {/* Section Heading */}
       <SectionHeading
         label="Postcard"
+        description="Hello, world! My 30 seconds message to you and the internet."
         onFlip={handleFlip}
         onExpand={handleExpand}
         onFlipButtonHover={handleFlipButtonHover}

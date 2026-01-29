@@ -212,6 +212,8 @@ export function PostcardInteractive({
   useEffect(() => {
     if (isDesktop) return
 
+    let scrollTimeout: NodeJS.Timeout | null = null
+
     const handleScroll = () => {
       if (!cardRef.current || isExpanded) return
 
@@ -226,13 +228,22 @@ export function PostcardInteractive({
           setTiltDirection('negative') // scrolling up
         }
         lastScrollY.current = currentScrollY
+
+        // Clear existing timeout and set new one to reset tilt after scroll stops
+        if (scrollTimeout) clearTimeout(scrollTimeout)
+        scrollTimeout = setTimeout(() => {
+          setTiltDirection('none')
+        }, 150)
       } else {
         setTiltDirection('none')
       }
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    return () => {
+      if (scrollTimeout) clearTimeout(scrollTimeout)
+      window.removeEventListener('scroll', handleScroll)
+    }
   }, [isExpanded, isDesktop])
 
   // Reset tilt when collapsing from expanded
