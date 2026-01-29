@@ -78,23 +78,23 @@ export function ExperienceDialogDrawer({
           />
         )}
       </div>
-      <div className="flex items-center gap-1.5">
-        <span className="text-base">{experience.role}</span>
-        <span className="text-[10px] font-bricolage text-muted-foreground">
-          @
+      <div className="text-base">
+        <span>{experience.role}</span>
+        <span className="text-[10px] font-bricolage text-muted-foreground align-middle">
+          {' '}@{' '}
         </span>
         {experience.companyWebsite ? (
           <a
             href={experience.companyWebsite}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-base hover:underline flex items-center gap-0.5"
+            className="hover:underline inline-flex items-center gap-0.5"
           >
             {experience.company}
             <LucideIcons.ArrowUpRight className="size-3" />
           </a>
         ) : (
-          <span className="text-base">{experience.company}</span>
+          <span>{experience.company}</span>
         )}
       </div>
       <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
