@@ -2,6 +2,7 @@ import { Link, createFileRoute, notFound, useSearch } from '@tanstack/react-rout
 import { ArrowLeft } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 
+import { PostcardFrame } from '@/components/postcard/postcard-frame'
 import { Button } from '@/components/ui/button'
 import {
     GROWTH_STAGE_ICONS,
@@ -90,8 +91,8 @@ function WritingPage() {
     const backLink = from === 'writings' ? '/writings' : '/'
 
     return (
-        <main className="min-h-screen bg-primitives-colors-gray-light-mode-50 flex items-center justify-center py-16">
-            <article className="w-full max-w-[720px] px-4 flex flex-col gap-8">
+        <main className="min-h-screen bg-primitives-colors-gray-light-mode-50 flex items-center justify-center py-16 font-inter">
+            <article className="w-full max-w-[720px] px-4 flex flex-col gap-8 font-inter">
                 {/* Header */}
                 <div className="flex flex-col gap-4">
                     <Button variant="ghost" size="sm" asChild className="w-fit -ml-2">
@@ -140,64 +141,64 @@ function WritingPage() {
                 </div>
 
                 {/* Content */}
-                <div className="bg-white rounded-md p-4 border border-neutral-200">
-                    <div className="prose prose-neutral max-w-none text-sm leading-relaxed">
+                <PostcardFrame className="bg-white">
+                    <div className="prose prose-neutral max-w-none text-sm leading-relaxed font-inter">
                         <ReactMarkdown
                             components={{
                                 h1: ({ children }) => (
-                                    <h1 className="text-3xl text-muted-foreground font-normal mt-6 mb-3 first:mt-0">
+                                    <h1 className="text-3xl text-muted-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
                                         {children}
                                     </h1>
                                 ),
                                 h2: ({ children }) => (
-                                    <h2 className="text-2xl text-muted-foreground font-normal mt-6 mb-3 first:mt-0">
+                                    <h2 className="text-2xl text-muted-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
                                         {children}
                                     </h2>
                                 ),
                                 h3: ({ children }) => (
-                                    <h3 className="text-xl text-muted-foreground font-normal mt-6 mb-3 first:mt-0">
+                                    <h3 className="text-xl text-muted-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
                                         {children}
                                     </h3>
                                 ),
                                 h4: ({ children }) => (
-                                    <h4 className="text-lg text-muted-foreground font-normal mt-6 mb-3 first:mt-0">
+                                    <h4 className="text-lg text-muted-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
                                         {children}
                                     </h4>
                                 ),
                                 h5: ({ children }) => (
-                                    <h5 className="text-base text-muted-foreground font-normal mt-6 mb-3 first:mt-0">
+                                    <h5 className="text-base text-muted-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
                                         {children}
                                     </h5>
                                 ),
                                 h6: ({ children }) => (
-                                    <h6 className="text-sm text-muted-foreground font-normal mt-6 mb-3 first:mt-0">
+                                    <h6 className="text-sm text-muted-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
                                         {children}
                                     </h6>
                                 ),
                                 p: ({ children }) => (
-                                    <p className="text-muted-foreground my-2">{children}</p>
+                                    <p className="text-muted-foreground my-2 font-inter">{children}</p>
                                 ),
                                 ul: ({ children }) => (
-                                    <ul className="list-disc pl-6 my-3 space-y-1">{children}</ul>
+                                    <ul className="list-disc pl-6 my-3 space-y-1 font-inter">{children}</ul>
                                 ),
                                 ol: ({ children }) => (
-                                    <ol className="list-decimal pl-6 my-3 space-y-1">{children}</ol>
+                                    <ol className="list-decimal pl-6 my-3 space-y-1 font-inter">{children}</ol>
                                 ),
                                 li: ({ children }) => (
-                                    <li className="text-muted-foreground">{children}</li>
+                                    <li className="text-muted-foreground font-inter">{children}</li>
                                 ),
                                 blockquote: ({ children }) => (
-                                    <blockquote className="border-l-2 border-muted-foreground/30 pl-4 italic text-muted-foreground my-3">
+                                    <blockquote className="border-l-2 border-muted-foreground/30 pl-4 italic text-muted-foreground my-3 font-inter">
                                         {children}
                                     </blockquote>
                                 ),
                                 code: ({ className, children }) => {
                                     return className ? (
-                                        <code className="block bg-muted-foreground/10 text-muted-foreground p-4 rounded-lg overflow-x-auto text-xs my-3">
+                                        <code className="block bg-muted-foreground/10 text-muted-foreground p-4 rounded-lg overflow-x-auto text-xs my-3 font-inter">
                                             {children}
                                         </code>
                                     ) : (
-                                        <code className="bg-muted-foreground/10 text-muted-foreground px-1.5 py-0.5 rounded text-xs">
+                                        <code className="bg-muted-foreground/10 text-muted-foreground px-1.5 py-0.5 rounded text-xs font-inter">
                                             {children}
                                         </code>
                                     )
@@ -205,7 +206,7 @@ function WritingPage() {
                                 a: ({ href, children }) => (
                                     <a
                                         href={href}
-                                        className="text-primary hover:underline"
+                                        className="text-primary hover:underline font-inter"
                                         target="_blank"
                                         rel="noopener noreferrer"
                                     >
@@ -213,7 +214,7 @@ function WritingPage() {
                                     </a>
                                 ),
                                 strong: ({ children }) => (
-                                    <strong className="text-foreground font-semibold">
+                                    <strong className="text-foreground font-semibold font-inter">
                                         {children}
                                     </strong>
                                 ),
@@ -223,7 +224,7 @@ function WritingPage() {
                             {writing.content}
                         </ReactMarkdown>
                     </div>
-                </div>
+                </PostcardFrame>
             </article>
         </main>
     )
