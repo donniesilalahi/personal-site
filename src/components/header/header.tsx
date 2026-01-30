@@ -25,7 +25,7 @@ const menuItems: Array<MenuItem> = [
   { label: 'About', href: '/about', collapsedMobile: true },
   { label: 'Now', href: '/now', collapsedMobile: true },
   { label: 'Project', href: '/project', collapsedMobile: true },
-  { label: 'Writing', href: '/writing', collapsedMobile: true },
+  { label: 'Writing', href: '/writings', collapsedMobile: true },
   { label: 'Contact', href: '/contact', collapsedMobile: true },
 ]
 
