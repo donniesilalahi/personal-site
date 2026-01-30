@@ -5,6 +5,15 @@
 /** Growth stage of the idea/article */
 export type GrowthStage = 'seedling' | 'budding' | 'evergreen'
 
+/** Publication status */
+export type PublicationStatus = 'draft' | 'published'
+
+/** Valid publication status values */
+export const VALID_PUBLICATION_STATUSES: Array<PublicationStatus> = [
+  'draft',
+  'published',
+]
+
 /** Frontmatter schema for writing markdown files */
 export interface WritingFrontmatter {
   title: string
@@ -14,6 +23,7 @@ export interface WritingFrontmatter {
   updatedAt?: string // Format: YYYY-MM-DD
   topic: string // Topic slug (references topic file)
   growthStage: GrowthStage
+  status: PublicationStatus
   showDescription: boolean
 
   // SEO fields

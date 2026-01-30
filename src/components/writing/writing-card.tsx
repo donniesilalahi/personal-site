@@ -1,11 +1,18 @@
 import { Link } from '@tanstack/react-router'
 import type { Writing } from '@/lib/writings'
-import { GROWTH_STAGE_ICONS } from '@/lib/writings'
+import { GROWTH_STAGE_ICONS, GROWTH_STAGE_LABELS } from '@/lib/writings'
 import { cn } from '@/lib/utils'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface WritingCardProps {
   writing: Writing
   className?: string
+  from?: 'home' | 'writings'
 }
 
 function formatDate(date: Date): string {
@@ -15,26 +22,36 @@ function formatDate(date: Date): string {
   })
 }
 
-export function WritingCard({ writing, className }: WritingCardProps) {
+export function WritingCard({ writing, className, from = 'home' }: WritingCardProps) {
   return (
     <Link
       to="/writing/$slug"
       params={{ slug: writing.slug }}
+      search={{ from }}
       className={cn(
-        'group flex flex-col gap-1 py-4 border-b border-dashed border-neutral-200 last:border-b-0',
-        'hover:bg-neutral-50/50 transition-colors -mx-2 px-2 rounded-sm',
+        'group flex flex-col gap-1 p-4 rounded-sm',
+        'hover:bg-neutral-100 transition-colors',
         className,
       )}
     >
       {/* Title row */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-2 min-w-0">
-          {/* Growth stage icon */}
-          <img
-            src={GROWTH_STAGE_ICONS[writing.growthStage]}
-            alt={writing.growthStage}
-            className="w-5 h-5 shrink-0"
-          />
+          {/* Growth stage icon with tooltip */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <img
+                  src={GROWTH_STAGE_ICONS[writing.growthStage]}
+                  alt={writing.growthStage}
+                  className="size-3 shrink-0"
+                />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{GROWTH_STAGE_LABELS[writing.growthStage]}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           {/* Title */}
           <h3 className="font-medium text-foreground truncate group-hover:text-primary transition-colors">
             {writing.title}
@@ -48,7 +65,7 @@ export function WritingCard({ writing, className }: WritingCardProps) {
 
       {/* Description (conditional) */}
       {writing.showDescription && writing.description && (
-        <p className="text-sm text-muted-foreground pl-7 line-clamp-2">
+        <p className="text-sm text-muted-foreground pl-5 line-clamp-2">
           {writing.description}
         </p>
       )}

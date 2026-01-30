@@ -5,6 +5,7 @@ description: 'Good design isn't about trends — it's about honesty. It's what h
 publishedAt: '2026-01-15'
 topic: 'product-design'
 growthStage: 'seedling'
+status: 'published'
 showDescription: FALSE
 seoTitle: 'Design is Honesty | Donnie Silalahi'
 seoDescription: 'Good design isn't about trends — it's about honesty. It's what happens when craft meets empathy.'

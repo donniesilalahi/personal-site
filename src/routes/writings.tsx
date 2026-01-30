@@ -2,76 +2,86 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
 
 import type { Topic } from '@/lib/writings'
-import { WritingCard } from '@/components/writing'
+import { WritingList } from '@/components/writing'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { getAllTopics, getAllWritings } from '@/lib/writings'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { getAllTopics, getAllWritings, getWritingsByTopic } from '@/lib/writings'
 
 export const Route = createFileRoute('/writings')({
-  component: WritingsPage,
-  head: () => ({
-    meta: [
-      { title: 'Writing | Donnie Silalahi' },
-      {
-        name: 'description',
-        content:
-          'Thoughts, daily observation, and reflection on things I make',
-      },
-    ],
-  }),
+    component: WritingsPage,
+    head: () => ({
+        meta: [
+            { title: 'Writing | Donnie Silalahi' },
+            {
+                name: 'description',
+                content:
+                    'Thoughts, daily observation, and reflection on things I make',
+            },
+        ],
+    }),
 })
 
 function WritingsPage() {
-  const writings = getAllWritings()
-  const topics = getAllTopics()
+    const writings = getAllWritings()
+    const topics = getAllTopics()
 
-  return (
-    <main className="min-h-screen bg-primitives-colors-gray-light-mode-50 flex items-center justify-center py-16">
-      <div className="w-full max-w-[720px] px-4 flex flex-col gap-8">
-        {/* Header */}
-        <div className="flex flex-col gap-4">
-          <Button variant="ghost" size="sm" asChild className="w-fit -ml-2">
-            <Link to="/">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-2xl font-medium text-foreground">Writing</h1>
-            <p className="text-muted-foreground mt-1">
-              Thoughts, daily observation, and reflection on things I make
-            </p>
-          </div>
-        </div>
+    return (
+        <main className="min-h-screen bg-primitives-colors-gray-light-mode-50 flex items-center justify-center py-16">
+            <div className="w-full max-w-[720px] px-4 flex flex-col gap-8">
+                {/* Header */}
+                <div className="flex flex-col gap-4">
+                    <Button variant="ghost" size="sm" asChild className="w-fit -ml-2">
+                        <Link to="/" className="flex items-center gap-2">
+                            <ArrowLeft className="size-4" />
+                            <span>Kembali</span>
+                        </Link>
+                    </Button>
+                    <div>
+                        <h1 className="text-2xl font-medium text-foreground">Writing</h1>
+                        <p className="text-muted-foreground mt-1">
+                            Thoughts, daily observation, and reflection on things I make
+                        </p>
+                    </div>
+                </div>
 
-        {/* Topics */}
-        {topics.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {topics.map((topic: Topic) => (
-              <Button key={topic.id} variant="outline" size="sm" asChild>
-                <Link to="/topic/$slug" params={{ slug: topic.slug }}>
-                  {topic.name}
-                </Link>
-              </Button>
-            ))}
-          </div>
-        )}
+                {/* Tabs for topics */}
+                <Tabs defaultValue="all" className="w-full">
+                    <TabsList className="w-full justify-start h-auto flex-wrap gap-1 bg-transparent p-0">
+                        <TabsTrigger
+                            value="all"
+                            className="data-[state=active]:bg-neutral-900 data-[state=active]:text-white rounded-md"
+                        >
+                            All
+                        </TabsTrigger>
+                        {topics.map((topic: Topic) => (
+                            <TabsTrigger
+                                key={topic.id}
+                                value={topic.slug}
+                                className="data-[state=active]:bg-neutral-900 data-[state=active]:text-white rounded-md"
+                            >
+                                {topic.name}
+                            </TabsTrigger>
+                        ))}
+                    </TabsList>
 
-        {/* All writings */}
-        <Card className="border-none shadow-none bg-white rounded-lg">
-          <CardContent className="p-4">
-            {writings.length > 0 ? (
-              writings.map((writing) => (
-                <WritingCard key={writing.id} writing={writing} />
-              ))
-            ) : (
-              <p className="text-sm text-muted-foreground py-4 text-center">
-                No writings yet. Check back soon!
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </main>
-  )
+                    <TabsContent value="all" className="mt-6">
+                        <WritingList writings={writings} from="writings" />
+                    </TabsContent>
+
+                    {topics.map((topic: Topic) => {
+                        const topicWritings = getWritingsByTopic(topic.slug)
+                        return (
+                            <TabsContent key={topic.id} value={topic.slug} className="mt-6">
+                                <WritingList
+                                    writings={topicWritings}
+                                    from="writings"
+                                    emptyMessage="No writings in this topic yet."
+                                />
+                            </TabsContent>
+                        )
+                    })}
+                </Tabs>
+            </div>
+        </main>
+    )
 }

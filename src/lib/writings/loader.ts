@@ -3,7 +3,13 @@
  * Uses Vite's import.meta.glob for static imports at build time
  */
 
-import type { GrowthStage, Writing, WritingFrontmatter } from './types'
+import { VALID_PUBLICATION_STATUSES } from './types'
+import type {
+  GrowthStage,
+  PublicationStatus,
+  Writing,
+  WritingFrontmatter,
+} from './types'
 
 /** Valid growth stage values */
 const VALID_GROWTH_STAGES: Array<GrowthStage> = [
@@ -87,6 +93,11 @@ function validateFrontmatter(
     errors.push(`growthStage must be one of: ${VALID_GROWTH_STAGES.join(', ')}`)
   }
 
+  const status = frontmatter.status as PublicationStatus
+  if (!VALID_PUBLICATION_STATUSES.includes(status)) {
+    errors.push(`status must be one of: ${VALID_PUBLICATION_STATUSES.join(', ')}`)
+  }
+
   if (typeof frontmatter.showDescription !== 'boolean') {
     errors.push('showDescription must be TRUE or FALSE')
   }
@@ -105,6 +116,7 @@ function validateFrontmatter(
     updatedAt: (frontmatter.updatedAt as string) || undefined,
     topic: frontmatter.topic as string,
     growthStage,
+    status,
     showDescription: frontmatter.showDescription as boolean,
     seoTitle: (frontmatter.seoTitle as string) || undefined,
     seoDescription: (frontmatter.seoDescription as string) || undefined,
@@ -176,9 +188,16 @@ const writingModules = import.meta.glob<string>('/content/writings/*.md', {
 })
 
 /**
- * Get all writings, sorted by published date (newest first)
+ * Filter writings to only include published content
  */
-export function getAllWritings(): Array<Writing> {
+function filterPublished(writings: Array<Writing>): Array<Writing> {
+  return writings.filter((writing) => writing.status === 'published')
+}
+
+/**
+ * Get all writings (internal, includes drafts), sorted by published date (newest first)
+ */
+function getAllWritingsInternal(): Array<Writing> {
   const writings: Array<Writing> = []
 
   for (const [filepath, content] of Object.entries(writingModules)) {
@@ -198,21 +217,28 @@ export function getAllWritings(): Array<Writing> {
 }
 
 /**
- * Get writings filtered by topic
+ * Get all published writings, sorted by published date (newest first)
+ */
+export function getAllWritings(): Array<Writing> {
+  return filterPublished(getAllWritingsInternal())
+}
+
+/**
+ * Get published writings filtered by topic
  */
 export function getWritingsByTopic(topicSlug: string): Array<Writing> {
   return getAllWritings().filter((writing) => writing.topic === topicSlug)
 }
 
 /**
- * Get a single writing by slug
+ * Get a single published writing by slug
  */
 export function getWritingBySlug(slug: string): Writing | undefined {
   return getAllWritings().find((writing) => writing.slug === slug)
 }
 
 /**
- * Get recent writings (limited)
+ * Get recent published writings (limited)
  */
 export function getRecentWritings(limit: number = 5): Array<Writing> {
   return getAllWritings().slice(0, limit)

@@ -1,0 +1,35 @@
+import type { Writing } from '@/lib/writings'
+import { WritingCard } from './writing-card'
+import { cn } from '@/lib/utils'
+
+interface WritingListProps {
+  writings: Writing[]
+  from?: 'home' | 'writings'
+  emptyMessage?: string
+  className?: string
+}
+
+export function WritingList({
+  writings,
+  from = 'home',
+  emptyMessage = 'No writings yet. Check back soon!',
+  className,
+}: WritingListProps) {
+  return (
+    <div className={cn('border border-neutral-200 rounded-md p-4', className)}>
+      {writings.length > 0 ? (
+        <ul className="divide-y divide-neutral-200">
+          {writings.map((writing) => (
+            <li key={writing.id} className="first:pt-0 last:pb-0 py-1">
+              <WritingCard writing={writing} from={from} />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-muted-foreground py-4 text-center">
+          {emptyMessage}
+        </p>
+      )}
+    </div>
+  )
+}

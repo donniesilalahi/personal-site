@@ -20,6 +20,11 @@ topic: 'product-design'
 #   - "evergreen" → Mature, well-developed, timeless
 growthStage: 'seedling'
 
+# status: Publication status
+#   - "draft"     → Not visible on the site
+#   - "published" → Visible on the site
+status: 'draft'
+
 # Display options
 # showDescription: Whether to show description in the writing card
 #   - TRUE  → Shows description below title

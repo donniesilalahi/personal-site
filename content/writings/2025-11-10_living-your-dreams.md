@@ -5,6 +5,7 @@ description: 'Short descriptions about the articles'
 publishedAt: '2025-11-10'
 topic: 'reflections'
 growthStage: 'evergreen'
+status: 'published'
 showDescription: TRUE
 seoTitle: 'Are You Living Your Dreams? | Donnie Silalahi'
 seoDescription: 'A reflection on what it means to live deliberately and pursue work that feels true.'

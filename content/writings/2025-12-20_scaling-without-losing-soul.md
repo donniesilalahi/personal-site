@@ -5,6 +5,7 @@ description: 'Short descriptions about the articles'
 publishedAt: '2025-12-20'
 topic: 'growth'
 growthStage: 'budding'
+status: 'published'
 showDescription: TRUE
 seoTitle: 'Scaling Without Losing Your Soul | Donnie Silalahi'
 seoDescription: 'How to grow a product 10x without losing what made it special in the first place.'

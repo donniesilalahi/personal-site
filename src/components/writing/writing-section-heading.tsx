@@ -22,7 +22,7 @@ export function WritingSectionHeading({
         </span>
 
         {/* View More Button */}
-        <Button variant="outline" size="sm" asChild className="shrink-0">
+        <Button variant="secondary" size="sm" asChild className="shrink-0 h-7 text-xs px-2">
           <Link to="/writings">View More</Link>
         </Button>
       </div>
