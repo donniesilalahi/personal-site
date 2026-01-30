@@ -44,7 +44,7 @@ export function CareerCalendar({
   return (
     <div
       className={cn(
-        'border rounded-sm py-8 px-4 max-sm:py-4 max-sm:px-2 bg-neutral-50',
+        'border rounded-sm py-8 px-4 max-sm:py-4 max-sm:px-2 bg-neutral-50 dark:bg-neutral-950',
         className,
       )}
     >

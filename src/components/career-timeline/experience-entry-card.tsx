@@ -159,14 +159,14 @@ export const ExperienceEntryCard = forwardRef<
         ref={ref}
         className={cn(
           'flex items-end gap-1.5 h-full px-2 py-1.5 rounded-sm border',
-          'bg-white',
-          'border-neutral-100',
-          'hover:bg-neutral-50',
+          'bg-white dark:bg-neutral-900',
+          'border-neutral-100 dark:border-neutral-800',
+          'hover:bg-neutral-50 dark:hover:bg-neutral-800',
           'transition-colors',
           onClick ? 'cursor-pointer' : 'cursor-default',
           className,
           // Diagonal yellow-100 stripes, 1px line width
-          '[background-image:repeating-linear-gradient(45deg,transparent_0px,transparent_6px,#fef9c3_6px,#fef9c3_7px)]',
+          '[background-image:repeating-linear-gradient(45deg,transparent_0px,transparent_6px,#fef9c3_6px,#fef9c3_7px)] dark:[background-image:repeating-linear-gradient(45deg,transparent_0px,transparent_6px,#713f12_6px,#713f12_7px)]',
         )}
         onClick={onClick}
       >
