@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { HugeiconsIcon } from '@hugeicons/react'
 import {
   Linkedin01Icon,
@@ -5,10 +6,18 @@ import {
 } from '@hugeicons/core-free-icons'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useProfileVisibility } from '@/hooks/use-profile-visibility'
 
 export function ProfileSection() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const { setProfileRef } = useProfileVisibility()
+
+  useEffect(() => {
+    setProfileRef(sectionRef)
+  }, [setProfileRef])
+
   return (
-    <section className="flex w-full flex-col gap-4 mt-4">
+    <section ref={sectionRef} className="flex w-full flex-col gap-4 mt-4">
       {/* Profile Info - Horizontal layout */}
       <div className="flex items-center gap-4">
         {/* Profile Picture with postcard frame effect */}

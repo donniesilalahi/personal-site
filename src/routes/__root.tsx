@@ -1,6 +1,13 @@
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
+import {
+  HeadContent,
+  Outlet,
+  Scripts,
+  createRootRoute,
+} from '@tanstack/react-router'
 
 import appCss from '../styles.css?url'
+import { Header } from '@/components/header'
+import { Providers } from '@/components/providers'
 
 const siteTitle = 'Donnie Silalahi'
 const siteDescription = 'Product Builder, Growth Marketer and Operations Leader'
@@ -83,8 +90,18 @@ export const Route = createRootRoute({
     ],
   }),
 
+  component: RootComponent,
   shellComponent: RootDocument,
 })
+
+function RootComponent() {
+  return (
+    <Providers>
+      <Header />
+      <Outlet />
+    </Providers>
+  )
+}
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (

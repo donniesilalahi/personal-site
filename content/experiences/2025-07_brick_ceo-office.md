@@ -18,5 +18,5 @@ Brick is Indonesia’s leading open finance and real‑time payments infrastruct
 
 ##### Contributions
 
-- Hired and onboarded critical team members across Finance, Legal, Partnerships, and Business Intelligence following a major organizational restructure.  
-- Prepared a comprehensive data room to ensure readiness for future corporate actions and strategic fundraising.  
+- Hired and onboarded critical team members across Finance, Legal, Partnerships, and Business Intelligence following a major organizational restructure.
+- Prepared a comprehensive data room to ensure readiness for future corporate actions and strategic fundraising.

@@ -63,6 +63,7 @@ Stepped in during a critical transition period to rebuild and scale both growth 
 - Revamped incentive scheme aligned with company objectives
 
 ###### Onboarding Operations
+
 - Shortened due diligence through UX revamp, decision categorization, admin improvements, and automated document verification (OCR)
 
 ###### Credit Operations and Infrastructure Partnership *(supervised for one semester)*
