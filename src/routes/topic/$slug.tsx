@@ -44,9 +44,9 @@ function TopicPage() {
                         </Link>
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-medium text-foreground">
-                            {topic.name}
-                        </h1>
+                         <h1 className="text-2xl font-medium text-foreground font-bricolage">
+                             {topic.name}
+                         </h1>
                         <p className="text-muted-foreground mt-1">{topic.description}</p>
                     </div>
                 </div>

@@ -103,10 +103,10 @@ function WritingPage() {
                     </Button>
 
                     {/* Title and meta */}
-                    <div className="flex flex-col gap-3">
-                        <h1 className="text-3xl font-medium text-secondary-foreground">
-                            {writing.title}
-                        </h1>
+                     <div className="flex flex-col gap-3">
+                         <h1 className="text-3xl font-black text-secondary-foreground font-bricolage">
+                             {writing.title}
+                         </h1>
 
                         {/* Meta row */}
                         <div className="flex items-center gap-3 text-sm text-muted-foreground">

@@ -12,32 +12,32 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
       <ReactMarkdown
         components={{
           h1: ({ children }) => (
-            <h1 className="text-3xl text-secondary-foreground font-normal mt-6 mb-3 first:mt-0">
+            <h1 className="text-3xl text-secondary-foreground font-black mt-6 mb-3 first:mt-0 font-bricolage">
               {children}
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="text-2xl text-secondary-foreground font-normal mt-6 mb-3 first:mt-0">
+            <h2 className="text-2xl text-secondary-foreground font-bold mt-6 mb-3 first:mt-0 font-bricolage">
               {children}
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-xl text-secondary-foreground font-normal mt-6 mb-3 first:mt-0">
+            <h3 className="text-xl text-secondary-foreground font-semibold mt-6 mb-3 first:mt-0 font-bricolage">
               {children}
             </h3>
           ),
           h4: ({ children }) => (
-            <h4 className="text-lg text-secondary-foreground font-normal mt-6 mb-3 first:mt-0">
+            <h4 className="text-lg text-secondary-foreground font-semibold mt-6 mb-3 first:mt-0 font-bricolage">
               {children}
             </h4>
           ),
           h5: ({ children }) => (
-            <h5 className="text-base text-secondary-foreground font-normal mt-6 mb-3 first:mt-0">
+            <h5 className="text-base text-secondary-foreground font-normal mt-6 mb-3 first:mt-0 font-bricolage">
               {children}
             </h5>
           ),
           h6: ({ children }) => (
-            <h6 className="text-sm text-secondary-foreground font-normal mt-6 mb-3 first:mt-0">
+            <h6 className="text-sm text-secondary-foreground font-normal mt-6 mb-3 first:mt-0 font-bricolage">
               {children}
             </h6>
           ),

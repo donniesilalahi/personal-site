@@ -37,7 +37,7 @@ function WritingsPage() {
                         </Link>
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-medium text-foreground">Writing</h1>
+                         <h1 className="text-2xl font-medium text-foreground font-bricolage">Writing</h1>
                         <p className="text-muted-foreground mt-1">
                             Thoughts, daily observation, and reflection on things I make
                         </p>

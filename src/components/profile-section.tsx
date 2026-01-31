@@ -21,7 +21,7 @@ export function ProfileSection() {
     <section ref={sectionRef} className="flex w-full flex-col gap-4 pt-24">
       {/* Name and Role - Vertical layout under header logo */}
       <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold text-foreground">
+        <h1 className="text-xl font-semibold text-foreground font-bricolage">
           Donnie Silalahi
         </h1>
         <p className="text-sm text-tertiary-foreground">
