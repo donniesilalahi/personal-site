@@ -42,15 +42,11 @@ export function Header() {
   const collapsedItems = menuItems.filter((item) => item.collapsedMobile)
   const visibleMobileItems = menuItems.filter((item) => !item.collapsedMobile)
 
-  const logoSize = isHomePage
-    ? LOGO_SIZE_LARGE - (LOGO_SIZE_LARGE - LOGO_SIZE_SMALL) * scrollProgress
-    : LOGO_SIZE_SMALL
+  const logoSize = LOGO_SIZE_LARGE - (LOGO_SIZE_LARGE - LOGO_SIZE_SMALL) * scrollProgress
 
-  const headerHeight = isHomePage
-    ? HEADER_HEIGHT_LARGE - (HEADER_HEIGHT_LARGE - HEADER_HEIGHT_SMALL) * scrollProgress
-    : HEADER_HEIGHT_SMALL
+  const headerHeight = HEADER_HEIGHT_LARGE - (HEADER_HEIGHT_LARGE - HEADER_HEIGHT_SMALL) * scrollProgress
 
-  const showBorder = !isHomePage || scrollProgress > 0
+  const showBorder = scrollProgress > 0
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
