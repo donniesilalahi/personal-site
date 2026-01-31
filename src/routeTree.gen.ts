@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WritingsRouteImport } from './routes/writings'
+import { Route as ColophonRouteImport } from './routes/colophon'
+import { Route as AiRouteImport } from './routes/ai'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WritingSlugRouteImport } from './routes/writing/$slug'
 import { Route as TopicSlugRouteImport } from './routes/topic/$slug'
@@ -18,6 +20,16 @@ import { Route as ProjectSlugRouteImport } from './routes/project/$slug'
 const WritingsRoute = WritingsRouteImport.update({
   id: '/writings',
   path: '/writings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ColophonRoute = ColophonRouteImport.update({
+  id: '/colophon',
+  path: '/colophon',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiRoute = AiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -43,6 +55,8 @@ const ProjectSlugRoute = ProjectSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ai': typeof AiRoute
+  '/colophon': typeof ColophonRoute
   '/writings': typeof WritingsRoute
   '/project/$slug': typeof ProjectSlugRoute
   '/topic/$slug': typeof TopicSlugRoute
@@ -50,6 +64,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ai': typeof AiRoute
+  '/colophon': typeof ColophonRoute
   '/writings': typeof WritingsRoute
   '/project/$slug': typeof ProjectSlugRoute
   '/topic/$slug': typeof TopicSlugRoute
@@ -58,6 +74,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ai': typeof AiRoute
+  '/colophon': typeof ColophonRoute
   '/writings': typeof WritingsRoute
   '/project/$slug': typeof ProjectSlugRoute
   '/topic/$slug': typeof TopicSlugRoute
@@ -67,15 +85,26 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ai'
+    | '/colophon'
     | '/writings'
     | '/project/$slug'
     | '/topic/$slug'
     | '/writing/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/writings' | '/project/$slug' | '/topic/$slug' | '/writing/$slug'
+  to:
+    | '/'
+    | '/ai'
+    | '/colophon'
+    | '/writings'
+    | '/project/$slug'
+    | '/topic/$slug'
+    | '/writing/$slug'
   id:
     | '__root__'
     | '/'
+    | '/ai'
+    | '/colophon'
     | '/writings'
     | '/project/$slug'
     | '/topic/$slug'
@@ -84,6 +113,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AiRoute: typeof AiRoute
+  ColophonRoute: typeof ColophonRoute
   WritingsRoute: typeof WritingsRoute
   ProjectSlugRoute: typeof ProjectSlugRoute
   TopicSlugRoute: typeof TopicSlugRoute
@@ -97,6 +128,20 @@ declare module '@tanstack/react-router' {
       path: '/writings'
       fullPath: '/writings'
       preLoaderRoute: typeof WritingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/colophon': {
+      id: '/colophon'
+      path: '/colophon'
+      fullPath: '/colophon'
+      preLoaderRoute: typeof ColophonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai': {
+      id: '/ai'
+      path: '/ai'
+      fullPath: '/ai'
+      preLoaderRoute: typeof AiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -132,6 +177,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AiRoute: AiRoute,
+  ColophonRoute: ColophonRoute,
   WritingsRoute: WritingsRoute,
   ProjectSlugRoute: ProjectSlugRoute,
   TopicSlugRoute: TopicSlugRoute,

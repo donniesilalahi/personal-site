@@ -26,7 +26,7 @@ const menuItems: Array<MenuItem> = [
   { label: 'Now', href: '/now', collapsedMobile: true },
   { label: 'Project', href: '/project', collapsedMobile: true },
   { label: 'Writing', href: '/writings', collapsedMobile: true },
-  { label: 'Contact', href: '/contact', collapsedMobile: true },
+  { label: 'Contact', href: '#contact', collapsedMobile: true },
 ]
 
 const LOGO_SIZE_LARGE = 64
@@ -119,7 +119,13 @@ export function Header() {
                 variant="ghost"
                 size="sm"
                 className="font-normal text-secondary-foreground hover:text-foreground"
-                render={<Link to={item.href} />}
+                render={
+                  item.href.startsWith('#') ? (
+                    <a href={item.href} />
+                  ) : (
+                    <Link to={item.href} />
+                  )
+                }
               >
                 {item.label}
               </Button>
@@ -154,7 +160,13 @@ export function Header() {
               {collapsedItems.map((item) => (
                 <DropdownMenuItem
                   key={item.href}
-                  render={<Link to={item.href} />}
+                  render={
+                    item.href.startsWith('#') ? (
+                      <a href={item.href} />
+                    ) : (
+                      <Link to={item.href} />
+                    )
+                  }
                   onSelect={() => setMenuOpen(false)}
                 >
                   {item.label}

@@ -7,6 +7,7 @@ import {
 
 import appCss from '../styles.css?url'
 import { Header } from '@/components/header'
+import { Footer } from '@/components/footer'
 import { Providers } from '@/components/providers'
 
 const siteTitle = 'Donnie Silalahi'
@@ -99,6 +100,7 @@ function RootComponent() {
     <Providers>
       <Header />
       <Outlet />
+      <Footer />
     </Providers>
   )
 }
