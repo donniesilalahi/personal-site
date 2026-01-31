@@ -11,10 +11,10 @@ interface ProjectVisualHighlightsProps {
  *
  * Layout rules:
  * - 1 image: 80% of available space, no rotation, centered
- * - 2 images: 55% width each, rotated ±4°, placed closer to edges
- * - 3 images: 55% width each, first +4°, second 0°, third -4°
+ * - 2 images: 55% width each, rotated ±4°, left on top (higher Y), right below (lower Y)
+ * - 3 images: 55% width each, back at top-right, middle at center, front at bottom-left
  *
- * All images maintain 4:3 aspect ratio
+ * All images maintain 4:3 aspect ratio with postcard-like frame styling
  */
 export function ProjectVisualHighlights({
   visuals,
@@ -43,7 +43,7 @@ export function ProjectVisualHighlights({
       )}
 
       {/* Visual highlights container */}
-      <div className="absolute inset-0 flex items-center justify-center p-6">
+      <div className="absolute inset-0 flex items-center justify-center">
         {count === 1 && <SingleVisual visual={visuals[0]} />}
         {count === 2 && <TwoVisuals visuals={visuals.slice(0, 2)} />}
         {count === 3 && <ThreeVisuals visuals={visuals.slice(0, 3)} />}
@@ -64,25 +64,28 @@ function SingleVisual({ visual }: { visual: string }) {
 }
 
 /**
- * Two visuals - 55% width each, ±4° rotation, offset positions
+ * Two visuals - 55% width each, ±4° rotation
+ * Left visual: on top (z-index), positioned higher (upper Y)
+ * Right visual: behind, positioned lower (lower Y)
+ * Group is centered horizontally and vertically
  */
 function TwoVisuals({ visuals }: { visuals: Array<string> }) {
   return (
-    <div className="relative w-full h-full">
-      {/* Back visual (left side, -4°) */}
+    <div className="relative w-[75%] h-[75%]">
+      {/* Back visual (right side, lower, -4°) */}
       <div
-        className="absolute w-[55%] left-[10%] top-1/2 -translate-y-1/2"
-        style={{ transform: 'translateY(-50%) rotate(-4deg)' }}
-      >
-        <VisualImage src={visuals[0]} alt="" />
-      </div>
-
-      {/* Front visual (right side, +4°) */}
-      <div
-        className="absolute w-[55%] right-[10%] top-1/2 z-10"
-        style={{ transform: 'translateY(-50%) rotate(4deg)' }}
+        className="absolute w-[70%] right-0 bottom-0"
+        style={{ transform: 'rotate(-4deg)' }}
       >
         <VisualImage src={visuals[1]} alt="" />
+      </div>
+
+      {/* Front visual (left side, upper, +4°) */}
+      <div
+        className="absolute w-[70%] left-0 top-0 z-10"
+        style={{ transform: 'rotate(4deg)' }}
+      >
+        <VisualImage src={visuals[0]} alt="" />
       </div>
     </div>
   )
@@ -90,32 +93,32 @@ function TwoVisuals({ visuals }: { visuals: Array<string> }) {
 
 /**
  * Three visuals - 55% width each
- * First: +4°, Second: 0°, Third: -4°
- * Stacked with overlapping effect
+ * Z-order from back to front: top-right → center → bottom-left
+ * Group is centered horizontally and vertically
  */
 function ThreeVisuals({ visuals }: { visuals: Array<string> }) {
   return (
-    <div className="relative w-full h-full">
-      {/* Back visual (bottom left, -4°) */}
+    <div className="relative w-[85%] h-[85%]">
+      {/* Back visual (top right, -4°) - lowest z-index */}
       <div
-        className="absolute w-[55%] left-[5%] top-[55%] -translate-y-1/2"
-        style={{ transform: 'translateY(-50%) rotate(-4deg)' }}
+        className="absolute w-[55%] right-0 top-0"
+        style={{ transform: 'rotate(-4deg)' }}
       >
         <VisualImage src={visuals[2]} alt="" />
       </div>
 
-      {/* Middle visual (center top, 0°) */}
+      {/* Middle visual (center, 0°) - middle z-index */}
       <div
-        className="absolute w-[55%] left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2 z-10"
+        className="absolute w-[55%] left-1/2 top-1/2 z-10"
         style={{ transform: 'translate(-50%, -50%) rotate(0deg)' }}
       >
         <VisualImage src={visuals[1]} alt="" />
       </div>
 
-      {/* Front visual (bottom right, +4°) */}
+      {/* Front visual (bottom left, +4°) - highest z-index */}
       <div
-        className="absolute w-[55%] right-[5%] top-[60%] z-20"
-        style={{ transform: 'translateY(-50%) rotate(4deg)' }}
+        className="absolute w-[55%] left-0 bottom-0 z-20"
+        style={{ transform: 'rotate(4deg)' }}
       >
         <VisualImage src={visuals[0]} alt="" />
       </div>
@@ -124,11 +127,15 @@ function ThreeVisuals({ visuals }: { visuals: Array<string> }) {
 }
 
 /**
- * Individual visual image with 4:3 aspect ratio and shadow
+ * Individual visual image with 4:3 aspect ratio
+ * Postcard-like frame: border outline, small xy shadow, rounded corners, no inner padding
  */
 function VisualImage({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="relative aspect-[4/3] rounded-sm overflow-hidden shadow-lg bg-white">
+    <div
+      className="relative aspect-[4/3] rounded-md overflow-hidden border border-neutral-200 bg-white"
+      style={{ boxShadow: '1px 2px 4px rgba(0, 0, 0, 0.1)' }}
+    >
       <img
         src={src}
         alt={alt}
