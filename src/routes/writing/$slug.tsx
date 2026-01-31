@@ -104,7 +104,7 @@ function WritingPage() {
 
                     {/* Title and meta */}
                     <div className="flex flex-col gap-3">
-                        <h1 className="text-3xl font-medium text-foreground">
+                        <h1 className="text-3xl font-medium text-secondary-foreground">
                             {writing.title}
                         </h1>
 
@@ -147,37 +147,37 @@ function WritingPage() {
                             <ReactMarkdown
                                 components={{
                                     h1: ({ children }) => (
-                                        <h1 className="text-3xl text-muted-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
+                                        <h1 className="text-3xl text-secondary-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
                                             {children}
                                         </h1>
                                     ),
                                     h2: ({ children }) => (
-                                        <h2 className="text-2xl text-muted-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
+                                        <h2 className="text-2xl text-secondary-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
                                             {children}
                                         </h2>
                                     ),
                                     h3: ({ children }) => (
-                                        <h3 className="text-xl text-muted-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
+                                        <h3 className="text-xl text-secondary-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
                                             {children}
                                         </h3>
                                     ),
                                     h4: ({ children }) => (
-                                        <h4 className="text-lg text-muted-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
+                                        <h4 className="text-lg text-secondary-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
                                             {children}
                                         </h4>
                                     ),
                                     h5: ({ children }) => (
-                                        <h5 className="text-base text-muted-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
+                                        <h5 className="text-base text-secondary-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
                                             {children}
                                         </h5>
                                     ),
                                     h6: ({ children }) => (
-                                        <h6 className="text-sm text-muted-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
+                                        <h6 className="text-sm text-secondary-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
                                             {children}
                                         </h6>
                                     ),
                                     p: ({ children }) => (
-                                        <p className="text-muted-foreground my-2 font-inter">{children}</p>
+                                        <p className="text-tertiary-foreground my-2 font-inter">{children}</p>
                                     ),
                                     ul: ({ children }) => (
                                         <ul className="list-disc pl-6 my-3 space-y-1 font-inter">{children}</ul>
@@ -186,20 +186,20 @@ function WritingPage() {
                                         <ol className="list-decimal pl-6 my-3 space-y-1 font-inter">{children}</ol>
                                     ),
                                     li: ({ children }) => (
-                                        <li className="text-muted-foreground font-inter">{children}</li>
+                                        <li className="text-tertiary-foreground font-inter">{children}</li>
                                     ),
                                     blockquote: ({ children }) => (
-                                        <blockquote className="border-l-2 border-muted-foreground/30 pl-4 italic text-muted-foreground my-3 font-inter">
+                                        <blockquote className="border-l-2 border-tertiary-foreground/30 pl-4 italic text-tertiary-foreground my-3 font-inter">
                                             {children}
                                         </blockquote>
                                     ),
                                     code: ({ className, children }) => {
                                         return className ? (
-                                            <code className="block bg-muted-foreground/10 text-muted-foreground p-4 rounded-lg overflow-x-auto text-xs my-3 font-inter">
+                                            <code className="block bg-tertiary-foreground/10 text-tertiary-foreground p-4 rounded-lg overflow-x-auto text-xs my-3 font-inter">
                                                 {children}
                                             </code>
                                         ) : (
-                                            <code className="bg-muted-foreground/10 text-muted-foreground px-1.5 py-0.5 rounded text-xs font-inter">
+                                            <code className="bg-tertiary-foreground/10 text-tertiary-foreground px-1.5 py-0.5 rounded text-xs font-inter">
                                                 {children}
                                             </code>
                                         )
@@ -219,7 +219,7 @@ function WritingPage() {
                                             {children}
                                         </strong>
                                     ),
-                                    hr: () => <hr className="border-muted-foreground/20 my-4" />,
+                                    hr: () => <hr className="border-tertiary-foreground/20 my-4" />,
                                 }}
                             >
                                 {writing.content}

@@ -101,8 +101,8 @@ export function ExperienceDialogDrawer({
         )}
       </div>
       <div className="text-base">
-        <span>{experience.role}</span>
-        <span className="text-[10px] font-bricolage text-muted-foreground align-middle">
+        <span className="text-secondary-foreground">{experience.role}</span>
+        <span className="text-[10px] font-bricolage text-secondary-foreground align-middle">
           {' '}
           @{' '}
         </span>
@@ -111,13 +111,13 @@ export function ExperienceDialogDrawer({
             href={experience.companyWebsite}
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:underline inline-flex items-center gap-0.5"
+            className="text-secondary-foreground hover:underline inline-flex items-center gap-0.5"
           >
             {experience.company}
             <LucideIcons.ArrowUpRight className="size-3" />
           </a>
         ) : (
-          <span>{experience.company}</span>
+          <span className="text-secondary-foreground">{experience.company}</span>
         )}
       </div>
       <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
@@ -139,37 +139,37 @@ export function ExperienceDialogDrawer({
       <ReactMarkdown
         components={{
           h1: ({ children }) => (
-            <h1 className="text-3xl text-muted-foreground font-normal mt-6 mb-3">
+            <h1 className="text-3xl text-secondary-foreground font-normal mt-6 mb-3">
               {children}
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="text-2xl text-muted-foreground font-normal mt-6 mb-3">
+            <h2 className="text-2xl text-secondary-foreground font-normal mt-6 mb-3">
               {children}
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-xl text-muted-foreground font-normal mt-6 mb-3">
+            <h3 className="text-xl text-secondary-foreground font-normal mt-6 mb-3">
               {children}
             </h3>
           ),
           h4: ({ children }) => (
-            <h4 className="text-lg text-muted-foreground font-normal mt-6 mb-3">
+            <h4 className="text-lg text-secondary-foreground font-normal mt-6 mb-3">
               {children}
             </h4>
           ),
           h5: ({ children }) => (
-            <h5 className="text-base text-muted-foreground font-normal mt-6 mb-3">
+            <h5 className="text-base text-secondary-foreground font-normal mt-6 mb-3">
               {children}
             </h5>
           ),
           h6: ({ children }) => (
-            <h6 className="text-sm text-muted-foreground font-normal mt-6 mb-3">
+            <h6 className="text-sm text-secondary-foreground font-normal mt-6 mb-3">
               {children}
             </h6>
           ),
           p: ({ children }) => (
-            <p className="text-muted-foreground my-2">{children}</p>
+            <p className="text-tertiary-foreground my-2">{children}</p>
           ),
           ul: ({ children }) => (
             <ul className="list-disc pl-6 my-3 space-y-1">{children}</ul>
@@ -178,20 +178,20 @@ export function ExperienceDialogDrawer({
             <ol className="list-decimal pl-6 my-3 space-y-1">{children}</ol>
           ),
           li: ({ children }) => (
-            <li className="text-muted-foreground">{children}</li>
+            <li className="text-tertiary-foreground">{children}</li>
           ),
           blockquote: ({ children }) => (
-            <blockquote className="border-l-2 border-muted-foreground/30 pl-4 italic text-muted-foreground my-3">
+            <blockquote className="border-l-2 border-tertiary-foreground/30 pl-4 italic text-tertiary-foreground my-3">
               {children}
             </blockquote>
           ),
           code: ({ className, children }) => {
             return className ? (
-              <code className="block bg-muted-foreground/10 text-muted-foreground p-4 rounded-lg overflow-x-auto text-xs my-3">
+              <code className="block bg-tertiary-foreground/10 text-tertiary-foreground p-4 rounded-lg overflow-x-auto text-xs my-3">
                 {children}
               </code>
             ) : (
-              <code className="bg-muted-foreground/10 text-muted-foreground px-1.5 py-0.5 rounded text-xs">
+              <code className="bg-tertiary-foreground/10 text-tertiary-foreground px-1.5 py-0.5 rounded text-xs">
                 {children}
               </code>
             )
@@ -211,7 +211,7 @@ export function ExperienceDialogDrawer({
               {children}
             </strong>
           ),
-          hr: () => <hr className="border-muted-foreground/20 my-4" />,
+          hr: () => <hr className="border-tertiary-foreground/20 my-4" />,
         }}
       >
         {experience.description}

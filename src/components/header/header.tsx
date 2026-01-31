@@ -118,7 +118,7 @@ export function Header() {
                 key={item.href}
                 variant="ghost"
                 size="sm"
-                className="font-normal text-muted-foreground hover:text-foreground"
+                className="font-normal text-secondary-foreground hover:text-foreground"
                 render={<Link to={item.href} />}
               >
                 {item.label}
@@ -133,7 +133,7 @@ export function Header() {
                 key={item.href}
                 variant="ghost"
                 size="sm"
-                className="font-normal text-muted-foreground hover:text-foreground"
+                className="font-normal text-secondary-foreground hover:text-foreground"
                 render={<Link to={item.href} />}
               >
                 {item.label}
