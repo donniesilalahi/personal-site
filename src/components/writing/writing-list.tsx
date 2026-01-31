@@ -16,11 +16,11 @@ export function WritingList({
   className,
 }: WritingListProps) {
   return (
-    <div className={cn('border border-neutral-200 rounded-none', className)}>
+    <div className={cn('border border-neutral-200 rounded-sm p-2', className)}>
       {writings.length > 0 ? (
-        <ul className="divide-y divide-neutral-200">
+        <ul>
           {writings.map((writing) => (
-            <li key={writing.id} className="first:pt-0 last:pb-0 py-1">
+            <li key={writing.id}>
               <WritingCard writing={writing} from={from} />
             </li>
           ))}
