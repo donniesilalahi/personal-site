@@ -91,7 +91,7 @@ export function PostcardBackCover({
             {postcardParagraphs.map((paragraph, index) => (
               <p
                 key={index}
-                className="text-sm leading-[18px] text-muted-foreground"
+                className="text-sm leading-[18px] text-secondary-foreground"
               >
                 {paragraph}
               </p>
@@ -132,7 +132,7 @@ export function PostcardBackCover({
 
               {/* Location */}
               <div className="flex items-center pl-3.5">
-                <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
+                <span className="flex-1 text-xs leading-[18px] text-secondary-foreground">
                   Jakarta, Indonesia
                 </span>
               </div>
@@ -140,12 +140,12 @@ export function PostcardBackCover({
 
               {/* Date and Time - same line on mobile, separate on desktop */}
               <div className="flex items-center pl-3.5 md:hidden">
-                <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
-                  {date}, {time}
+                <span className="flex-1 text-xs leading-[18px] text-secondary-foreground">
+                  {date}, {time} <sup>GMT+7</sup>
                 </span>
               </div>
               <div className="hidden md:flex md:items-center md:pl-3.5">
-                <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
+                <span className="flex-1 text-xs leading-[18px] text-secondary-foreground">
                   {date}
                 </span>
               </div>
@@ -153,7 +153,7 @@ export function PostcardBackCover({
 
               {/* Time - desktop only (separate line) */}
               <div className="hidden md:flex md:items-center md:pl-3.5">
-                <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
+                <span className="flex-1 text-xs leading-[18px] text-secondary-foreground">
                   {time} <sup>GMT+7</sup>
                 </span>
               </div>
@@ -171,7 +171,7 @@ export function PostcardBackCover({
 
               {/* Receiver location */}
               <div className="flex items-center pl-3.5">
-                <span className="flex-1 text-xs leading-[18px] text-muted-foreground">
+                <span className="flex-1 text-xs leading-[18px] text-secondary-foreground">
                   {receiverLocation}
                 </span>
               </div>
