@@ -13,6 +13,7 @@ import { Route as WritingsRouteImport } from './routes/writings'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WritingSlugRouteImport } from './routes/writing/$slug'
 import { Route as TopicSlugRouteImport } from './routes/topic/$slug'
+import { Route as ProjectSlugRouteImport } from './routes/project/$slug'
 
 const WritingsRoute = WritingsRouteImport.update({
   id: '/writings',
@@ -34,16 +35,23 @@ const TopicSlugRoute = TopicSlugRouteImport.update({
   path: '/topic/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProjectSlugRoute = ProjectSlugRouteImport.update({
+  id: '/project/$slug',
+  path: '/project/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/writings': typeof WritingsRoute
+  '/project/$slug': typeof ProjectSlugRoute
   '/topic/$slug': typeof TopicSlugRoute
   '/writing/$slug': typeof WritingSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/writings': typeof WritingsRoute
+  '/project/$slug': typeof ProjectSlugRoute
   '/topic/$slug': typeof TopicSlugRoute
   '/writing/$slug': typeof WritingSlugRoute
 }
@@ -51,20 +59,33 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/writings': typeof WritingsRoute
+  '/project/$slug': typeof ProjectSlugRoute
   '/topic/$slug': typeof TopicSlugRoute
   '/writing/$slug': typeof WritingSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/writings' | '/topic/$slug' | '/writing/$slug'
+  fullPaths:
+    | '/'
+    | '/writings'
+    | '/project/$slug'
+    | '/topic/$slug'
+    | '/writing/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/writings' | '/topic/$slug' | '/writing/$slug'
-  id: '__root__' | '/' | '/writings' | '/topic/$slug' | '/writing/$slug'
+  to: '/' | '/writings' | '/project/$slug' | '/topic/$slug' | '/writing/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/writings'
+    | '/project/$slug'
+    | '/topic/$slug'
+    | '/writing/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   WritingsRoute: typeof WritingsRoute
+  ProjectSlugRoute: typeof ProjectSlugRoute
   TopicSlugRoute: typeof TopicSlugRoute
   WritingSlugRoute: typeof WritingSlugRoute
 }
@@ -99,12 +120,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TopicSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/project/$slug': {
+      id: '/project/$slug'
+      path: '/project/$slug'
+      fullPath: '/project/$slug'
+      preLoaderRoute: typeof ProjectSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   WritingsRoute: WritingsRoute,
+  ProjectSlugRoute: ProjectSlugRoute,
   TopicSlugRoute: TopicSlugRoute,
   WritingSlugRoute: WritingSlugRoute,
 }
