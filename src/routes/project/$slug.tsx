@@ -91,7 +91,7 @@ function ProjectPage() {
   const tagsText = project.tags.map((tag) => `#${tag.toLowerCase()}`).join(' ')
 
   return (
-    <main className="min-h-screen bg-secondary flex items-center justify-center py-16 font-inter">
+    <main className="min-h-screen bg-secondary flex items-center justify-center py-16 mt-[120px] font-inter">
       <article className="w-full max-w-[720px] px-4 flex flex-col gap-8 font-inter">
         {/* Header */}
         <div className="flex flex-col gap-4">

@@ -6,7 +6,7 @@ export const Route = createFileRoute('/colophon')({
 
 function ColophonPage() {
   return (
-    <main className="mx-auto max-w-[720px] px-4 py-24">
+    <main className="mx-auto max-w-[720px] px-4 py-24 mt-[120px]">
       <div className="flex flex-col gap-8">
         <div>
           <h1 className="text-3xl font-semibold text-foreground font-bricolage mb-2">
