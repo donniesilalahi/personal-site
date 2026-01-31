@@ -4,7 +4,8 @@ Minimal, searchable record of features built. Each spec uses product/feature-foc
 
 | Spec                                                                                      | Status | Priority | Date       |
 | ----------------------------------------------------------------------------------------- | ------ | -------- | ---------- |
-| [writing-page-folded-corner](./2026-01-31-1740_writing-page-folded-corner.md)             | ✅     | P2       | 2026-01-31 |
+| [remove-folded-corner](./2026-01-31-1745_remove-folded-corner.md)                         | ✅     | P2       | 2026-01-31 |
+| [writing-page-folded-corner](./2026-01-31-1740_writing-page-folded-corner.md)             | ❌     | P2       | 2026-01-31 |
 | [page-layout-component](./2026-01-31-2200_page-layout-component.md)                       | ✅     | P2       | 2026-01-31 |
 | [project-visual-highlights-layout](./2026-01-31-1330_project-visual-highlights-layout.md) | ✅     | P1       | 2026-01-31 |
 | [projects-carousel-section](./2026-01-31-1313_projects-carousel-section.md)               | ✅     | P1       | 2026-01-31 |

@@ -1,4 +1,3 @@
-import React from 'react'
 import {
   Link,
   createFileRoute,
@@ -96,7 +95,6 @@ function formatFullDate(date: Date): string {
 function WritingPage() {
   const { writing, topic } = Route.useLoaderData()
   const { from } = useSearch({ from: '/writing/$slug' })
-  const [cornerLift, setCornerLift] = React.useState(0)
 
   const backLink = from === 'writings' ? '/writings' : '/'
 
@@ -112,31 +110,11 @@ function WritingPage() {
           <span>Back</span>
         </Link>
 
-        {/* Main Card with Folded Corner Effect */}
-        <div
-          className="relative group"
-          onMouseEnter={() => setCornerLift(1)}
-          onMouseLeave={() => setCornerLift(0)}
-        >
-          {/* Main card - note: top-right corner has no border-radius */}
-          <div
-            className="relative bg-white border border-neutral-200"
-            style={{ borderRadius: '8px 0 8px 8px' }}
-          >
+        {/* Main Card */}
+        <div className="relative">
+          <div className="relative bg-white border border-neutral-200 rounded-lg">
             {/* Dotted lines background overlay */}
-            <DottedLinesOverlay />
-
-            {/* Folded corner - curved fold showing paper backside */}
-            <div
-              className="absolute top-0 right-0 pointer-events-none transition-all duration-300"
-              style={{
-                width: cornerLift ? '28px' : '20px',
-                height: cornerLift ? '28px' : '20px',
-                background: 'linear-gradient(135deg, #e5e5e5 0%, #d5d5d5 100%)',
-                borderBottomLeftRadius: '100%',
-                boxShadow: '-2px 2px 3px rgba(0,0,0,0.08)',
-              }}
-            />
+            <DottedLinesOverlay className="rounded-lg" />
 
             {/* Header Section */}
             <div className="relative px-6 py-8 md:px-8">
