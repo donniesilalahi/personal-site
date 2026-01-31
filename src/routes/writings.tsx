@@ -2,6 +2,7 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
 
 import type { Topic } from '@/lib/writings'
+import { PageLayout } from '@/components/page-layout'
 import { WritingList } from '@/components/writing'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { getAllTopics, getAllWritings, getWritingsByTopic } from '@/lib/writings'
@@ -25,8 +26,8 @@ function WritingsPage() {
      const topics = getAllTopics()
 
      return (
-         <main className="min-h-screen bg-white flex items-center justify-center py-16 mt-[120px]">
-            <div className="w-full max-w-[720px] px-4 flex flex-col gap-8">
+         <PageLayout className="bg-white">
+            <div className="flex flex-col gap-8">
                 {/* Header */}
                  <div className="flex flex-col gap-4">
                      <Link
@@ -82,6 +83,6 @@ function WritingsPage() {
                     })}
                 </Tabs>
             </div>
-        </main>
+        </PageLayout>
     )
 }

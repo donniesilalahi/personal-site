@@ -2,6 +2,7 @@ import React from 'react'
 import { Link, createFileRoute, notFound, useSearch } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
 
+import { PageLayout } from '@/components/page-layout'
 import { DottedLinesOverlay } from '@/components/postcard/postcard-frame'
 import { MarkdownRenderer } from '@/components/ui/markdown-renderer'
 import {
@@ -98,8 +99,8 @@ function WritingPage() {
      }
 
      return (
-         <main className="min-h-screen bg-white flex items-center justify-center py-16 mt-[120px] font-inter">
-             <article className="w-full max-w-[720px] px-4 flex flex-col gap-8 font-inter">
+         <PageLayout className="bg-white font-inter">
+             <article className="flex flex-col gap-8">
                  {/* Back Button - Outside Card */}
                  <Link
                      to={backLink}
@@ -175,6 +176,6 @@ function WritingPage() {
                      </div>
                  </div>
              </article>
-         </main>
+         </PageLayout>
      )
      }

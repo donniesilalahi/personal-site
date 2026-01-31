@@ -1,6 +1,7 @@
 import { Link, createFileRoute, notFound, useSearch } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
 
+import { PageLayout } from '@/components/page-layout'
 import { DottedLinesOverlay, PostcardFrame } from '@/components/postcard/postcard-frame'
 import { Button } from '@/components/ui/button'
 import { MarkdownRenderer } from '@/components/ui/markdown-renderer'
@@ -91,8 +92,8 @@ function ProjectPage() {
   const tagsText = project.tags.map((tag) => `#${tag.toLowerCase()}`).join(' ')
 
   return (
-    <main className="min-h-screen bg-secondary flex items-center justify-center py-16 mt-[120px] font-inter">
-      <article className="w-full max-w-[720px] px-4 flex flex-col gap-8 font-inter">
+    <PageLayout className="bg-secondary font-inter">
+      <article className="flex flex-col gap-8">
         {/* Header */}
         <div className="flex flex-col gap-4">
           <Button variant="ghost" size="sm" asChild className="w-fit -ml-2">
@@ -141,6 +142,6 @@ function ProjectPage() {
           </div>
         </PostcardFrame>
       </article>
-    </main>
+    </PageLayout>
   )
 }

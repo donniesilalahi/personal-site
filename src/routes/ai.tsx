@@ -1,12 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router'
 
+import { PageLayout } from '@/components/page-layout'
+
 export const Route = createFileRoute('/ai')({
   component: AIPage,
 })
 
 function AIPage() {
   return (
-    <main className="mx-auto max-w-[720px] px-4 py-24 mt-[120px]">
+    <PageLayout>
       <div className="flex flex-col gap-8">
         <div>
           <h1 className="text-3xl font-semibold text-foreground font-bricolage mb-2">
@@ -25,6 +27,6 @@ function AIPage() {
           </p>
         </div>
       </div>
-    </main>
+    </PageLayout>
   )
 }
