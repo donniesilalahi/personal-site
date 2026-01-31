@@ -15,7 +15,7 @@ export function WritingSectionHeading({
 }: WritingSectionHeadingProps) {
   return (
     <div className={cn('flex flex-col gap-2', className)}>
-      <div className="flex items-center gap-3 w-full">
+      <div className="flex items-center gap-3 w-full pb-2 border-b border-neutral-200">
         {/* Section Label */}
         <span className="text-xl font-normal text-secondary-foreground shrink-0 font-bricolage">
           {label}

@@ -44,7 +44,7 @@ export function WritingCard({ writing, className, from = 'home' }: WritingCardPr
                 <img
                   src={GROWTH_STAGE_ICONS[writing.growthStage]}
                   alt={writing.growthStage}
-                  className="size-3 shrink-0"
+                  className="size-4 shrink-0"
                 />
               </TooltipTrigger>
               <TooltipContent>
@@ -53,12 +53,12 @@ export function WritingCard({ writing, className, from = 'home' }: WritingCardPr
             </Tooltip>
           </TooltipProvider>
           {/* Title */}
-          <h3 className="font-medium text-foreground truncate group-hover:text-primary transition-colors">
+          <h3 className="font-normal text-foreground truncate group-hover:text-primary transition-colors">
             {writing.title}
           </h3>
         </div>
         {/* Date */}
-        <span className="text-sm text-muted-foreground shrink-0">
+        <span className="text-xs text-muted-foreground shrink-0 uppercase">
           {formatDate(writing.publishedAtParsed)}
         </span>
       </div>

@@ -16,7 +16,7 @@ export function WritingList({
   className,
 }: WritingListProps) {
   return (
-    <div className={cn('border border-neutral-200 rounded-md p-4', className)}>
+    <div className={cn('border border-neutral-200 rounded-none', className)}>
       {writings.length > 0 ? (
         <ul className="divide-y divide-neutral-200">
           {writings.map((writing) => (
