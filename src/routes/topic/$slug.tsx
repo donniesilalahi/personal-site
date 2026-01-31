@@ -2,7 +2,6 @@ import { Link, createFileRoute, notFound } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
 
 import { WritingList } from '@/components/writing'
-import { Button } from '@/components/ui/button'
 import { getTopicBySlug, getWritingsByTopic } from '@/lib/writings'
 
 export const Route = createFileRoute('/topic/$slug')({
@@ -33,16 +32,17 @@ function TopicPage() {
     const { topic, writings } = Route.useLoaderData()
 
     return (
-        <main className="min-h-screen bg-secondary flex items-center justify-center py-16">
+        <main className="min-h-screen bg-white flex items-center justify-center py-16">
             <div className="w-full max-w-[720px] px-4 flex flex-col gap-8">
                 {/* Header */}
-                <div className="flex flex-col gap-4">
-                    <Button variant="ghost" size="sm" asChild className="w-fit -ml-2">
-                        <Link to="/writings" className="flex items-center gap-2">
-                            <ArrowLeft className="size-4" />
-                            <span>Kembali</span>
-                        </Link>
-                    </Button>
+                 <div className="flex flex-col gap-4">
+                     <Link
+                         to="/writings"
+                         className="w-fit -ml-2 px-2 py-1 text-sm hover:bg-muted rounded-md transition-colors flex items-center gap-2"
+                     >
+                         <ArrowLeft className="size-4" />
+                         <span>Back</span>
+                     </Link>
                     <div>
                          <h1 className="text-2xl font-medium text-foreground font-bricolage">
                              {topic.name}
