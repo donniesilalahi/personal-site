@@ -1,7 +1,6 @@
 'use client'
 
 import * as LucideIcons from 'lucide-react'
-import ReactMarkdown from 'react-markdown'
 import type { Experience } from '@/lib/experiences'
 import {
   Dialog,
@@ -18,6 +17,7 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer'
 import { Button } from '@/components/ui/button'
+import { MarkdownRenderer } from '@/components/ui/markdown-renderer'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import { useMediaQuery } from '@/hooks/use-media-query'
@@ -135,88 +135,7 @@ export function ExperienceDialogDrawer({
   )
 
   const ContentBody = (
-    <div className="text-sm leading-relaxed">
-      <ReactMarkdown
-        components={{
-          h1: ({ children }) => (
-            <h1 className="text-3xl text-secondary-foreground font-normal mt-6 mb-3">
-              {children}
-            </h1>
-          ),
-          h2: ({ children }) => (
-            <h2 className="text-2xl text-secondary-foreground font-normal mt-6 mb-3">
-              {children}
-            </h2>
-          ),
-          h3: ({ children }) => (
-            <h3 className="text-xl text-secondary-foreground font-normal mt-6 mb-3">
-              {children}
-            </h3>
-          ),
-          h4: ({ children }) => (
-            <h4 className="text-lg text-secondary-foreground font-normal mt-6 mb-3">
-              {children}
-            </h4>
-          ),
-          h5: ({ children }) => (
-            <h5 className="text-base text-secondary-foreground font-normal mt-6 mb-3">
-              {children}
-            </h5>
-          ),
-          h6: ({ children }) => (
-            <h6 className="text-sm text-secondary-foreground font-normal mt-6 mb-3">
-              {children}
-            </h6>
-          ),
-          p: ({ children }) => (
-            <p className="text-tertiary-foreground my-2">{children}</p>
-          ),
-          ul: ({ children }) => (
-            <ul className="list-disc pl-6 my-3 space-y-1">{children}</ul>
-          ),
-          ol: ({ children }) => (
-            <ol className="list-decimal pl-6 my-3 space-y-1">{children}</ol>
-          ),
-          li: ({ children }) => (
-            <li className="text-tertiary-foreground">{children}</li>
-          ),
-          blockquote: ({ children }) => (
-            <blockquote className="border-l-2 border-tertiary-foreground/30 pl-4 italic text-tertiary-foreground my-3">
-              {children}
-            </blockquote>
-          ),
-          code: ({ className, children }) => {
-            return className ? (
-              <code className="block bg-tertiary-foreground/10 text-tertiary-foreground p-4 rounded-lg overflow-x-auto text-xs my-3">
-                {children}
-              </code>
-            ) : (
-              <code className="bg-tertiary-foreground/10 text-tertiary-foreground px-1.5 py-0.5 rounded text-xs">
-                {children}
-              </code>
-            )
-          },
-          a: ({ href, children }) => (
-            <a
-              href={href}
-              className="text-primary hover:underline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {children}
-            </a>
-          ),
-          strong: ({ children }) => (
-            <strong className="text-foreground font-semibold">
-              {children}
-            </strong>
-          ),
-          hr: () => <hr className="border-tertiary-foreground/20 my-4" />,
-        }}
-      >
-        {experience.description}
-      </ReactMarkdown>
-    </div>
+    <MarkdownRenderer content={experience.description} />
   )
 
   const FooterContent = (

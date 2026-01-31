@@ -1,9 +1,9 @@
 import { Link, createFileRoute, notFound, useSearch } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
-import ReactMarkdown from 'react-markdown'
 
 import { PostcardFrame, DottedLinesOverlay } from '@/components/postcard/postcard-frame'
 import { Button } from '@/components/ui/button'
+import { MarkdownRenderer } from '@/components/ui/markdown-renderer'
 import {
     GROWTH_STAGE_ICONS,
     GROWTH_STAGE_LABELS,
@@ -143,88 +143,10 @@ function WritingPage() {
                 {/* Content */}
                 <PostcardFrame className="md:aspect-auto dark:bg-card">
                     <div className="relative w-full overflow-hidden rounded-[2px]">
-                        <div className="prose prose-neutral max-w-none text-sm leading-relaxed font-inter">
-                            <ReactMarkdown
-                                components={{
-                                    h1: ({ children }) => (
-                                        <h1 className="text-3xl text-secondary-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
-                                            {children}
-                                        </h1>
-                                    ),
-                                    h2: ({ children }) => (
-                                        <h2 className="text-2xl text-secondary-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
-                                            {children}
-                                        </h2>
-                                    ),
-                                    h3: ({ children }) => (
-                                        <h3 className="text-xl text-secondary-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
-                                            {children}
-                                        </h3>
-                                    ),
-                                    h4: ({ children }) => (
-                                        <h4 className="text-lg text-secondary-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
-                                            {children}
-                                        </h4>
-                                    ),
-                                    h5: ({ children }) => (
-                                        <h5 className="text-base text-secondary-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
-                                            {children}
-                                        </h5>
-                                    ),
-                                    h6: ({ children }) => (
-                                        <h6 className="text-sm text-secondary-foreground font-normal mt-6 mb-3 first:mt-0 font-inter">
-                                            {children}
-                                        </h6>
-                                    ),
-                                    p: ({ children }) => (
-                                        <p className="text-tertiary-foreground my-2 font-inter">{children}</p>
-                                    ),
-                                    ul: ({ children }) => (
-                                        <ul className="list-disc pl-6 my-3 space-y-1 font-inter">{children}</ul>
-                                    ),
-                                    ol: ({ children }) => (
-                                        <ol className="list-decimal pl-6 my-3 space-y-1 font-inter">{children}</ol>
-                                    ),
-                                    li: ({ children }) => (
-                                        <li className="text-tertiary-foreground font-inter">{children}</li>
-                                    ),
-                                    blockquote: ({ children }) => (
-                                        <blockquote className="border-l-2 border-tertiary-foreground/30 pl-4 italic text-tertiary-foreground my-3 font-inter">
-                                            {children}
-                                        </blockquote>
-                                    ),
-                                    code: ({ className, children }) => {
-                                        return className ? (
-                                            <code className="block bg-tertiary-foreground/10 text-tertiary-foreground p-4 rounded-lg overflow-x-auto text-xs my-3 font-inter">
-                                                {children}
-                                            </code>
-                                        ) : (
-                                            <code className="bg-tertiary-foreground/10 text-tertiary-foreground px-1.5 py-0.5 rounded text-xs font-inter">
-                                                {children}
-                                            </code>
-                                        )
-                                    },
-                                    a: ({ href, children }) => (
-                                        <a
-                                            href={href}
-                                            className="text-primary hover:underline font-inter"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
-                                            {children}
-                                        </a>
-                                    ),
-                                    strong: ({ children }) => (
-                                        <strong className="text-foreground font-semibold font-inter">
-                                            {children}
-                                        </strong>
-                                    ),
-                                    hr: () => <hr className="border-tertiary-foreground/20 my-4" />,
-                                }}
-                            >
-                                {writing.content}
-                            </ReactMarkdown>
-                        </div>
+                        <MarkdownRenderer
+                            content={writing.content}
+                            className="prose prose-neutral max-w-none"
+                        />
                         {/* Dotted lines overlay */}
                         <DottedLinesOverlay />
                     </div>
