@@ -26,7 +26,7 @@ function WritingsPage() {
     const topics = getAllTopics()
 
     return (
-        <main className="min-h-screen bg-primitives-colors-gray-light-mode-50 flex items-center justify-center py-16">
+        <main className="min-h-screen bg-secondary flex items-center justify-center py-16">
             <div className="w-full max-w-[720px] px-4 flex flex-col gap-8">
                 {/* Header */}
                 <div className="flex flex-col gap-4">
