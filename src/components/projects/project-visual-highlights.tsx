@@ -65,24 +65,24 @@ function SingleVisual({ visual }: { visual: string }) {
 
 /**
  * Two visuals - 55% width each, ±4° rotation
- * Left visual: on top (z-index), positioned higher (upper Y)
- * Right visual: behind, positioned lower (lower Y)
+ * Front visual: left-bottom, on top (z-index)
+ * Back visual: right-top, behind
  * Group is centered horizontally and vertically
  */
 function TwoVisuals({ visuals }: { visuals: Array<string> }) {
   return (
     <div className="relative w-[75%] h-[75%]">
-      {/* Back visual (right side, lower, -4°) */}
+      {/* Back visual (right side, upper, -4°) */}
       <div
-        className="absolute w-[70%] right-0 bottom-0"
+        className="absolute w-[70%] right-0 top-0"
         style={{ transform: 'rotate(-4deg)' }}
       >
         <VisualImage src={visuals[1]} alt="" />
       </div>
 
-      {/* Front visual (left side, upper, +4°) */}
+      {/* Front visual (left side, lower, +4°) */}
       <div
-        className="absolute w-[70%] left-0 top-0 z-10"
+        className="absolute w-[70%] left-0 bottom-0 z-10"
         style={{ transform: 'rotate(4deg)' }}
       >
         <VisualImage src={visuals[0]} alt="" />
