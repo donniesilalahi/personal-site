@@ -59,6 +59,21 @@ export function NoiseOverlay({ className }: { className?: string }) {
   )
 }
 
+/**
+ * Dotted lines overlay component - journaling paper effect
+ * Creates horizontal dotted lines with 24px spacing for journaling paper look
+ * Light mode: black dots at 15% opacity
+ * Dark mode: white dots at 15% opacity
+ */
+export function DottedLinesOverlay({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn('pointer-events-none absolute inset-0 dotted-lines-overlay', className)}
+      aria-hidden="true"
+    />
+  )
+}
+
 /** Drop shadow style from Figma specs */
 const POSTCARD_SHADOW = '0px 3.17px 0px 0px rgba(0, 0, 0, 0.25)'
 
@@ -93,7 +108,7 @@ export function PostcardFrame({
   return (
     <div
       className={cn(
-        'relative w-full cursor-pointer overflow-hidden rounded-sm border border-border bg-card p-2 md:aspect-[3/2] md:p-4',
+        'relative w-full overflow-hidden rounded-sm border border-border bg-card p-2 md:aspect-[3/2] md:p-4',
         className,
       )}
       onClick={onClick}
