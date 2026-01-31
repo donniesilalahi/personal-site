@@ -16,6 +16,12 @@ const config = defineConfig({
     tanstackStart(),
     viteReact(),
   ],
+  server: {
+    watch: {
+      // Ignore content directory to prevent HMR loops from glob patterns
+      ignored: ['**/content/**'],
+    },
+  },
 })
 
 export default config

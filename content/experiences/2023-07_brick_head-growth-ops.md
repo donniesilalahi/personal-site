@@ -32,7 +32,7 @@ Stepped in during a critical transition period to rebuild and scale both growth 
 
 ##### What I Built
 
-####### Growth Engine**
+###### Growth Engine
 - Rebuilt marketing function from ground up: performance, brand, product marketing, and design
 - Developed brand positioning strategy as foundation for all sales, marketing, and support messaging
 - Built automated nurturing flows across email and WhatsApp from acquisition to first revenue
@@ -42,7 +42,7 @@ Stepped in during a critical transition period to rebuild and scale both growth 
 - Built discipline of timely follow-up and personalized nurturing for SDRs
 - Created comprehensive knowledge base: product cheatsheets, ICP definitions, buyer personas, use case library, battle cards, industry guides
 
-####### Revenue Operations and Business Intelligence**
+###### Revenue Operations and Business Intelligence
 - Transformed HubSpot into a CDP: multi-way sync between traffic performance, pipeline progression, and attribution
 - Built automated lead enrichment and qualification integrating website visitor data and social listening
 - Improved pipeline discipline through enforced fields, automated deal movement rules, and alert systems
@@ -50,22 +50,23 @@ Stepped in during a critical transition period to rebuild and scale both growth 
 - Delivered department-level dashboards for north star metrics
 - Built automated weekly cohorts across pipeline and attribution
 
-####### Payments Ops & Customer Support
+###### Payments Ops & Customer Support
 - Scaled ticketing from spreadsheets to structured system with granular categorization and faster insights
 - Standardized shift management: allocation, bandwidth calculation, leave requests, handovers
 - Reduced revenue loss from manual errors through automated balance monitoring across payment rails
 - Built early warning systems for service instability and long transaction processing
 - Transformed support interactions into product insights during triage
 
-####### Technical Sales**
+###### Technical Sales
 - Completed XX integrations including notable enterprise clients
 - Shifted team toward proactive opportunity identification — surfaced dozens of upsell/expansion opportunities
 - Revamped incentive scheme aligned with company objectives
 
-####### Onboarding Operations**
+###### Onboarding Operations
+
 - Shortened due diligence through UX revamp, decision categorization, admin improvements, and automated document verification (OCR)
 
-####### Credit Operations and Infrastructure Partnership** *(supervised for one semester)*
+###### Credit Operations and Infrastructure Partnership *(supervised for one semester)*
 - Split credit process into document verification and core underwriting — reduced turnaround to under 2 working days
 - Standardized requirements and hand-off responsibilities between account managers and credit analysts
 - Shifted financing from balance sheet to channeling partnerships, reducing company risk exposure

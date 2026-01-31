@@ -1,0 +1,40 @@
+import { Link } from '@tanstack/react-router'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils'
+
+interface WritingSectionHeadingProps {
+  label: string
+  description?: string
+  className?: string
+}
+
+export function WritingSectionHeading({
+  label,
+  description,
+  className,
+}: WritingSectionHeadingProps) {
+  return (
+    <div className={cn('flex flex-col gap-2', className)}>
+      <div className="flex items-center gap-3 w-full">
+        {/* Section Label */}
+        <span className="text-xl font-normal text-secondary-foreground shrink-0 font-bricolage">
+          {label}
+        </span>
+
+        {/* Divider Line */}
+        <Separator className="flex-1 bg-border" />
+
+        {/* View More Button */}
+        <Button variant="secondary" size="sm" asChild className="shrink-0 h-7 text-xs px-2">
+          <Link to="/writings">View More</Link>
+        </Button>
+      </div>
+
+      {/* Section Description */}
+      {description && (
+        <p className="font-sans text-xs text-muted-foreground">{description}</p>
+      )}
+    </div>
+  )
+}
